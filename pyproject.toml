@@ -5,6 +5,9 @@ description = "Yet Another Picture Search Nonebot Plugin"
 authors = ["NekoAria"]
 license = "GPL v3"
 readme = "README.md"
+packages = [
+    { include = "YetAnotherPicSearch" },
+]
 homepage = "https://github.com/NekoAria/YetAnotherPicSearch"
 repository = "https://github.com/NekoAria/YetAnotherPicSearch"
 keywords = ["nonebot", "saucenao", "ascii2d", "pixiv", "danbooru", "anime"]
