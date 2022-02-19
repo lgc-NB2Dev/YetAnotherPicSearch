@@ -17,21 +17,22 @@ async def ascii2d_search(url: str, proxy: str, hide_img: bool) -> str:
             [bovw_res.raw[0].title, bovw_res.raw[0].authors, bovw_res.raw[0].url]
         ):
             bovw_res.raw[0] = bovw_res.raw[1]
+        color_thumbnail = await handle_img(color_res.raw[0].thumbnail, proxy, hide_img)
+        bovw_thumbnail = await handle_img(bovw_res.raw[0].thumbnail, proxy, hide_img)
         res_list = [
             f"Ascii2D 色合検索\n",
-            f"{await handle_img(color_res.raw[0].thumbnail, proxy, hide_img)}\n",
-            f"{color_res.raw[0].title}\n",
-            f"Author：{color_res.raw[0].authors}\n",
-            f"{color_res.raw[0].url}",
+            f"{color_thumbnail}\n",
+            f"{color_res.raw[0].title}\n" if color_res.raw[0].title else "",
+            f"Author：{color_res.raw[0].authors}\n" if color_res.raw[0].authors else "",
+            f"{color_res.raw[0].url}" if color_res.raw[0].url else "",
             "\n\n",
             f"Ascii2D 特徴検索\n",
-            f"{await handle_img(bovw_res.raw[0].thumbnail, proxy, hide_img)}\n",
-            f"{bovw_res.raw[0].title}\n",
-            f"Author：{bovw_res.raw[0].authors}\n",
-            f"{bovw_res.raw[0].url}",
+            f"{bovw_thumbnail}\n",
+            f"{bovw_res.raw[0].title}\n" if bovw_res.raw[0].title else "",
+            f"Author：{bovw_res.raw[0].authors}\n" if bovw_res.raw[0].authors else "",
+            f"{bovw_res.raw[0].url}" if bovw_res.raw[0].url else "",
         ]
         final_res = ""
         for i in res_list:
-            if i not in ["\n", "Author：\n"]:
-                final_res += i
+            final_res += i
         return final_res
