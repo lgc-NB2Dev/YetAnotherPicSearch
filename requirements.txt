@@ -1,0 +1,10 @@
+arrow~=1.2.0
+httpx~=0.18.0
+ImageHash~=4.2.0
+nonebot-adapter-onebot==2.0.0b1
+nonebot2==2.0.0b1
+PicImageSearch~=2.2.6
+Pillow~=9.0.0
+pydantic~=1.9.0
+pyquery~=1.4.3
+tinydb~=4.6.1
