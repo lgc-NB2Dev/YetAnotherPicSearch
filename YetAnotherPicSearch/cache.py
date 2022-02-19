@@ -25,7 +25,7 @@ async def exist_in_cache(db: TinyDB, image_hash: str, mode: str) -> dict:
         db.update(
             set("update_at", arrow.now().for_json()), Query().image_hash == image_hash
         )
-        return cache_result[0]
+        return cache_result[-1]
     else:
         return {}
 

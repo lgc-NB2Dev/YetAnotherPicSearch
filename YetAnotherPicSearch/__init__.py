@@ -1,5 +1,4 @@
 import arrow
-from nonebot import on_regex
 from nonebot.adapters.onebot.v11 import (
     Bot,
     GroupMessageEvent,
@@ -7,8 +6,11 @@ from nonebot.adapters.onebot.v11 import (
     MessageEvent,
     PrivateMessageEvent,
 )
-from nonebot.rule import to_me
-from tinydb import JSONStorage, TinyDB
+from nonebot.matcher import Matcher
+from nonebot.params import CommandArg
+from nonebot.plugin.on import on_command, on_message
+from nonebot.rule import Rule
+from tinydb import JSONStorage, Query, TinyDB
 from tinydb.middlewares import CachingMiddleware
 
 from .ascii2d import ascii2d_search
@@ -21,7 +23,29 @@ if config.proxy:
 else:
     PROXY = None
 
-IMAGE_SEARCH = on_regex(pattern=r"\[CQ:image.+?]", rule=to_me(), priority=5)
+
+async def _to_me(bot: Bot, event: MessageEvent) -> bool:
+    msgs = event.message
+    at_me = bool([i for i in msgs if i.type == "at" and i.data["qq"] == bot.self_id])
+    if event.reply:
+        has_image = bool([i for i in event.reply.message if i.type == "image"])
+    else:
+        has_image = bool([i for i in msgs if i.type == "image"])
+    return has_image and (event.to_me or at_me)
+
+
+async def _not_to_me(event: MessageEvent) -> bool:
+    return not event.to_me and isinstance(event, GroupMessageEvent)
+
+
+IMAGE_SEARCH = on_message(rule=Rule(_to_me), priority=5)
+IMAGE_SEARCH_MODE = on_command("搜图", rule=Rule(_not_to_me), priority=5)
+
+
+@IMAGE_SEARCH_MODE.handle()
+async def handle_first_receive(matcher: Matcher, args: Message = CommandArg()):
+    if [i for i in args if i.type == "image"]:
+        matcher.set_arg("IMAGES", args)
 
 
 async def image_search(
@@ -47,9 +71,10 @@ async def image_search(
         result["mode"] = mode
         result["image_hash"] = image_hash
         result["update_at"] = arrow.now().for_json()
+        db.upsert(result, (Query().image_hash == image_hash) & (Query().mode == mode))
         db.insert(result)
     else:
-        final_res = "[缓存]"
+        final_res = "[缓存] "
     await clear_expired_cache(db)
     db.close()
     if mode == "a2d":
@@ -59,25 +84,30 @@ async def image_search(
     return final_res
 
 
-async def get_image_urls_with_args(args: Message) -> (list[str], str, bool):
-    image_urls = []
-    for i in args:
-        if i.type == "image":
-            image_urls.append(i.data["url"])
+async def get_image_urls(msg: Message) -> list[str]:
+    return [i.data["url"] for i in msg if i.type == "image" and i.data.get("url")]
+
+
+async def get_args(msg: Message) -> (str, bool):
     mode = "all"
-    plain_text = args.extract_plain_text()
+    plain_text = msg.extract_plain_text()
     args = ["a2d", "pixiv", "danbooru", "doujin", "anime"]
     if plain_text:
         for i in args:
             if f"--{i}" in plain_text:
                 mode = i
     purge = "--purge" in plain_text
-    return image_urls, mode, purge
+    return mode, purge
 
 
 @IMAGE_SEARCH.handle()
+@IMAGE_SEARCH_MODE.got("IMAGES", prompt="请发送图片及搜索类型（可选）")
 async def handle_image_search(bot: Bot, event: MessageEvent):
-    image_urls, mode, purge = await get_image_urls_with_args(event.message)
+    message = event.reply.message if event.reply else event.message
+    image_urls = await get_image_urls(message)
+    if not image_urls:
+        await IMAGE_SEARCH_MODE.reject()
+    mode, purge = await get_args(event.message)
     for i in image_urls:
         msgs = await image_search(i, mode, purge, PROXY)
         msg_list = msgs.split("\n\n")
@@ -92,8 +122,8 @@ async def handle_image_search(bot: Bot, event: MessageEvent):
                         {
                             "type": "node",
                             "data": {
-                                "name": event.sender.nickname,
-                                "uin": event.user_id,
+                                "name": "\u200b",
+                                "uin": bot.self_id,
                                 "content": msg,
                             },
                         }
