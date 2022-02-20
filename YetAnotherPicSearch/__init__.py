@@ -43,14 +43,14 @@ IMAGE_SEARCH_MODE = on_command("搜图", rule=Rule(_not_to_me), priority=5)
 
 
 @IMAGE_SEARCH_MODE.handle()
-async def handle_first_receive(matcher: Matcher, args: Message = CommandArg()):
+async def handle_first_receive(matcher: Matcher, args: Message = CommandArg()) -> None:
     if [i for i in args if i.type == "image"]:
         matcher.set_arg("IMAGES", args)
 
 
 async def image_search(
     url: str, mode: str, purge: bool, proxy: str, hide_img: bool = config.hide_img
-) -> str:
+) -> list[str]:
     db = TinyDB(
         "cache.json",
         storage=CachingMiddleware(JSONStorage),
@@ -61,9 +61,9 @@ async def image_search(
     )
     image_hash = await get_imagehash_by_url(url, proxy)
     result = await exist_in_cache(db, image_hash, mode)
-    if purge or not result:
+    cached = bool(result)
+    if purge or not cached:
         result = {}
-        final_res = ""
         if mode == "a2d":
             result["ascii2d"] = await ascii2d_search(url, proxy, hide_img)
         else:
@@ -73,14 +73,14 @@ async def image_search(
         result["update_at"] = arrow.now().for_json()
         db.upsert(result, (Query().image_hash == image_hash) & (Query().mode == mode))
         db.insert(result)
-    else:
-        final_res = "[缓存] "
     await clear_expired_cache(db)
     db.close()
     if mode == "a2d":
-        final_res += result["ascii2d"]
+        final_res = result["ascii2d"]
     else:
-        final_res += result["saucenao"]
+        final_res = result["saucenao"]
+    if cached and not purge:
+        final_res = [f"[缓存] {i}" for i in final_res]
     return final_res
 
 
@@ -102,15 +102,14 @@ async def get_args(msg: Message) -> (str, bool):
 
 @IMAGE_SEARCH.handle()
 @IMAGE_SEARCH_MODE.got("IMAGES", prompt="请发送图片及搜索类型（可选）")
-async def handle_image_search(bot: Bot, event: MessageEvent):
+async def handle_image_search(bot: Bot, event: MessageEvent) -> None:
     message = event.reply.message if event.reply else event.message
     image_urls = await get_image_urls(message)
     if not image_urls:
         await IMAGE_SEARCH_MODE.reject()
     mode, purge = await get_args(event.message)
     for i in image_urls:
-        msgs = await image_search(i, mode, purge, PROXY)
-        msg_list = msgs.split("\n\n")
+        msg_list = await image_search(i, mode, purge, PROXY)
         if isinstance(event, PrivateMessageEvent):
             for msg in msg_list:
                 await bot.send_private_msg(user_id=event.user_id, message=msg)
