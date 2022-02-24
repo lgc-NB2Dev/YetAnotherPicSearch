@@ -1,3 +1,5 @@
+import re
+
 import arrow
 from nonebot.adapters.onebot.v11 import (
     Bot,
@@ -14,7 +16,7 @@ from tinydb import JSONStorage, Query, TinyDB
 from tinydb.middlewares import CachingMiddleware
 
 from .ascii2d import ascii2d_search
-from .cache import clear_expired_cache, exist_in_cache, get_imagehash_by_url
+from .cache import clear_expired_cache, exist_in_cache
 from .config import config
 from .saucenao import saucenao_search
 
@@ -59,8 +61,8 @@ async def image_search(
         indent=4,
         ensure_ascii=False,
     )
-    image_hash = await get_imagehash_by_url(url, proxy)
-    result = await exist_in_cache(db, image_hash, mode)
+    image_md5 = re.search("[A-F0-9]{32}", url)[0]
+    result = await exist_in_cache(db, image_md5, mode)
     cached = bool(result)
     if purge or not cached:
         result = {}
@@ -69,9 +71,9 @@ async def image_search(
         else:
             result["saucenao"] = await saucenao_search(url, mode, proxy, hide_img)
         result["mode"] = mode
-        result["image_hash"] = image_hash
+        result["image_md5"] = image_md5
         result["update_at"] = arrow.now().for_json()
-        db.upsert(result, (Query().image_hash == image_hash) & (Query().mode == mode))
+        db.upsert(result, (Query().image_md5 == image_md5) & (Query().mode == mode))
         db.insert(result)
     await clear_expired_cache(db)
     db.close()
