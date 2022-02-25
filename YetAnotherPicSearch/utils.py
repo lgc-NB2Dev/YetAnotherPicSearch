@@ -7,11 +7,10 @@ from pyquery import PyQuery
 
 # 将图片转化为 base64
 async def get_pic_base64_by_url(url: str, proxy: str) -> str:
-    async with httpx.AsyncClient(proxies=proxy):
-        r = httpx.get(url)
+    async with httpx.AsyncClient(proxies=proxy) as client:
+        r = await client.get(url)
         image_buffer = BytesIO(r.content)
-        res = str(base64.b64encode(image_buffer.getvalue()), encoding="utf-8")
-        return res
+        return str(base64.b64encode(image_buffer.getvalue()), encoding="utf-8")
 
 
 async def handle_img(url: str, proxy: str, hide_img: bool) -> str:
