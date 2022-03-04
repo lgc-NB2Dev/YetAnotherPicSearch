@@ -1,4 +1,5 @@
 import base64
+import re
 from io import BytesIO
 
 import httpx
@@ -23,17 +24,30 @@ async def handle_img(url: str, proxy: str, hide_img: bool) -> str:
 
 
 async def get_source(url: str, proxy: str) -> str:
+    source = ""
     async with httpx.AsyncClient(proxies=proxy) as client:
         if "danbooru.donmai.us" in url:
-            return PyQuery((await client.get(url)).content)(".image-container").attr(
+            source = PyQuery((await client.get(url)).content)(".image-container").attr(
                 "data-normalized-source"
             )
         elif "konachan.com" in url or "yande.re" in url:
-            return PyQuery((await client.get(url)).content)(
+            source = PyQuery((await client.get(url)).content)(
                 "#stats li:contains(Source) a"
             ).attr("href")
         elif "gelbooru.com" in url:
-            return PyQuery((await client.get(url)).content)(
+            source = PyQuery((await client.get(url)).content)(
                 "#tag-list li:contains(Source) a"
             ).attr("href")
+    if source:
+        return str(source)
     return ""
+
+
+async def shorten_pixiv_url(url: str) -> str:
+    pid_search = re.compile(r"pixiv.+(?:illust_id=|artworks/)([0-9]+)")
+    uid_search = re.compile(r"pixiv.+(?:member\.php\?id=|users/)([0-9]+)")
+    if pid_search.search(url):
+        return f"https://pixiv.net/i/{pid_search.search(url).group(1)}"
+    if uid_search.search(url):
+        return f"https://pixiv.net/u/{uid_search.search(url).group(1)}"
+    return url

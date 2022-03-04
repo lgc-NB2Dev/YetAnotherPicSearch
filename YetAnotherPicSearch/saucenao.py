@@ -2,7 +2,7 @@ from PicImageSearch import AsyncSauceNAO, NetWork
 
 from .ascii2d import ascii2d_search
 from .config import config
-from .utils import get_source, handle_img
+from .utils import get_source, handle_img, shorten_pixiv_url
 
 
 async def saucenao_search(url: str, mode: str, proxy: str, hide_img: bool) -> list[str]:
@@ -14,7 +14,7 @@ async def saucenao_search(url: str, mode: str, proxy: str, hide_img: bool) -> li
         res = await saucenao.search(url)
         final_res = []
         thumbnail = await handle_img(res.raw[0].thumbnail, proxy, hide_img)
-        source = await get_source(res.raw[0].url, proxy)
+        source = await shorten_pixiv_url(await get_source(res.raw[0].url, proxy))
         if res is not None:
             res_list = [
                 f"SauceNAO（{res.raw[0].similarity}%）",
@@ -23,7 +23,7 @@ async def saucenao_search(url: str, mode: str, proxy: str, hide_img: bool) -> li
                 if mode == "doujin"
                 else f"{res.raw[0].title}",
                 f"Author：{res.raw[0].author}" if res.raw[0].author else "",
-                f"{res.raw[0].url}",
+                f"{await shorten_pixiv_url(res.raw[0].url)}",
                 f"Source：{source}" if source else "",
             ]
             final_res.append("\n".join([i for i in res_list if i != ""]))
