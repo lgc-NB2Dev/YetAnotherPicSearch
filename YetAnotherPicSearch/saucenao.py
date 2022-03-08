@@ -13,9 +13,9 @@ async def saucenao_search(url: str, mode: str, proxy: str, hide_img: bool) -> li
         )
         res = await saucenao.search(url)
         final_res = []
-        thumbnail = await handle_img(res.raw[0].thumbnail, proxy, hide_img)
-        source = await shorten_pixiv_url(await get_source(res.raw[0].url, proxy))
         if res is not None:
+            thumbnail = await handle_img(res.raw[0].thumbnail, proxy, hide_img)
+            source = await shorten_pixiv_url(await get_source(res.raw[0].url, proxy))
             res_list = [
                 f"SauceNAO（{res.raw[0].similarity}%）",
                 f"{thumbnail}",
