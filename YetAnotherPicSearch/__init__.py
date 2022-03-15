@@ -2,6 +2,7 @@ import re
 
 import arrow
 from nonebot.adapters.onebot.v11 import (
+    ActionFailed,
     Bot,
     GroupMessageEvent,
     Message,
@@ -116,21 +117,25 @@ async def handle_image_search(bot: Bot, event: MessageEvent) -> None:
             for msg in msg_list:
                 await bot.send_private_msg(user_id=event.user_id, message=msg)
         elif isinstance(event, GroupMessageEvent):
-            if config.group_forward_search_result and len(msg_list) > 1:
-                await bot.send_group_forward_msg(
-                    group_id=event.group_id,
-                    messages=[
-                        {
-                            "type": "node",
-                            "data": {
-                                "name": "\u200b",
-                                "uin": bot.self_id,
-                                "content": msg,
-                            },
-                        }
-                        for msg in msg_list
-                    ],
-                )
-            else:
+            flag = config.group_forward_search_result and len(msg_list) > 1
+            if flag:
+                try:
+                    await bot.send_group_forward_msg(
+                        group_id=event.group_id,
+                        messages=[
+                            {
+                                "type": "node",
+                                "data": {
+                                    "name": "\u200b",
+                                    "uin": bot.self_id,
+                                    "content": msg,
+                                },
+                            }
+                            for msg in msg_list
+                        ],
+                    )
+                except ActionFailed:
+                    flag = False
+            if not flag:
                 for msg in msg_list:
                     await bot.send_group_msg(group_id=event.group_id, message=msg)
