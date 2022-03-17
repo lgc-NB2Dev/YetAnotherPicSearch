@@ -1,7 +1,7 @@
 from PicImageSearch import AsyncAscii2D, NetWork
 from PicImageSearch.Utils import Ascii2DResponse
 
-from .utils import handle_img, shorten_pixiv_url
+from .utils import handle_img, shorten_url
 
 
 async def ascii2d_search(url: str, proxy: str, hide_img: bool) -> list[str]:
@@ -19,7 +19,7 @@ async def ascii2d_search(url: str, proxy: str, hide_img: bool) -> list[str]:
                 f"{thumbnail}",
                 f"{res.raw[0].title}" if res.raw[0].title else "",
                 f"Author：{res.raw[0].authors}" if res.raw[0].authors else "",
-                f"{await shorten_pixiv_url(res.raw[0].url)}" if res.raw[0].url else "",
+                f"{await shorten_url(res.raw[0].url)}" if res.raw[0].url else "",
             ]
             return "\n".join([i for i in res_list if i != ""])
 

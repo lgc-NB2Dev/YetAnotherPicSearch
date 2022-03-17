@@ -26,15 +26,15 @@ async def handle_img(url: str, proxy: str, hide_img: bool) -> str:
 async def get_source(url: str, proxy: str) -> str:
     source = ""
     async with httpx.AsyncClient(proxies=proxy) as client:
-        if "danbooru.donmai.us" in url:
+        if httpx.URL(url).host == "danbooru.donmai.us":
             source = PyQuery((await client.get(url)).content)(".image-container").attr(
                 "data-normalized-source"
             )
-        elif "konachan.com" in url or "yande.re" in url:
+        elif httpx.URL(url).host in ["yande.re", "konachan.com"]:
             source = PyQuery((await client.get(url)).content)(
                 "#stats li:contains(Source) a"
             ).attr("href")
-        elif "gelbooru.com" in url:
+        elif httpx.URL(url).host == "gelbooru.com":
             source = PyQuery((await client.get(url)).content)(
                 "#tag-list li:contains(Source) a"
             ).attr("href")
@@ -43,11 +43,10 @@ async def get_source(url: str, proxy: str) -> str:
     return ""
 
 
-async def shorten_pixiv_url(url: str) -> str:
+async def shorten_url(url: str) -> str:
     pid_search = re.compile(r"pixiv.+(?:illust_id=|artworks/)([0-9]+)")
-    uid_search = re.compile(r"pixiv.+(?:member\.php\?id=|users/)([0-9]+)")
     if pid_search.search(url):
         return f"https://pixiv.net/i/{pid_search.search(url).group(1)}"
-    if uid_search.search(url):
-        return f"https://pixiv.net/u/{uid_search.search(url).group(1)}"
+    if httpx.URL(url).host == "danbooru.donmai.us":
+        return url.replace("/post/show/", "/posts/")
     return url

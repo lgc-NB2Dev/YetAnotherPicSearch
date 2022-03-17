@@ -1,8 +1,10 @@
+import re
+
 from PicImageSearch import AsyncSauceNAO, NetWork
 
 from .ascii2d import ascii2d_search
 from .config import config
-from .utils import get_source, handle_img, shorten_pixiv_url
+from .utils import get_source, handle_img, shorten_url
 
 
 async def saucenao_search(url: str, mode: str, proxy: str, hide_img: bool) -> list[str]:
@@ -14,24 +16,52 @@ async def saucenao_search(url: str, mode: str, proxy: str, hide_img: bool) -> li
         res = await saucenao.search(url)
         final_res = []
         if res is not None:
-            thumbnail = await handle_img(res.raw[0].thumbnail, proxy, hide_img)
-            source = await shorten_pixiv_url(await get_source(res.raw[0].url, proxy))
+            selected_res = res.raw[0]
+            ext_urls = selected_res.origin["data"].get("ext_urls")
+            # 如果结果为 pixiv ，尝试找到原始投稿，避免返回盗图者的投稿
+            if selected_res.index_id == saucenao_db["pixiv"]:
+                pixiv_res_list = list(
+                    filter(
+                        lambda x: x.index_id == saucenao_db["pixiv"]
+                        and x.url
+                        and abs(x.similarity - selected_res.similarity) < 5,
+                        res.raw,
+                    )
+                )
+                if len(pixiv_res_list) > 1:
+                    selected_res = min(
+                        pixiv_res_list,
+                        key=lambda x: int(re.search(r"\d+", x.url).group()),
+                    )
+            # 如果地址有多个，优先取 danbooru
+            elif ext_urls and len(ext_urls) > 1:
+                for i in ext_urls:
+                    if "danbooru" in i:
+                        selected_res.url = i
+            thumbnail = await handle_img(selected_res.thumbnail, proxy, hide_img)
+            if selected_res.origin["data"].get("source"):
+                source = await shorten_url(selected_res.origin["data"]["source"])
+            else:
+                source = await shorten_url(await get_source(selected_res.url, proxy))
+            # 如果结果为 doujin ，尝试返回日文标题而不是英文标题
+            if selected_res.index_id == saucenao_db["doujin"] and selected_res.origin[
+                "data"
+            ].get("jp_name"):
+                selected_res.title = selected_res.origin["data"]["jp_name"]
             res_list = [
-                f"SauceNAO（{res.raw[0].similarity}%）",
+                f"SauceNAO（{selected_res.similarity}%）",
                 f"{thumbnail}",
-                f"{res.raw[0].origin['data'].get('jp_name')}"
-                if mode == "doujin"
-                else f"{res.raw[0].title}",
-                f"Author：{res.raw[0].author}" if res.raw[0].author else "",
-                f"{await shorten_pixiv_url(res.raw[0].url)}",
+                f"{selected_res.title}",
+                f"Author：{selected_res.author}" if selected_res.author else "",
+                f"{await shorten_url(selected_res.url)}",
                 f"Source：{source}" if source else "",
             ]
             final_res.append("\n".join([i for i in res_list if i != ""]))
             if (
                 config.use_ascii2d_when_low_acc
-                and res.raw[0].similarity < config.saucenao_low_acc
+                and selected_res.similarity < config.saucenao_low_acc
             ):
-                final_res.append(f"相似度 {res.raw[0].similarity}% 过低，自动使用 Ascii2D 进行搜索")
+                final_res.append(f"相似度 {selected_res.similarity}% 过低，自动使用 Ascii2D 进行搜索")
                 final_res.extend(await ascii2d_search(url, proxy, hide_img))
         else:
             final_res.append("SauceNAO 暂时无法使用，自动使用 Ascii2D 进行搜索")
