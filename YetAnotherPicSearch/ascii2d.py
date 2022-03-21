@@ -1,13 +1,13 @@
-from PicImageSearch import AsyncAscii2D, NetWork
+from PicImageSearch import Ascii2D, NetWork
 from PicImageSearch.Utils import Ascii2DResponse
 
 from .utils import handle_img, shorten_url
 
 
 async def ascii2d_search(url: str, proxy: str, hide_img: bool) -> list[str]:
-    async with NetWork(proxy=proxy) as client:
-        ascii2d_color = AsyncAscii2D(client=client)
-        ascii2d_bovw = AsyncAscii2D(bovw=True, client=client)
+    async with NetWork(proxies=proxy) as client:
+        ascii2d_color = Ascii2D(client=client)
+        ascii2d_bovw = Ascii2D(bovw=True, client=client)
         color_res = await ascii2d_color.search(url)
         bovw_res = await ascii2d_bovw.search(url)
 
