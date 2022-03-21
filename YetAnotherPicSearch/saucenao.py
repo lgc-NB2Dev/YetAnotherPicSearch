@@ -1,6 +1,6 @@
 import re
 
-from PicImageSearch import NetWork, SauceNAO
+from PicImageSearch import Network, SauceNAO
 
 from .ascii2d import ascii2d_search
 from .config import config
@@ -9,7 +9,7 @@ from .utils import get_source, handle_img, shorten_url
 
 async def saucenao_search(url: str, mode: str, proxy: str, hide_img: bool) -> list[str]:
     saucenao_db = {"all": 999, "pixiv": 5, "danbooru": 9, "anime": 21, "doujin": 18}
-    async with NetWork(proxies=proxy) as client:
+    async with Network(proxies=proxy) as client:
         saucenao = SauceNAO(
             client=client, api_key=config.saucenao_api_key, db=saucenao_db[mode]
         )

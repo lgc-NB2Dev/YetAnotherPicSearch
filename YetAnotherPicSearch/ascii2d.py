@@ -1,11 +1,11 @@
-from PicImageSearch import Ascii2D, NetWork
+from PicImageSearch import Ascii2D, Network
 from PicImageSearch.Utils import Ascii2DResponse
 
 from .utils import handle_img, shorten_url
 
 
 async def ascii2d_search(url: str, proxy: str, hide_img: bool) -> list[str]:
-    async with NetWork(proxies=proxy) as client:
+    async with Network(proxies=proxy) as client:
         ascii2d_color = Ascii2D(client=client)
         ascii2d_bovw = Ascii2D(bovw=True, client=client)
         color_res = await ascii2d_color.search(url)
@@ -18,7 +18,7 @@ async def ascii2d_search(url: str, proxy: str, hide_img: bool) -> list[str]:
             res_list = [
                 f"{thumbnail}",
                 f"{res.raw[0].title}" if res.raw[0].title else "",
-                f"Author：{res.raw[0].authors}" if res.raw[0].authors else "",
+                f"Author：{res.raw[0].author}" if res.raw[0].author else "",
                 f"{await shorten_url(res.raw[0].url)}" if res.raw[0].url else "",
             ]
             return "\n".join([i for i in res_list if i != ""])
