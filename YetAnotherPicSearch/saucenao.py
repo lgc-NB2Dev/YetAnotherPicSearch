@@ -1,13 +1,16 @@
 import re
+from typing import List, Optional
 
-from PicImageSearch import Network, SauceNAO
+from PicImageSearch import Network, SauceNAO  # type: ignore
 
 from .ascii2d import ascii2d_search
 from .config import config
 from .utils import get_source, handle_img, shorten_url
 
 
-async def saucenao_search(url: str, mode: str, proxy: str, hide_img: bool) -> list[str]:
+async def saucenao_search(
+    url: str, mode: str, proxy: Optional[str], hide_img: bool
+) -> List[str]:
     saucenao_db = {"all": 999, "pixiv": 5, "danbooru": 9, "anime": 21, "doujin": 18}
     async with Network(proxies=proxy) as client:
         saucenao = SauceNAO(
@@ -31,7 +34,7 @@ async def saucenao_search(url: str, mode: str, proxy: str, hide_img: bool) -> li
                 if len(pixiv_res_list) > 1:
                     selected_res = min(
                         pixiv_res_list,
-                        key=lambda x: int(re.search(r"\d+", x.url).group()),
+                        key=lambda x: int(re.search(r"\d+", x.url).group()),  # type: ignore
                     )
             # 如果地址有多个，优先取 danbooru
             elif ext_urls and len(ext_urls) > 1:
@@ -48,12 +51,13 @@ async def saucenao_search(url: str, mode: str, proxy: str, hide_img: bool) -> li
                 "data"
             ].get("jp_name"):
                 selected_res.title = selected_res.origin["data"]["jp_name"]
+            _url = await shorten_url(selected_res.url)
             res_list = [
                 f"SauceNAO（{selected_res.similarity}%）",
                 f"{thumbnail}",
                 f"{selected_res.title}",
                 f"Author：{selected_res.author}" if selected_res.author else "",
-                f"{await shorten_url(selected_res.url)}",
+                _url,
                 f"Source：{source}" if source else "",
             ]
             final_res.append("\n".join([i for i in res_list if i != ""]))

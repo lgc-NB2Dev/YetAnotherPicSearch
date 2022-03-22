@@ -1,7 +1,8 @@
 import re
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import arrow
-from nonebot.adapters.onebot.v11 import (
+from nonebot.adapters.onebot.v11 import (  # type: ignore
     ActionFailed,
     Bot,
     GroupMessageEvent,
@@ -19,12 +20,8 @@ from tinydb.middlewares import CachingMiddleware
 from .ascii2d import ascii2d_search
 from .cache import clear_expired_cache, exist_in_cache
 from .config import config
+from .result import Result
 from .saucenao import saucenao_search
-
-if config.proxy:
-    PROXY = config.proxy
-else:
-    PROXY = None
 
 
 async def _to_me(bot: Bot, event: MessageEvent) -> bool:
@@ -52,46 +49,52 @@ async def handle_first_receive(matcher: Matcher, args: Message = CommandArg()) -
 
 
 async def image_search(
-    url: str, mode: str, purge: bool, proxy: str, hide_img: bool = config.hide_img
-) -> list[str]:
+    url: str,
+    mode: str,
+    purge: bool,
+    proxy: Optional[str],
+    hide_img: bool = config.hide_img,
+) -> Union[List[str], Any]:
     db = TinyDB(
         "cache.json",
-        storage=CachingMiddleware(JSONStorage),
+        storage=CachingMiddleware(JSONStorage),  # type: ignore
         encoding="utf-8",
         sort_keys=True,
         indent=4,
         ensure_ascii=False,
     )
-    image_md5 = re.search("[A-F0-9]{32}", url)[0]
-    result = await exist_in_cache(db, image_md5, mode)
-    cached = bool(result)
-    if purge or not cached:
-        result = {}
+    image_md5 = re.search("[A-F0-9]{32}", url)[0]  # type: ignore
+    _result = await exist_in_cache(db, image_md5, mode)
+    cached = bool(_result)
+    if purge or not _result:
+        result_dict: Dict[str, Any] = {}
         if mode == "a2d":
-            result["ascii2d"] = await ascii2d_search(url, proxy, hide_img)
+            result_dict["ascii2d"] = await ascii2d_search(url, proxy, hide_img)
         else:
-            result["saucenao"] = await saucenao_search(url, mode, proxy, hide_img)
-        result["mode"] = mode
-        result["image_md5"] = image_md5
-        result["update_at"] = arrow.now().for_json()
-        db.upsert(result, (Query().image_md5 == image_md5) & (Query().mode == mode))
-        db.insert(result)
+            result_dict["saucenao"] = await saucenao_search(url, mode, proxy, hide_img)
+        result_dict["mode"] = mode
+        result_dict["image_md5"] = image_md5
+        result_dict["update_at"] = arrow.now().for_json()
+        _result = Result(result_dict)
+        db.upsert(
+            _result.__dict__, (Query().image_md5 == image_md5) & (Query().mode == mode)
+        )
     await clear_expired_cache(db)
     db.close()
     if mode == "a2d":
-        final_res = result["ascii2d"]
+        final_res = _result.ascii2d
     else:
-        final_res = result["saucenao"]
+        final_res = _result.saucenao
     if cached and not purge:
-        final_res = [f"[缓存] {i}" for i in final_res]
+        return [f"[缓存] {i}" for i in final_res]  # type: ignore
     return final_res
 
 
-async def get_image_urls(msg: Message) -> list[str]:
+async def get_image_urls(msg: Message) -> List[str]:
     return [i.data["url"] for i in msg if i.type == "image" and i.data.get("url")]
 
 
-async def get_args(msg: Message) -> (str, bool):
+async def get_args(msg: Message) -> Tuple[str, bool]:
     mode = "all"
     plain_text = msg.extract_plain_text()
     args = ["a2d", "pixiv", "danbooru", "doujin", "anime"]
@@ -112,7 +115,7 @@ async def handle_image_search(bot: Bot, event: MessageEvent) -> None:
         await IMAGE_SEARCH_MODE.reject()
     mode, purge = await get_args(event.message)
     for i in image_urls:
-        msg_list = await image_search(i, mode, purge, PROXY)
+        msg_list = await image_search(i, mode, purge, config.proxy)
         if isinstance(event, PrivateMessageEvent):
             for msg in msg_list:
                 await bot.send_private_msg(user_id=event.user_id, message=msg)
