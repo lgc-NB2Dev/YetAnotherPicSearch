@@ -1,7 +1,7 @@
 from typing import List, Optional
 
-from PicImageSearch import Ascii2D, Network  # type: ignore
-from PicImageSearch.Utils import Ascii2DResponse  # type: ignore
+from PicImageSearch import Ascii2D, Network
+from PicImageSearch.Utils import Ascii2DResponse
 
 from .utils import handle_img, shorten_url
 

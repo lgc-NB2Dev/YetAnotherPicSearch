@@ -2,7 +2,7 @@ import re
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import arrow
-from nonebot.adapters.onebot.v11 import (  # type: ignore
+from nonebot.adapters.onebot.v11 import (
     ActionFailed,
     Bot,
     GroupMessageEvent,

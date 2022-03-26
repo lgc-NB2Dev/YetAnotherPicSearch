@@ -1,7 +1,7 @@
 import re
 from typing import List, Optional
 
-from PicImageSearch import Network, SauceNAO  # type: ignore
+from PicImageSearch import Network, SauceNAO
 
 from .ascii2d import ascii2d_search
 from .config import config
