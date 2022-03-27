@@ -20,6 +20,7 @@ from tinydb.middlewares import CachingMiddleware
 from .ascii2d import ascii2d_search
 from .cache import clear_expired_cache, exist_in_cache
 from .config import config
+from .ehentai import ehentai_search
 from .result import Result
 from .saucenao import saucenao_search
 
@@ -70,6 +71,8 @@ async def image_search(
         result_dict: Dict[str, Any] = {}
         if mode == "a2d":
             result_dict["ascii2d"] = await ascii2d_search(url, proxy, hide_img)
+        elif mode == "ex":
+            result_dict["ex"] = await ehentai_search(url, proxy, hide_img)
         else:
             result_dict["saucenao"] = await saucenao_search(url, mode, proxy, hide_img)
         result_dict["mode"] = mode
@@ -83,6 +86,8 @@ async def image_search(
     db.close()
     if mode == "a2d":
         final_res = _result.ascii2d
+    elif mode == "ex":
+        final_res = _result.ex
     else:
         final_res = _result.saucenao
     if cached and not purge:
@@ -97,7 +102,7 @@ async def get_image_urls(msg: Message) -> List[str]:
 async def get_args(msg: Message) -> Tuple[str, bool]:
     mode = "all"
     plain_text = msg.extract_plain_text()
-    args = ["a2d", "pixiv", "danbooru", "doujin", "anime"]
+    args = ["a2d", "pixiv", "danbooru", "doujin", "anime", "ex"]
     if plain_text:
         for i in args:
             if f"--{i}" in plain_text:

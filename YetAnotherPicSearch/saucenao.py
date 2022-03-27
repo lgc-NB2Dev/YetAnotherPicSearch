@@ -6,6 +6,7 @@ from PicImageSearch import Network, SauceNAO
 from .ascii2d import ascii2d_search
 from .config import config
 from .utils import get_source, handle_img, shorten_url
+from .whatanime import whatanime_search
 
 
 async def saucenao_search(
@@ -18,7 +19,7 @@ async def saucenao_search(
         )
         res = await saucenao.search(url)
         final_res = []
-        if res is not None:
+        if res and res.raw:
             selected_res = res.raw[0]
             ext_urls = selected_res.origin["data"].get("ext_urls")
             # 如果结果为 pixiv ，尝试找到原始投稿，避免返回盗图者的投稿
@@ -61,12 +62,15 @@ async def saucenao_search(
                 f"Source：{source}" if source else "",
             ]
             final_res.append("\n".join([i for i in res_list if i != ""]))
-            if (
-                config.use_ascii2d_when_low_acc
-                and selected_res.similarity < config.saucenao_low_acc
-            ):
-                final_res.append(f"相似度 {selected_res.similarity}% 过低，自动使用 Ascii2D 进行搜索")
-                final_res.extend(await ascii2d_search(url, proxy, hide_img))
+            if selected_res.similarity < config.saucenao_low_acc:
+                if config.use_ascii2d_when_low_acc:
+                    final_res.append(
+                        f"相似度 {selected_res.similarity}% 过低，自动使用 Ascii2D 进行搜索"
+                    )
+                    final_res.extend(await ascii2d_search(url, proxy, hide_img))
+            else:
+                if "anidb.net" in _url:
+                    final_res.extend(await whatanime_search(url, proxy, hide_img))
         else:
             final_res.append("SauceNAO 暂时无法使用，自动使用 Ascii2D 进行搜索")
             final_res.extend(await ascii2d_search(url, proxy, hide_img))
