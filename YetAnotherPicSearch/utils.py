@@ -58,9 +58,13 @@ async def get_source(url: str, proxy: Optional[str]) -> str:
 
 
 async def shorten_url(url: str) -> str:
-    pid_search = re.compile(r"pixiv.+(?:illust_id=|artworks/)([0-9]+)")
-    if pid_search.search(url):
-        return f"https://pixiv.net/i/{pid_search.search(url).group(1)}"  # type: ignore
-    if URL(url).host == "danbooru.donmai.us":
+    host = URL(url).host
+    if "pixiv" in host:
+        pid = re.search(r"pixiv.+(?:illust_id=|artworks/)(\d+)", url).group(1)  # type: ignore
+        return f"https://pixiv.net/i/{pid}"
+    elif "pximg" in host:
+        pid = re.search(r"pximg.+/img/(?:\d+/){6}(\d+)", url).group(1)  # type: ignore
+        return f"https://pixiv.net/i/{pid}"
+    elif "danbooru" in host:
         return url.replace("/post/show/", "/posts/")
     return url
