@@ -65,7 +65,7 @@ async def image_search(
         ensure_ascii=False,
     )
     image_md5 = re.search("[A-F0-9]{32}", url)[0]  # type: ignore
-    _result = await exist_in_cache(db, image_md5, mode)
+    _result = exist_in_cache(db, image_md5, mode)
     cached = bool(_result)
     if purge or not _result:
         result_dict: Dict[str, Any] = {}
@@ -82,7 +82,7 @@ async def image_search(
         db.upsert(
             _result.__dict__, (Query().image_md5 == image_md5) & (Query().mode == mode)
         )
-    await clear_expired_cache(db)
+    clear_expired_cache(db)
     db.close()
     if mode == "a2d":
         final_res = _result.ascii2d
@@ -91,15 +91,15 @@ async def image_search(
     else:
         final_res = _result.saucenao
     if cached and not purge:
-        return [f"[缓存] {i}" for i in final_res]  # type: ignore
+        return [f"[缓存] {i}" for i in final_res]
     return final_res
 
 
-async def get_image_urls(msg: Message) -> List[str]:
+def get_image_urls(msg: Message) -> List[str]:
     return [i.data["url"] for i in msg if i.type == "image" and i.data.get("url")]
 
 
-async def get_args(msg: Message) -> Tuple[str, bool]:
+def get_args(msg: Message) -> Tuple[str, bool]:
     mode = "all"
     plain_text = msg.extract_plain_text()
     args = ["a2d", "pixiv", "danbooru", "doujin", "anime", "ex"]
@@ -115,10 +115,10 @@ async def get_args(msg: Message) -> Tuple[str, bool]:
 @IMAGE_SEARCH_MODE.got("IMAGES", prompt="请发送图片及搜索类型（可选）")
 async def handle_image_search(bot: Bot, event: MessageEvent) -> None:
     message = event.reply.message if event.reply else event.message
-    image_urls = await get_image_urls(message)
+    image_urls = get_image_urls(message)
     if not image_urls:
         await IMAGE_SEARCH_MODE.reject()
-    mode, purge = await get_args(event.message)
+    mode, purge = get_args(event.message)
     for i in image_urls:
         msg_list = await image_search(i, mode, purge, config.proxy)
         if isinstance(event, PrivateMessageEvent):

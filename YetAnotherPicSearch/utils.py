@@ -17,7 +17,7 @@ async def get_pic_base64_by_url(
     async with aiohttp.ClientSession(headers=headers) as session:
         async with session.get(url, proxy=proxy) as resp:
             if resp.status == 200:
-                return base64.b64encode(await resp.read()).decode("utf-8")
+                return base64.b64encode(await resp.read()).decode()
     return ""
 
 
@@ -57,7 +57,7 @@ async def get_source(url: str, proxy: Optional[str]) -> str:
     return str(source)
 
 
-async def shorten_url(url: str) -> str:
+def shorten_url(url: str) -> str:
     pid_search = re.compile(
         r"(?:pixiv.+(?:illust_id=|artworks/)|/img-original/img/(?:\d+/){6})(\d+)"
     )

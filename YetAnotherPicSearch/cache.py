@@ -9,7 +9,7 @@ from .config import config
 from .result import Result
 
 
-async def exist_in_cache(db: TinyDB, image_md5: str, mode: str) -> Optional[Result]:
+def exist_in_cache(db: TinyDB, image_md5: str, mode: str) -> Optional[Result]:
     result: Optional[Result] = None
     cache_result: List[Document] = db.search(
         (Query().image_md5 == image_md5) & (Query().mode == mode)
@@ -22,6 +22,6 @@ async def exist_in_cache(db: TinyDB, image_md5: str, mode: str) -> Optional[Resu
     return result
 
 
-async def clear_expired_cache(db: TinyDB) -> None:
+def clear_expired_cache(db: TinyDB) -> None:
     expired_date = arrow.now().shift(days=-config.cache_expire).for_json()
     db.remove(Query().update_at < expired_date)

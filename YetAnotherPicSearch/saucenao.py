@@ -44,15 +44,15 @@ async def saucenao_search(
                         selected_res.url = i
             thumbnail = await handle_img(selected_res.thumbnail, proxy, hide_img)
             if selected_res.origin["data"].get("source"):
-                source = await shorten_url(selected_res.origin["data"]["source"])
+                source = shorten_url(selected_res.origin["data"]["source"])
             else:
-                source = await shorten_url(await get_source(selected_res.url, proxy))
+                source = shorten_url(await get_source(selected_res.url, proxy))
             # 如果结果为 doujin ，尝试返回日文标题而不是英文标题
             if selected_res.index_id == saucenao_db["doujin"] and selected_res.origin[
                 "data"
             ].get("jp_name"):
                 selected_res.title = selected_res.origin["data"]["jp_name"]
-            _url = await shorten_url(selected_res.url)
+            _url = shorten_url(selected_res.url)
             res_list = [
                 f"SauceNAO（{selected_res.similarity}%）",
                 f"{thumbnail}",

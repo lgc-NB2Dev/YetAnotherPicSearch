@@ -20,7 +20,7 @@ async def ascii2d_search(url: str, proxy: Optional[str], hide_img: bool) -> List
                 thumbnail = await handle_img(res.raw[0].thumbnail, proxy, hide_img)
                 _url = ""
                 if res.raw[0]:
-                    _url = await shorten_url(res.raw[0].url)
+                    _url = shorten_url(res.raw[0].url)
                 res_list = [
                     f"{thumbnail}",
                     f"{res.raw[0].title}" if res.raw[0].title else "",
