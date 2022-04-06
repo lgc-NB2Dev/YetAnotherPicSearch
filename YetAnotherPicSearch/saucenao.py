@@ -63,7 +63,9 @@ async def saucenao_search(
             ]
             final_res.append("\n".join([i for i in res_list if i != ""]))
             if selected_res.similarity < config.saucenao_low_acc:
-                if config.use_ascii2d_when_low_acc:
+                if mode == "anime":
+                    final_res.extend(await whatanime_search(url, proxy, hide_img))
+                elif config.use_ascii2d_when_low_acc:
                     final_res.append(
                         f"相似度 {selected_res.similarity}% 过低，自动使用 Ascii2D 进行搜索"
                     )
