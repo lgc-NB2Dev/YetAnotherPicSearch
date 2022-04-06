@@ -32,12 +32,13 @@ async def ehentai_search(url: str, proxy: Optional[str], hide_img: bool) -> List
             )
             res_list = [
                 "EHentai 搜索结果",
-                f"搜索页面：{res.url}",
                 thumbnail,
                 selected_res.title,
-                f"类型：{selected_res.type}" if selected_res.type else "",
-                f"日期：{selected_res.date}" if selected_res.date else "",
-                f"来源：{selected_res.url}" if selected_res.url else "",
+                f"类型：{selected_res.type}",
+                f"日期：{selected_res.date}",
+                f"来源：{selected_res.url}",
+                "-" * 20,
+                f"搜索页面：{res.url}",
             ]
             return ["\n".join([i for i in res_list if i != ""])]
         return ["EHentai 暂时无法使用"]
