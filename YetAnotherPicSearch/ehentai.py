@@ -19,8 +19,7 @@ async def ehentai_search(url: str, proxy: Optional[str], hide_img: bool) -> List
             if not res.raw:
                 return ["EHentai 搜索结果为空"]
             # 尽可能过滤掉图集，除非只有图集
-            non_image_set_list = [i for i in res.raw if i.type != "Image Set"]
-            if non_image_set_list:
+            if non_image_set_list := [i for i in res.raw if i.type != "Image Set"]:
                 res.raw = non_image_set_list
             selected_res = res.raw[0]
             # 优先找汉化版

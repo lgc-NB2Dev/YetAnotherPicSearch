@@ -62,7 +62,7 @@ def shorten_url(url: str) -> str:
         r"(?:pixiv.+(?:illust_id=|artworks/)|/img-original/img/(?:\d+/){6})(\d+)"
     )
     if pid_search.search(url):
-        return f"https://pixiv.net/i/{pid_search.search(url).group(1)}"  # type: ignore
+        return f"https://pixiv.net/i/{pid_search.search(url)[1]}"  # type: ignore
     if URL(url).host == "danbooru.donmai.us":
         return url.replace("/post/show/", "/posts/")
     return url
