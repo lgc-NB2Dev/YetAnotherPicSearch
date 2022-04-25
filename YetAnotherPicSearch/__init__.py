@@ -34,6 +34,7 @@ async def _to_me(bot: Bot, event: MessageEvent) -> bool:
         has_image = bool([i for i in msgs if i.type == "image"])
     return has_image and (event.to_me or at_me)
 
+
 IMAGE_SEARCH = on_message(rule=Rule(_to_me), priority=5)
 IMAGE_SEARCH_MODE = on_command("搜图", priority=5)
 

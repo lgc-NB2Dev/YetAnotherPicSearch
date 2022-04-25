@@ -5,6 +5,7 @@ from PicImageSearch import Network, SauceNAO
 
 from .ascii2d import ascii2d_search
 from .config import config
+from .ehentai import ehentai_title_search
 from .utils import get_source, handle_img, shorten_url
 from .whatanime import whatanime_search
 
@@ -12,11 +13,18 @@ from .whatanime import whatanime_search
 async def saucenao_search(
     url: str, mode: str, proxy: Optional[str], hide_img: bool
 ) -> List[str]:
-    saucenao_db = {"all": 999, "pixiv": 5, "danbooru": 9, "anime": 21, "doujin": 18}
+    saucenao_db = {
+        "all": 999,
+        "pixiv": 5,
+        "danbooru": 9,
+        "anime": 21,
+        "doujin": [18, 38],
+    }
     async with Network(proxies=proxy) as client:
-        saucenao = SauceNAO(
-            client=client, api_key=config.saucenao_api_key, db=saucenao_db[mode]
-        )
+        if isinstance(db := saucenao_db[mode], list):
+            saucenao = SauceNAO(client=client, api_key=config.saucenao_api_key, dbs=db)
+        else:
+            saucenao = SauceNAO(client=client, api_key=config.saucenao_api_key, db=db)
         res = await saucenao.search(url)
         final_res = []
         if res and res.raw:
@@ -69,6 +77,12 @@ async def saucenao_search(
                 and "anidb.net" in _url
             ):
                 final_res.extend(await whatanime_search(url, proxy, hide_img))
+            elif (
+                selected_res.similarity >= config.saucenao_low_acc and mode == "doujin"
+            ):
+                final_res.extend(
+                    await ehentai_title_search(selected_res.title, proxy, hide_img)
+                )
             elif (
                 selected_res.similarity < config.saucenao_low_acc
                 and config.use_ascii2d_when_low_acc
