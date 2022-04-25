@@ -11,15 +11,15 @@
 - [saucenao](https://saucenao.com)
 - [whatanime](https://trace.moe)
 - [ascii2d](https://ascii2d.net)
-- [e-hentai](https://e-hentai.org)
+- [exhentai](https://exhentai.org)
 
-详细说明请移步 [docs](docs)
+详细说明请移步：[docs](docs)
 
 ## 感谢以下项目或服务（不分先后）
 
 - [saucenao](https://saucenao.com)
 - [ascii2d](https://ascii2d.net)
 - [trace.moe](https://trace.moe) ([GitHub](https://github.com/soruly/trace.moe))
-- [e-hentai](https://e-hentai.org)
+- [exhentai](https://exhentai.org)
 - [cq-picsearcher-bot](https://github.com/Tsuk1ko/cq-picsearcher-bot)
 - [PicImageSearch](https://github.com/kitUIN/PicImageSearch)
