@@ -34,17 +34,14 @@ async def _to_me(bot: Bot, event: MessageEvent) -> bool:
         has_image = bool([i for i in msgs if i.type == "image"])
     return has_image and (event.to_me or at_me)
 
-
-async def _not_to_me(event: MessageEvent) -> bool:
-    return not event.to_me and isinstance(event, GroupMessageEvent)
-
-
 IMAGE_SEARCH = on_message(rule=Rule(_to_me), priority=5)
-IMAGE_SEARCH_MODE = on_command("搜图", rule=Rule(_not_to_me), priority=5)
+IMAGE_SEARCH_MODE = on_command("搜图", priority=5)
 
 
 @IMAGE_SEARCH_MODE.handle()
 async def handle_first_receive(matcher: Matcher, args: Message = CommandArg()) -> None:
+    mode, purge = get_args(args)
+    matcher.state["ARGS"] = (mode, purge)
     if [i for i in args if i.type == "image"]:
         matcher.set_arg("IMAGES", args)
 
@@ -102,23 +99,27 @@ def get_image_urls(msg: Message) -> List[str]:
 def get_args(msg: Message) -> Tuple[str, bool]:
     mode = "all"
     plain_text = msg.extract_plain_text()
-    args = ["a2d", "pixiv", "danbooru", "doujin", "anime", "ex"]
+    args = ["pixiv", "danbooru", "doujin", "anime", "a2d", "ex"]
     if plain_text:
         for i in args:
             if f"--{i}" in plain_text:
                 mode = i
+                break
     purge = "--purge" in plain_text
     return mode, purge
 
 
 @IMAGE_SEARCH.handle()
-@IMAGE_SEARCH_MODE.got("IMAGES", prompt="请发送图片及搜索类型（可选）")
-async def handle_image_search(bot: Bot, event: MessageEvent) -> None:
+@IMAGE_SEARCH_MODE.got("IMAGES", prompt="请发送图片")
+async def handle_image_search(bot: Bot, event: MessageEvent, matcher: Matcher) -> None:
     message = event.reply.message if event.reply else event.message
     image_urls = get_image_urls(message)
     if not image_urls:
         await IMAGE_SEARCH_MODE.reject()
-    mode, purge = get_args(event.message)
+    if "ARGS" in matcher.state:
+        mode, purge = matcher.state["ARGS"]
+    else:
+        mode, purge = get_args(event.message)
     for i in image_urls:
         msg_list = await image_search(i, mode, purge, config.proxy)
         if isinstance(event, PrivateMessageEvent):
