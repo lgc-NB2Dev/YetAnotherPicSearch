@@ -1,10 +1,10 @@
 from typing import Optional
 
 from nonebot import get_driver
-from pydantic import BaseSettings
+from nonebot.config import BaseConfig
 
 
-class Config(BaseSettings):
+class Config(BaseConfig):
 
     hide_img: bool = False  # 隐藏所有搜索结果的缩略图
     saucenao_low_acc: int = 60  # saucenao 相似度低于这个百分比将被认定为相似度过低
@@ -19,5 +19,4 @@ class Config(BaseSettings):
         extra = "ignore"
 
 
-global_config = get_driver().config
-config = Config(**global_config.dict())
+config = Config(**get_driver().config.dict())
