@@ -32,6 +32,8 @@ async def _to_me(bot: Bot, event: MessageEvent) -> bool:
         has_image = bool([i for i in event.reply.message if i.type == "image"])
     else:
         has_image = bool([i for i in msgs if i.type == "image"])
+    if isinstance(event, PrivateMessageEvent):
+        return has_image and event.to_me and config.search_immediately
     return has_image and (event.to_me or at_me)
 
 

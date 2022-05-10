@@ -6,6 +6,7 @@ from nonebot.config import BaseConfig
 
 class Config(BaseConfig):
 
+    search_immediately = True  # 私聊发送图片立即搜图，否则需要先发送搜图命令
     hide_img: bool = False  # 隐藏所有搜索结果的缩略图
     saucenao_low_acc: int = 60  # saucenao 相似度低于这个百分比将被认定为相似度过低
     use_ascii2d_when_low_acc: bool = True  # 是否在 saucenao 相似度过低时自动使用 ascii2d
