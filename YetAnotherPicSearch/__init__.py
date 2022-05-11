@@ -25,19 +25,29 @@ from .result import Result
 from .saucenao import saucenao_search
 
 
-async def _to_me(bot: Bot, event: MessageEvent) -> bool:
-    msgs = event.message
-    at_me = bool([i for i in msgs if i.type == "at" and i.data["qq"] == bot.self_id])
-    if event.reply:
-        has_image = bool([i for i in event.reply.message if i.type == "image"])
-    else:
-        has_image = bool([i for i in msgs if i.type == "image"])
+def has_images(event: MessageEvent) -> bool:
+    message = event.reply.message if event.reply else event.message
+    return bool([i for i in message if i.type == "image"])
+
+
+async def to_me_with_images(bot: Bot, event: MessageEvent) -> bool:
+    at_me = bool(
+        [i for i in event.message if i.type == "at" and i.data["qq"] == bot.self_id]
+    )
+    has_image = has_images(event)
     if isinstance(event, PrivateMessageEvent):
-        return has_image and event.to_me and config.search_immediately
+        return has_image and config.search_immediately
+    # 群里回复机器人发送的消息时，必须带上 "再搜"才会搜图，否则会被无视
+    if event.reply and event.reply.sender.user_id == int(bot.self_id):
+        return (
+            has_image
+            and (event.to_me or at_me)
+            and "再搜" in event.message.extract_plain_text()
+        )
     return has_image and (event.to_me or at_me)
 
 
-IMAGE_SEARCH = on_message(rule=Rule(_to_me), priority=5)
+IMAGE_SEARCH = on_message(rule=Rule(to_me_with_images), priority=5)
 IMAGE_SEARCH_MODE = on_command("搜图", priority=5)
 
 
@@ -95,8 +105,9 @@ async def image_search(
     return final_res
 
 
-def get_image_urls(msg: Message) -> List[str]:
-    return [i.data["url"] for i in msg if i.type == "image" and i.data.get("url")]
+def get_image_urls(event: MessageEvent) -> List[str]:
+    message = event.reply.message if event.reply else event.message
+    return [i.data["url"] for i in message if i.type == "image" and i.data.get("url")]
 
 
 def get_args(msg: Message) -> Tuple[str, bool]:
@@ -115,8 +126,7 @@ def get_args(msg: Message) -> Tuple[str, bool]:
 @IMAGE_SEARCH.handle()
 @IMAGE_SEARCH_MODE.got("IMAGES", prompt="请发送图片")
 async def handle_image_search(bot: Bot, event: MessageEvent, matcher: Matcher) -> None:
-    message = event.reply.message if event.reply else event.message
-    image_urls = get_image_urls(message)
+    image_urls = get_image_urls(event)
     if not image_urls:
         await IMAGE_SEARCH_MODE.reject()
     if "ARGS" in matcher.state:
