@@ -114,7 +114,9 @@ def get_args(msg: Message) -> Tuple[str, bool]:
     return mode, purge
 
 
-async def send_result_message(bot, event, msg_list):
+async def send_result_message(
+    bot: Bot, event: MessageEvent, msg_list: List[str]
+) -> None:
     if isinstance(event, PrivateMessageEvent):
         for msg in msg_list:
             await bot.send_private_msg(user_id=event.user_id, message=msg)

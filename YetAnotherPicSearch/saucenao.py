@@ -56,7 +56,7 @@ async def saucenao_search(
             else:
                 source = shorten_url(await get_source(selected_res.url, proxy))
             # 如果结果为 doujin ，尝试返回日文标题而不是英文标题
-            if selected_res.index_id in saucenao_db["doujin"]:
+            if selected_res.index_id in saucenao_db["doujin"]:  # type: ignore
                 if title := (
                     selected_res.origin["data"].get("jp_name")
                     or selected_res.origin["data"].get("eng_name")

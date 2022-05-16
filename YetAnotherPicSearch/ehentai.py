@@ -1,4 +1,4 @@
-from typing import List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 import aiohttp
 from lxml.html import HTMLParser, fromstring
@@ -41,7 +41,7 @@ async def ehentai_title_search(
     if cookies := config.exhentai_cookies:
         headers["Cookie"] = cookies
     url = "https://exhentai.org" if cookies else "https://e-hentai.org"
-    params = {"f_search": title}
+    params: Dict[str, Any] = {"f_search": title}
     async with aiohttp.ClientSession(headers=headers) as session:
         resp = await session.get(url, proxy=proxy, params=params)
         if res := EHentaiResponseAioHttp(await resp.text(), str(resp.url)):
