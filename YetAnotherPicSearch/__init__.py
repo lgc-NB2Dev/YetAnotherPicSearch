@@ -1,3 +1,4 @@
+import asyncio
 import re
 from typing import Any, Dict, List, Optional, Tuple, Union
 
@@ -63,20 +64,12 @@ async def image_search(
     url: str,
     mode: str,
     purge: bool,
-    proxy: Optional[str],
+    db: TinyDB,
+    proxy: Optional[str] = config.proxy,
     hide_img: bool = config.hide_img,
 ) -> Union[List[str], Any]:
-    db = TinyDB(
-        "cache.json",
-        storage=CachingMiddleware(JSONStorage),  # type: ignore
-        encoding="utf-8",
-        sort_keys=True,
-        indent=4,
-        ensure_ascii=False,
-    )
     image_md5 = re.search("[A-F0-9]{32}", url)[0]  # type: ignore
     _result = exist_in_cache(db, image_md5, mode)
-    cached = bool(_result)
     if purge or not _result:
         result_dict: Dict[str, Any] = {}
         if mode == "a2d":
@@ -92,15 +85,13 @@ async def image_search(
         db.upsert(
             _result.__dict__, (Query().image_md5 == image_md5) & (Query().mode == mode)
         )
-    clear_expired_cache(db)
-    db.close()
     if mode == "a2d":
         final_res = _result.ascii2d
     elif mode == "ex":
         final_res = _result.ex
     else:
         final_res = _result.saucenao
-    if cached and not purge:
+    if _result and not purge:
         return [f"[缓存] {i}" for i in final_res]
     return final_res
 
@@ -123,6 +114,35 @@ def get_args(msg: Message) -> Tuple[str, bool]:
     return mode, purge
 
 
+async def send_result_message(bot, event, msg_list):
+    if isinstance(event, PrivateMessageEvent):
+        for msg in msg_list:
+            await bot.send_private_msg(user_id=event.user_id, message=msg)
+    elif isinstance(event, GroupMessageEvent):
+        flag = config.group_forward_search_result and len(msg_list) > 1
+        if flag:
+            try:
+                await bot.send_group_forward_msg(
+                    group_id=event.group_id,
+                    messages=[
+                        {
+                            "type": "node",
+                            "data": {
+                                "name": "\u200b",
+                                "uin": bot.self_id,
+                                "content": msg,
+                            },
+                        }
+                        for msg in msg_list
+                    ],
+                )
+            except ActionFailed:
+                flag = False
+        if not flag:
+            for msg in msg_list:
+                await bot.send_group_msg(group_id=event.group_id, message=msg)
+
+
 @IMAGE_SEARCH.handle()
 @IMAGE_SEARCH_MODE.got("IMAGES", prompt="请发送图片")
 async def handle_image_search(bot: Bot, event: MessageEvent, matcher: Matcher) -> None:
@@ -133,31 +153,19 @@ async def handle_image_search(bot: Bot, event: MessageEvent, matcher: Matcher) -
         mode, purge = matcher.state["ARGS"]
     else:
         mode, purge = get_args(event.message)
-    for i in image_urls:
-        msg_list = await image_search(i, mode, purge, config.proxy)
-        if isinstance(event, PrivateMessageEvent):
-            for msg in msg_list:
-                await bot.send_private_msg(user_id=event.user_id, message=msg)
-        elif isinstance(event, GroupMessageEvent):
-            flag = config.group_forward_search_result and len(msg_list) > 1
-            if flag:
-                try:
-                    await bot.send_group_forward_msg(
-                        group_id=event.group_id,
-                        messages=[
-                            {
-                                "type": "node",
-                                "data": {
-                                    "name": "\u200b",
-                                    "uin": bot.self_id,
-                                    "content": msg,
-                                },
-                            }
-                            for msg in msg_list
-                        ],
-                    )
-                except ActionFailed:
-                    flag = False
-            if not flag:
-                for msg in msg_list:
-                    await bot.send_group_msg(group_id=event.group_id, message=msg)
+    db = TinyDB(
+        "cache.json",
+        storage=CachingMiddleware(JSONStorage),  # type: ignore
+        encoding="utf-8",
+        sort_keys=True,
+        indent=4,
+        ensure_ascii=False,
+    )
+    await asyncio.gather(
+        *[
+            send_result_message(bot, event, await image_search(i, mode, purge, db))
+            for i in image_urls
+        ]
+    )
+    clear_expired_cache(db)
+    db.close()
