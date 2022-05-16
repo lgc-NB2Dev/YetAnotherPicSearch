@@ -70,6 +70,7 @@ async def image_search(
 ) -> Union[List[str], Any]:
     image_md5 = re.search("[A-F0-9]{32}", url)[0]  # type: ignore
     _result = exist_in_cache(db, image_md5, mode)
+    cached = bool(_result)
     if purge or not _result:
         result_dict: Dict[str, Any] = {}
         if mode == "a2d":
@@ -91,7 +92,7 @@ async def image_search(
         final_res = _result.ex
     else:
         final_res = _result.saucenao
-    if _result and not purge:
+    if cached and not purge:
         return [f"[缓存] {i}" for i in final_res]
     return final_res
 
