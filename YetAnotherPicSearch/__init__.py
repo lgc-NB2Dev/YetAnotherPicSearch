@@ -1,6 +1,7 @@
 import asyncio
 import re
-from typing import Any, Dict, List, Optional, Tuple, Union
+from collections import defaultdict
+from typing import Any, DefaultDict, Dict, List, Optional, Tuple, Union
 
 import arrow
 from nonebot.adapters.onebot.v11 import (
@@ -24,6 +25,10 @@ from .config import config
 from .ehentai import ehentai_search
 from .result import Result
 from .saucenao import saucenao_search
+
+sending_lock: DefaultDict[Tuple[Union[int, str], str], asyncio.Lock] = defaultdict(
+    asyncio.Lock
+)
 
 
 def has_images(event: MessageEvent) -> bool:
@@ -120,30 +125,51 @@ async def send_result_message(
 ) -> None:
     if isinstance(event, PrivateMessageEvent):
         for msg in msg_list:
-            await bot.send_private_msg(user_id=event.user_id, message=msg)
+            start_time = arrow.now()
+            async with sending_lock[(event.user_id, "private")]:
+                await bot.send_private_msg(user_id=event.user_id, message=msg)
+                await asyncio.sleep(
+                    max(1 - (arrow.now() - start_time).total_seconds(), 0)
+                )
     elif isinstance(event, GroupMessageEvent):
         flag = config.group_forward_search_result and len(msg_list) > 1
         if flag:
             try:
-                await bot.send_group_forward_msg(
-                    group_id=event.group_id,
-                    messages=[
-                        {
-                            "type": "node",
-                            "data": {
-                                "name": "\u200b",
-                                "uin": bot.self_id,
-                                "content": msg,
-                            },
-                        }
-                        for msg in msg_list
-                    ],
-                )
+                start_time = arrow.now()
+                async with sending_lock[(event.group_id, "group")]:
+                    await send_group_forward_msg(bot, event, msg_list)
+                    await asyncio.sleep(
+                        max(1 - (arrow.now() - start_time).total_seconds(), 0)
+                    )
             except ActionFailed:
                 flag = False
         if not flag:
             for msg in msg_list:
-                await bot.send_group_msg(group_id=event.group_id, message=msg)
+                start_time = arrow.now()
+                async with sending_lock[(event.group_id, "group")]:
+                    await bot.send_group_msg(group_id=event.group_id, message=msg)
+                    await asyncio.sleep(
+                        max(1 - (arrow.now() - start_time).total_seconds(), 0)
+                    )
+
+
+async def send_group_forward_msg(
+    bot: Bot, event: GroupMessageEvent, msg_list: List[str]
+) -> None:
+    await bot.send_group_forward_msg(
+        group_id=event.group_id,
+        messages=[
+            {
+                "type": "node",
+                "data": {
+                    "name": "\u200b",
+                    "uin": bot.self_id,
+                    "content": msg,
+                },
+            }
+            for msg in msg_list
+        ],
+    )
 
 
 @IMAGE_SEARCH.handle()
@@ -164,11 +190,10 @@ async def handle_image_search(bot: Bot, event: MessageEvent, matcher: Matcher) -
         indent=4,
         ensure_ascii=False,
     )
-    await asyncio.gather(
-        *[
-            send_result_message(bot, event, await image_search(i, mode, purge, db))
-            for i in image_urls
-        ]
+    search_results = await asyncio.gather(
+        *[image_search(i, mode, purge, db) for i in image_urls]
     )
+    for i in search_results:
+        await send_result_message(bot, event, i)
     clear_expired_cache(db)
     db.close()
