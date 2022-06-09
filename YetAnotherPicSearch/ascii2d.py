@@ -11,11 +11,17 @@ async def ascii2d_search(url: str, proxy: Optional[str], hide_img: bool) -> List
         ascii2d_color = Ascii2D(client=client)
         ascii2d_bovw = Ascii2D(bovw=True, client=client)
         color_res = await ascii2d_color.search(url)
-        bovw_res = await ascii2d_bovw.search(url)
+        if not color_res or not color_res.raw:
+            return ["Ascii2D 暂时无法使用"]
+        # 针对 QQ 图片链接反盗链做处理
+        if color_res.raw[0].hash == "5bb9bec07e71ef10a1a47521d396811d":
+            url = f"https://images.weserv.nl/?url={url}"
+            color_res = await ascii2d_color.search(url)
+            bovw_res = await ascii2d_bovw.search(url)
+        else:
+            bovw_res = await ascii2d_bovw.search(url)
 
         async def get_final_res(res: Ascii2DResponse) -> str:
-            if not res or not res.raw:
-                return ""
             if not res.raw[0].url:
                 res.raw[0] = res.raw[1]
             thumbnail = await handle_img(res.raw[0].thumbnail, proxy, hide_img)
@@ -31,8 +37,6 @@ async def ascii2d_search(url: str, proxy: Optional[str], hide_img: bool) -> List
         color_final_res = await get_final_res(color_res)
         bovw_final_res = await get_final_res(bovw_res)
         if color_final_res == bovw_final_res:
-            if color_final_res == "":
-                return ["Ascii2D 暂时无法使用"]
             return [f"Ascii2D 色合検索与特徴検索結果完全一致\n{color_final_res}"]
 
         return [
