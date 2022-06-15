@@ -65,8 +65,8 @@ async def saucenao_search(
             _url = shorten_url(selected_res.url)
             res_list = [
                 f"SauceNAO（{selected_res.similarity}%）",
-                f"{thumbnail}",
-                f"{selected_res.title}",
+                thumbnail,
+                selected_res.title,
                 f"Author：{selected_res.author}" if selected_res.author else "",
                 _url,
                 f"Source：{source}" if source else "",

@@ -23,6 +23,7 @@ from .ascii2d import ascii2d_search
 from .cache import clear_expired_cache, exist_in_cache
 from .config import config
 from .ehentai import ehentai_search
+from .iqdb import iqdb_search
 from .result import Result
 from .saucenao import saucenao_search
 
@@ -80,6 +81,8 @@ async def image_search(
         result_dict: Dict[str, Any] = {}
         if mode == "a2d":
             result_dict["ascii2d"] = await ascii2d_search(url, proxy, hide_img)
+        elif mode == "iqdb":
+            result_dict["iqdb"] = await iqdb_search(url, proxy, hide_img)
         elif mode == "ex":
             result_dict["ex"] = await ehentai_search(url, proxy, hide_img)
         else:
@@ -93,6 +96,8 @@ async def image_search(
         )
     if mode == "a2d":
         final_res = _result.ascii2d
+    elif mode == "iqdb":
+        final_res = _result.iqdb
     elif mode == "ex":
         final_res = _result.ex
     else:
@@ -110,7 +115,7 @@ def get_image_urls(event: MessageEvent) -> List[str]:
 def get_args(msg: Message) -> Tuple[str, bool]:
     mode = "all"
     plain_text = msg.extract_plain_text()
-    args = ["pixiv", "danbooru", "doujin", "anime", "a2d", "ex"]
+    args = ["pixiv", "danbooru", "doujin", "anime", "a2d", "ex", "iqdb"]
     if plain_text:
         for i in args:
             if f"--{i}" in plain_text:
