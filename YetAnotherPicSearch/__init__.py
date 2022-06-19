@@ -73,20 +73,26 @@ async def image_search(
     db: TinyDB,
     proxy: Optional[str] = config.proxy,
     hide_img: bool = config.hide_img,
-) -> Union[List[str], Any]:
+) -> List[str]:
     image_md5 = re.search("[A-F0-9]{32}", url)[0]  # type: ignore
     _result = exist_in_cache(db, image_md5, mode)
     cached = bool(_result)
     if purge or not _result:
         result_dict: Dict[str, Any] = {}
-        if mode == "a2d":
-            result_dict["ascii2d"] = await ascii2d_search(url, proxy, hide_img)
-        elif mode == "iqdb":
-            result_dict["iqdb"] = await iqdb_search(url, proxy, hide_img)
-        elif mode == "ex":
-            result_dict["ex"] = await ehentai_search(url, proxy, hide_img)
-        else:
-            result_dict["saucenao"] = await saucenao_search(url, mode, proxy, hide_img)
+        try:
+            if mode == "a2d":
+                result_dict["ascii2d"] = await ascii2d_search(url, proxy, hide_img)
+            elif mode == "iqdb":
+                result_dict["iqdb"] = await iqdb_search(url, proxy, hide_img)
+            elif mode == "ex":
+                result_dict["ex"] = await ehentai_search(url, proxy, hide_img)
+            else:
+                result_dict["saucenao"] = await saucenao_search(
+                    url, mode, proxy, hide_img
+                )
+        except Exception as e:
+            thumbnail = await handle_img(url, proxy, False)
+            return [f"{thumbnail}\n❌️ 该图搜图失败，请稍后再试\nE: {repr(e)}"]
         result_dict["mode"] = mode
         result_dict["image_md5"] = image_md5
         result_dict["update_at"] = arrow.now().for_json()
