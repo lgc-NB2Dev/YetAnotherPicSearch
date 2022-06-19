@@ -1,27 +1,19 @@
-from typing import List, Optional
+from typing import Optional
 
-import arrow
-from tinydb import Query, TinyDB
-from tinydb.operations import set
-from tinydb.table import Document
+from diskcache import Cache
 
 from .config import config
 from .result import Result
 
 
-def exist_in_cache(db: TinyDB, image_md5: str, mode: str) -> Optional[Result]:
+def upsert_cache(cache: Cache, image_md5: str, mode: str, result: Result) -> None:
+    cache.set(f"{image_md5}_{mode}", result, expire=config.cache_expire * 24 * 60 * 60)
+
+
+def exist_in_cache(cache: Cache, image_md5: str, mode: str) -> Optional[Result]:
     result: Optional[Result] = None
-    cache_result: List[Document] = db.search(
-        (Query().image_md5 == image_md5) & (Query().mode == mode)
-    )
+    cache_result: Result = cache.get(f"{image_md5}_{mode}")
     if cache_result:
-        db.update(
-            set("update_at", arrow.now().for_json()), Query().image_md5 == image_md5  # type: ignore
-        )
-        result = Result(cache_result[-1])
+        cache.touch(f"{image_md5}_{mode}", expire=config.cache_expire * 24 * 60 * 60)
+        result = cache_result
     return result
-
-
-def clear_expired_cache(db: TinyDB) -> None:
-    expired_date = arrow.now().shift(days=-config.cache_expire).for_json()
-    db.remove(Query().update_at < expired_date)

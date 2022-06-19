@@ -4,6 +4,7 @@ from collections import defaultdict
 from typing import Any, DefaultDict, Dict, List, Optional, Tuple, Union
 
 import arrow
+from diskcache import Cache
 from nonebot.adapters.onebot.v11 import (
     ActionFailed,
     Bot,
@@ -16,16 +17,15 @@ from nonebot.matcher import Matcher
 from nonebot.params import CommandArg
 from nonebot.plugin.on import on_command, on_message
 from nonebot.rule import Rule
-from tinydb import JSONStorage, Query, TinyDB
-from tinydb.middlewares import CachingMiddleware
 
 from .ascii2d import ascii2d_search
-from .cache import clear_expired_cache, exist_in_cache
+from .cache import upsert_cache, exist_in_cache
 from .config import config
 from .ehentai import ehentai_search
 from .iqdb import iqdb_search
 from .result import Result
 from .saucenao import saucenao_search
+from .utils import handle_img
 
 sending_lock: DefaultDict[Tuple[Union[int, str], str], asyncio.Lock] = defaultdict(
     asyncio.Lock
@@ -70,12 +70,12 @@ async def image_search(
     url: str,
     mode: str,
     purge: bool,
-    db: TinyDB,
+    _cache: Cache,
     proxy: Optional[str] = config.proxy,
     hide_img: bool = config.hide_img,
 ) -> List[str]:
     image_md5 = re.search("[A-F0-9]{32}", url)[0]  # type: ignore
-    _result = exist_in_cache(db, image_md5, mode)
+    _result = exist_in_cache(_cache, image_md5, mode)
     cached = bool(_result)
     if purge or not _result:
         result_dict: Dict[str, Any] = {}
@@ -95,11 +95,8 @@ async def image_search(
             return [f"{thumbnail}\n❌️ 该图搜图失败，请稍后再试\nE: {repr(e)}"]
         result_dict["mode"] = mode
         result_dict["image_md5"] = image_md5
-        result_dict["update_at"] = arrow.now().for_json()
         _result = Result(result_dict)
-        db.upsert(
-            _result.__dict__, (Query().image_md5 == image_md5) & (Query().mode == mode)
-        )
+        upsert_cache(_cache, image_md5, mode, _result)
     if mode == "a2d":
         final_res = _result.ascii2d
     elif mode == "iqdb":
@@ -193,18 +190,10 @@ async def handle_image_search(bot: Bot, event: MessageEvent, matcher: Matcher) -
         mode, purge = matcher.state["ARGS"]
     else:
         mode, purge = get_args(event.message)
-    db = TinyDB(
-        "cache.json",
-        storage=CachingMiddleware(JSONStorage),  # type: ignore
-        encoding="utf-8",
-        sort_keys=True,
-        indent=4,
-        ensure_ascii=False,
-    )
-    search_results = await asyncio.gather(
-        *[image_search(i, mode, purge, db) for i in image_urls]
-    )
-    for i in search_results:
-        await send_result_message(bot, event, i)
-    clear_expired_cache(db)
-    db.close()
+    with Cache("picsearch_cache") as c:
+        search_results = await asyncio.gather(
+            *[image_search(i, mode, purge, c) for i in image_urls]
+        )
+        for i in search_results:
+            await send_result_message(bot, event, i)
+        c.expire()

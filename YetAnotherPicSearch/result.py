@@ -8,7 +8,6 @@ class Result:
         self.saucenao: List[str] = []
         self.ex: List[str] = []
         self.image_md5: Optional[str] = None
-        self.update_at: Optional[str] = None
         self.mode: str = "all"
         for key, value in mapping.items():
             setattr(self, key, value)
