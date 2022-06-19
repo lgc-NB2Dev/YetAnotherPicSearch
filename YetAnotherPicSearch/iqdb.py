@@ -27,8 +27,8 @@ async def iqdb_search(url: str, proxy: Optional[str], hide_img: bool) -> List[st
         )
         res_list = [
             f"Iqdb（{selected_res.similarity}%）",
-            f"{thumbnail}",
-            f"Source: {source}" if source else "",
-            selected_res.url,
+            thumbnail,
+            f"来源: {source}" if source else "",
+            selected_res.url or "",
         ]
         return ["\n".join([i for i in res_list if i != ""])]

@@ -67,9 +67,9 @@ async def saucenao_search(
                 f"SauceNAO（{selected_res.similarity}%）",
                 thumbnail,
                 selected_res.title,
-                f"Author：{selected_res.author}" if selected_res.author else "",
+                f"作者：{selected_res.author}" if selected_res.author else "",
                 _url,
-                f"Source：{source}" if source else "",
+                f"来源：{source}" if source else "",
             ]
             final_res.append("\n".join([i for i in res_list if i != ""]))
             if (

@@ -28,9 +28,10 @@ async def ascii2d_search(url: str, proxy: Optional[str], hide_img: bool) -> List
             _url = shorten_url(res.raw[0].url) if res.raw[0] else ""
             res_list = [
                 thumbnail,
-                f"{res.raw[0].title}" if res.raw[0].title else "",
-                f"Author：{res.raw[0].author}" if res.raw[0].author else "",
-                _url,
+                res.raw[0].title or "",
+                f"作者：{res.raw[0].author}" if res.raw[0].author else "",
+                f"来源：{_url}" if _url else "",
+                f"搜索页面：{res.url}",
             ]
             return "\n".join([i for i in res_list if i != ""])
 
