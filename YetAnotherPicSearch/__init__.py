@@ -19,13 +19,13 @@ from nonebot.plugin.on import on_command, on_message
 from nonebot.rule import Rule
 
 from .ascii2d import ascii2d_search
-from .cache import upsert_cache, exist_in_cache
+from .cache import exist_in_cache, upsert_cache
 from .config import config
 from .ehentai import ehentai_search
 from .iqdb import iqdb_search
 from .result import Result
 from .saucenao import saucenao_search
-from .utils import handle_img
+from .utils import get_universal_img_url, handle_img
 
 sending_lock: DefaultDict[Tuple[Union[int, str], str], asyncio.Lock] = defaultdict(
     asyncio.Lock
@@ -74,6 +74,7 @@ async def image_search(
     proxy: Optional[str] = config.proxy,
     hide_img: bool = config.hide_img,
 ) -> List[str]:
+    url = get_universal_img_url(url)
     image_md5 = re.search("[A-F0-9]{32}", url)[0]  # type: ignore
     _result = exist_in_cache(_cache, image_md5, mode)
     cached = bool(_result)
