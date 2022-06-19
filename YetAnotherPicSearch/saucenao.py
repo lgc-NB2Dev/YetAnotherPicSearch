@@ -71,6 +71,8 @@ async def saucenao_search(
                 _url,
                 f"来源：{source}" if source else "",
             ]
+            if res.long_remaining < 10:
+                final_res.append(f"⚠️️ SauceNAO 24h 内仅剩 {res.long_remaining} 次使用次数")
             final_res.append("\n".join([i for i in res_list if i != ""]))
             if (
                 selected_res.similarity < config.saucenao_low_acc
