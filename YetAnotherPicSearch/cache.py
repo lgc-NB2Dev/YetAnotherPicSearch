@@ -11,9 +11,7 @@ def upsert_cache(cache: Cache, image_md5: str, mode: str, result: Result) -> Non
 
 
 def exist_in_cache(cache: Cache, image_md5: str, mode: str) -> Optional[Result]:
-    result: Optional[Result] = None
-    cache_result: Result = cache.get(f"{image_md5}_{mode}")
+    cache_result: Optional[Result] = cache.get(f"{image_md5}_{mode}")
     if cache_result:
         cache.touch(f"{image_md5}_{mode}", expire=config.cache_expire * 24 * 60 * 60)
-        result = cache_result
-    return result
+    return cache_result
