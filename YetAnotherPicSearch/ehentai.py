@@ -1,3 +1,4 @@
+import itertools
 from typing import Any, Dict, List, Optional, Union
 
 import aiohttp
@@ -64,9 +65,22 @@ async def search_result_filter(
 ) -> List[str]:
     if not res.raw:
         return ["EHentai 搜索结果为空"]
-        # 尽可能过滤掉图集，除非只有图集
-    if non_image_set_list := [i for i in res.raw if i.type != "Image Set"]:
-        res.raw = non_image_set_list
+    # 尽可能过滤掉非预期结果(大概
+    priority = {
+        "Doujinshi": 0,
+        "Manga": 0,
+        "Artist CG": 0,
+        "Game CG": 0,
+        "Image Set": 1,
+        "Non-H": 2,
+        "Western": 3,
+        "Misc": 4,
+    }
+    res.raw.sort(key=lambda x: priority[x.type], reverse=True)
+    for key, group in itertools.groupby(res.raw, key=lambda x: x.type):
+        group_list = list(group)
+        if priority[key] > 0 and len(res.raw) != len(group_list):
+            res.raw = [i for i in res.raw if i not in group_list]
     selected_res = res.raw[0]
     # 优先找汉化版
     for i in res.raw:
