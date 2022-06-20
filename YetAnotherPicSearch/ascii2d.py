@@ -21,7 +21,7 @@ async def ascii2d_search(url: str, proxy: Optional[str], hide_img: bool) -> List
         else:
             bovw_res = await ascii2d_bovw.search(url)
 
-        async def get_final_res(res: Ascii2DResponse) -> str:
+        async def get_final_res(res: Ascii2DResponse) -> List[str]:
             if not res.raw[0].url:
                 res.raw[0] = res.raw[1]
             thumbnail = await handle_img(res.raw[0].thumbnail, proxy, hide_img)
@@ -33,14 +33,14 @@ async def ascii2d_search(url: str, proxy: Optional[str], hide_img: bool) -> List
                 f"来源：{_url}" if _url else "",
                 f"搜索页面：{res.url}",
             ]
-            return "\n".join([i for i in res_list if i != ""])
+            return [i for i in res_list if i != ""]
 
         color_final_res = await get_final_res(color_res)
         bovw_final_res = await get_final_res(bovw_res)
-        if color_final_res == bovw_final_res:
-            return [f"Ascii2D 色合検索与特徴検索結果完全一致\n{color_final_res}"]
+        if color_final_res[:-1] == bovw_final_res[:-1]:
+            return ["Ascii2D 色合検索与特徴検索結果完全一致\n" + "\n".join(color_final_res)]
 
         return [
-            f"Ascii2D 色合検索結果\n{color_final_res}",
-            f"Ascii2D 特徴検索結果\n{bovw_final_res}",
+            f"Ascii2D 色合検索結果\n" + "\n".join(color_final_res),
+            f"Ascii2D 特徴検索結果\n" + "\n".join(bovw_final_res),
         ]
