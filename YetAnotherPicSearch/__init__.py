@@ -1,7 +1,7 @@
 import asyncio
 import re
 from collections import defaultdict
-from typing import Any, DefaultDict, Dict, List, Optional, Tuple, Union
+from typing import DefaultDict, List, Optional, Tuple, Union
 
 import arrow
 from diskcache import Cache
@@ -23,9 +23,8 @@ from .cache import exist_in_cache, upsert_cache
 from .config import config
 from .ehentai import ehentai_search
 from .iqdb import iqdb_search
-from .result import Result
 from .saucenao import saucenao_search
-from .utils import get_universal_img_url, handle_img
+from .utils import handle_img
 
 sending_lock: DefaultDict[Tuple[Union[int, str], str], asyncio.Lock] = defaultdict(
     asyncio.Lock
@@ -76,39 +75,32 @@ async def image_search(
 ) -> List[str]:
     url = get_universal_img_url(url)
     image_md5 = re.search("[A-F0-9]{32}", url)[0]  # type: ignore
-    _result = exist_in_cache(_cache, image_md5, mode)
-    cached = bool(_result)
-    if purge or not _result:
-        result_dict: Dict[str, Any] = {}
+    if not purge and (result := exist_in_cache(_cache, image_md5, mode)):
+        return [f"[缓存] {i}" for i in result]
+    else:
         try:
             if mode == "a2d":
-                result_dict["ascii2d"] = await ascii2d_search(url, proxy, hide_img)
+                result = await ascii2d_search(url, proxy, hide_img)
             elif mode == "iqdb":
-                result_dict["iqdb"] = await iqdb_search(url, proxy, hide_img)
+                result = await iqdb_search(url, proxy, hide_img)
             elif mode == "ex":
-                result_dict["ex"] = await ehentai_search(url, proxy, hide_img)
+                result = await ehentai_search(url, proxy, hide_img)
             else:
-                result_dict["saucenao"] = await saucenao_search(
-                    url, mode, proxy, hide_img
-                )
+                result = await saucenao_search(url, mode, proxy, hide_img)
         except Exception as e:
             thumbnail = await handle_img(url, proxy, False)
             return [f"{thumbnail}\n❌️ 该图搜图失败，请稍后再试\nE: {repr(e)}"]
-        result_dict["mode"] = mode
-        result_dict["image_md5"] = image_md5
-        _result = Result(result_dict)
-        upsert_cache(_cache, image_md5, mode, _result)
-    if mode == "a2d":
-        final_res = _result.ascii2d
-    elif mode == "iqdb":
-        final_res = _result.iqdb
-    elif mode == "ex":
-        final_res = _result.ex
-    else:
-        final_res = _result.saucenao
-    if cached and not purge:
-        return [f"[缓存] {i}" for i in final_res]
-    return final_res
+        upsert_cache(_cache, image_md5, mode, result)
+        return result
+
+
+def get_universal_img_url(url: str) -> str:
+    fianl_url = url.replace(
+        "/c2cpicdw.qpic.cn/offpic_new/", "/gchat.qpic.cn/gchatpic_new/"
+    )
+    final_url = re.sub(r"/\d+/+\d+-\d+-", "/0/0-0-", fianl_url)
+    final_url = re.sub(r"\?.*$", "", final_url)
+    return final_url
 
 
 def get_image_urls(event: MessageEvent) -> List[str]:
