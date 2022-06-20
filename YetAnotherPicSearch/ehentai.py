@@ -95,7 +95,7 @@ async def search_result_filter(
     thumbnail = await handle_img(
         selected_res.thumbnail, proxy, hide_img, config.exhentai_cookies
     )
-    _url = await shorten_url(selected_res.url)
+    _url = await shorten_url(res.url)
     res_list = [
         "EHentai 搜索结果",
         thumbnail,
