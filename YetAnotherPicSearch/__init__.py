@@ -184,9 +184,6 @@ async def handle_image_search(bot: Bot, event: MessageEvent, matcher: Matcher) -
     else:
         mode, purge = get_args(event.message)
     with Cache("picsearch_cache") as c:
-        search_results = await asyncio.gather(
-            *[image_search(i, mode, purge, c) for i in image_urls]
-        )
-        for i in search_results:
-            await send_result_message(bot, event, i)
+        for i in image_urls:
+            await send_result_message(bot, event, await image_search(i, mode, purge, c))
         c.expire()
