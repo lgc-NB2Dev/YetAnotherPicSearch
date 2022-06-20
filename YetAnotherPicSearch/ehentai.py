@@ -8,7 +8,7 @@ from PicImageSearch.model import EHentaiItem, EHentaiResponse
 from pyquery import PyQuery
 
 from .config import config
-from .utils import handle_img
+from .utils import handle_img, shorten_url
 
 
 class EHentaiResponseAioHttp:
@@ -90,6 +90,7 @@ async def search_result_filter(
     thumbnail = await handle_img(
         selected_res.thumbnail, proxy, hide_img, config.exhentai_cookies
     )
+    _url = await shorten_url(selected_res.url)
     res_list = [
         "EHentai 搜索结果",
         thumbnail,
@@ -97,7 +98,6 @@ async def search_result_filter(
         f"类型：{selected_res.type}",
         f"日期：{selected_res.date}",
         f"来源：{selected_res.url}",
-        "-" * 20,
-        f"搜索页面：{res.url}",
+        f"搜索页面：{_url}",
     ]
     return ["\n".join([i for i in res_list if i != ""])]

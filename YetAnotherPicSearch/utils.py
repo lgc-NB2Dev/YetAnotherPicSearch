@@ -57,7 +57,7 @@ async def get_source(url: str, proxy: Optional[str]) -> str:
     return str(source)
 
 
-def shorten_url(url: str) -> str:
+async def shorten_url(url: str) -> str:
     pid_search = re.compile(
         r"(?:pixiv.+(?:illust_id=|artworks/)|/img-original/img/(?:\d+/){6})(\d+)"
     )
@@ -65,4 +65,11 @@ def shorten_url(url: str) -> str:
         return f"https://pixiv.net/i/{pid_search.search(url)[1]}"  # type: ignore
     if URL(url).host == "danbooru.donmai.us":
         return url.replace("/post/show/", "/posts/")
+    if URL(url).host in ["exhentai.org", "e-hentai.org"]:
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                "https://yww.uy/shorten", json={"url": url}
+            ) as resp:
+                if resp.status == 200:
+                    return (await resp.json())["url"]  # type: ignore
     return url

@@ -21,7 +21,7 @@ async def iqdb_search(url: str, proxy: Optional[str], hide_img: bool) -> List[st
             selected_res = yandere_res_list[0]
         thumbnail = await handle_img(selected_res.thumbnail, proxy, hide_img)
         source = (
-            shorten_url(await get_source(selected_res.url, proxy))
+            await shorten_url(await get_source(selected_res.url, proxy))
             if selected_res.url
             else ""
         )
