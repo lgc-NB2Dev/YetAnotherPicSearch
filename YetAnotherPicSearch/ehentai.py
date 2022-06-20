@@ -81,12 +81,17 @@ async def search_result_filter(
         group_list = list(group)
         if priority[key] > 0 and len(res.raw) != len(group_list):
             res.raw = [i for i in res.raw if i not in group_list]
-    selected_res = res.raw[0]
-    # 优先找汉化版
-    for i in res.raw:
-        if "translated" in i.tags and "chinese" in i.tags:
-            selected_res = i
-            break
+
+    # 优先找汉化版或原版
+    if chinese_res := [
+        i for i in res.raw if all(tag in i.tags for tag in ["translated", "chinese"])
+    ]:
+        selected_res = chinese_res[0]
+    elif not_translated_res := [i for i in res.raw if "translated" not in i.tags]:
+        selected_res = not_translated_res[0]
+    else:
+        selected_res = res.raw[0]
+
     thumbnail = await handle_img(
         selected_res.thumbnail, proxy, hide_img, config.exhentai_cookies
     )
