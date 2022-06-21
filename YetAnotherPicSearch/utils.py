@@ -66,10 +66,20 @@ async def shorten_url(url: str) -> str:
     if URL(url).host == "danbooru.donmai.us":
         return url.replace("/post/show/", "/posts/")
     if URL(url).host in ["exhentai.org", "e-hentai.org"]:
+        flag = len(url) > 1024
         async with aiohttp.ClientSession() as session:
-            async with session.post(
-                "https://yww.uy/shorten", json={"url": url}
-            ) as resp:
+            if not flag:
+                resp = await session.post("https://yww.uy/shorten", json={"url": url})
                 if resp.status == 200:
                     return (await resp.json())["url"]  # type: ignore
+                else:
+                    flag = True
+            if flag:
+                resp = await session.post(
+                    "https://www.shorturl.at/shortener.php", data={"u": url}
+                )
+                if resp.status == 200:
+                    html = await resp.text()
+                    final_url = PyQuery(html)("#shortenurl").attr("value")
+                    return f"https://{final_url}"
     return url
