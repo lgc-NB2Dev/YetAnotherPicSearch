@@ -50,7 +50,14 @@ async def saucenao_search(
                 for i in ext_urls:
                     if "danbooru" in i:
                         selected_res.url = i
-            thumbnail = await handle_img(selected_res.thumbnail, proxy, hide_img)
+            if selected_res.similarity < config.saucenao_low_acc:
+                thumbnail = await handle_img(
+                    selected_res.thumbnail,
+                    proxy,
+                    hide_img or config.hide_img_when_low_acc,
+                )
+            else:
+                thumbnail = await handle_img(selected_res.thumbnail, proxy, hide_img)
             if selected_res.origin["data"].get("source"):
                 source = await shorten_url(selected_res.origin["data"]["source"])
             else:
@@ -74,25 +81,30 @@ async def saucenao_search(
             if res.long_remaining < 10:
                 final_res.append(f"⚠️️ SauceNAO 24h 内仅剩 {res.long_remaining} 次使用次数")
             final_res.append("\n".join([i for i in res_list if i != ""]))
-            if (
-                selected_res.similarity < config.saucenao_low_acc
-                and mode == "anime"
-                or selected_res.similarity >= config.saucenao_low_acc
-                and "anidb.net" in _url
-            ):
-                final_res.extend(await whatanime_search(url, proxy, hide_img))
-            elif (
-                selected_res.similarity >= config.saucenao_low_acc and mode == "doujin"
-            ):
-                final_res.extend(
-                    await ehentai_title_search(selected_res.title, proxy, hide_img)
-                )
-            elif (
-                selected_res.similarity < config.saucenao_low_acc
-                and config.use_ascii2d_when_low_acc
-            ):
-                final_res.append(f"相似度 {selected_res.similarity}% 过低，自动使用 Ascii2D 进行搜索")
-                final_res.extend(await ascii2d_search(url, proxy, hide_img))
+            if selected_res.similarity < config.saucenao_low_acc:
+                # 因为 saucenao 的动画搜索数据库更新不够快，所以当搜索模式为动画时额外增加 whatanime 的搜索结果
+                if mode == "anime":
+                    final_res.extend(
+                        await whatanime_search(
+                            url, proxy, hide_img or config.hide_img_when_low_acc
+                        )
+                    )
+                elif config.use_ascii2d_when_low_acc:
+                    final_res.append(
+                        f"相似度 {selected_res.similarity}% 过低，自动使用 Ascii2D 进行搜索"
+                    )
+                    final_res.extend(
+                        await ascii2d_search(
+                            url, proxy, hide_img or config.hide_img_when_low_acc
+                        )
+                    )
+            else:
+                if selected_res.index_id in saucenao_db["doujin"]:  # type: ignore
+                    final_res.extend(
+                        await ehentai_title_search(selected_res.title, proxy, hide_img)
+                    )
+                elif selected_res.index_id == saucenao_db["anime"]:
+                    final_res.extend(await whatanime_search(url, proxy, hide_img))
         else:
             final_res.append("SauceNAO 暂时无法使用，自动使用 Ascii2D 进行搜索")
             final_res.extend(await ascii2d_search(url, proxy, hide_img))

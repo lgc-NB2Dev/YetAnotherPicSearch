@@ -18,18 +18,16 @@ async def get_pic_base64_by_url(
         async with session.get(url, proxy=proxy) as resp:
             if resp.status == 200:
                 return base64.b64encode(await resp.read()).decode()
-    return ""
+    return f"预览图链接：{url}"
 
 
 async def handle_img(
     url: str, proxy: Optional[str], hide_img: bool, cookies: Optional[str] = None
 ) -> str:
-    if hide_img:
-        return ""
-    img_base64 = await get_pic_base64_by_url(url, proxy, cookies)
-    if img_base64:
-        return f"[CQ:image,file=base64://{img_base64}]"
-    return f"图片下载失败: {url}"
+    if not hide_img:
+        if img_base64 := await get_pic_base64_by_url(url, proxy, cookies):
+            return f"[CQ:image,file=base64://{img_base64}]"
+    return f"预览图链接：{url}"
 
 
 async def get_source(url: str, proxy: Optional[str]) -> str:

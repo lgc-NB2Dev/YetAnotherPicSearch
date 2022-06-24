@@ -3,6 +3,7 @@ from typing import Any, Dict, List, Optional
 
 from PicImageSearch import Network, TraceMoe
 
+from .config import config
 from .utils import handle_img
 
 
@@ -15,11 +16,18 @@ async def whatanime_search(url: str, proxy: Optional[str], hide_img: bool) -> Li
             minutes = math.floor(time / 60)
             seconds = math.floor(time % 60)
             time_str = f"{minutes:02d}:{seconds:02d}"
-            cover_image = await handle_img(
-                res.raw[0].anime_info["coverImage"]["large"],
-                proxy,
-                hide_img,
-            )
+            if res.raw[0].isAdult:
+                thumbnail = await handle_img(
+                    res.raw[0].anime_info["coverImage"]["large"],
+                    proxy,
+                    hide_img or config.hide_img_when_whatanime_r18,
+                )
+            else:
+                thumbnail = await handle_img(
+                    res.raw[0].anime_info["coverImage"]["large"],
+                    proxy,
+                    hide_img,
+                )
             chinese_title = res.raw[0].title_chinese
             native_title = res.raw[0].title_native
             _type = res.raw[0].anime_info["type"]
@@ -35,7 +43,7 @@ async def whatanime_search(url: str, proxy: Optional[str], hide_img: bool) -> Li
             res_list = [
                 f"WhatAnime（{res.raw[0].similarity}%）",
                 f"该截图出自第 {res.raw[0].episode} 集的 {time_str}",
-                cover_image,
+                thumbnail,
                 chinese_title,
                 native_title,
                 f"类型：{_type}-{_format}",
