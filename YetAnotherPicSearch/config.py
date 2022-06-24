@@ -18,8 +18,8 @@ class Config(BaseConfig):
     saucenao_low_acc: int = 60
     # 是否在 saucenao 相似度过低时自动使用 ascii2d
     use_ascii2d_when_low_acc: bool = True
-    # 若结果消息有多条，采用合并转发方式发送搜图结果（私聊不生效）
-    group_forward_search_result: bool = True
+    # 若结果消息有多条，采用合并转发方式发送搜图结果
+    forward_search_result: bool = True
     # 大部分请求所使用的代理: http(s)://
     proxy: Optional[str] = None
     # 搜图结果缓存过期时间（天）

@@ -124,41 +124,42 @@ def get_args(msg: Message) -> Tuple[str, bool]:
 async def send_result_message(
     bot: Bot, event: MessageEvent, msg_list: List[str]
 ) -> None:
-    if isinstance(event, PrivateMessageEvent):
-        for msg in msg_list:
+    if isinstance(event, GroupMessageEvent):
+        current_sending_lock = sending_lock[(event.group_id, "group")]
+    else:
+        current_sending_lock = sending_lock[(event.user_id, "private")]
+    if flag := (config.forward_search_result and len(msg_list) > 1):
+        try:
             start_time = arrow.now()
-            async with sending_lock[(event.user_id, "private")]:
-                await bot.send_private_msg(user_id=event.user_id, message=msg)
+            async with current_sending_lock:
+                await send_forward_msg(bot, event, msg_list)
                 await asyncio.sleep(
                     max(1 - (arrow.now() - start_time).total_seconds(), 0)
                 )
-    elif isinstance(event, GroupMessageEvent):
-        flag = config.group_forward_search_result and len(msg_list) > 1
-        if flag:
-            try:
-                start_time = arrow.now()
-                async with sending_lock[(event.group_id, "group")]:
-                    await send_group_forward_msg(bot, event, msg_list)
-                    await asyncio.sleep(
-                        max(1 - (arrow.now() - start_time).total_seconds(), 0)
-                    )
-            except ActionFailed:
-                flag = False
-        if not flag:
-            for msg in msg_list:
-                start_time = arrow.now()
-                async with sending_lock[(event.group_id, "group")]:
-                    await bot.send_group_msg(group_id=event.group_id, message=msg)
-                    await asyncio.sleep(
-                        max(1 - (arrow.now() - start_time).total_seconds(), 0)
-                    )
+        except ActionFailed:
+            flag = False
+    if not flag:
+        for msg in msg_list:
+            start_time = arrow.now()
+            async with current_sending_lock:
+                await send_msg(bot, event, msg)
+                await asyncio.sleep(
+                    max(1 - (arrow.now() - start_time).total_seconds(), 0)
+                )
 
 
-async def send_group_forward_msg(
-    bot: Bot, event: GroupMessageEvent, msg_list: List[str]
-) -> None:
-    await bot.send_group_forward_msg(
-        group_id=event.group_id,
+async def send_msg(bot: Bot, event: MessageEvent, message: str) -> None:
+    await bot.send_msg(
+        user_id=event.user_id if isinstance(event, PrivateMessageEvent) else 0,
+        group_id=event.group_id if isinstance(event, GroupMessageEvent) else 0,
+        message=message,
+    )
+
+
+async def send_forward_msg(bot: Bot, event: MessageEvent, msg_list: List[str]) -> None:
+    await bot.send_forward_msg(
+        user_id=event.user_id if isinstance(event, PrivateMessageEvent) else 0,
+        group_id=event.group_id if isinstance(event, GroupMessageEvent) else 0,
         messages=[
             {
                 "type": "node",
