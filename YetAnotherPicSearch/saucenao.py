@@ -50,14 +50,12 @@ async def saucenao_search(
                 for i in ext_urls:
                     if "danbooru" in i:
                         selected_res.url = i
+            _hide_img = hide_img or (
+                config.saucenao_nsfw_hide_level and selected_res.hidden
+            )
             if selected_res.similarity < config.saucenao_low_acc:
-                thumbnail = await handle_img(
-                    selected_res.thumbnail,
-                    proxy,
-                    hide_img or config.hide_img_when_low_acc,
-                )
-            else:
-                thumbnail = await handle_img(selected_res.thumbnail, proxy, hide_img)
+                _hide_img = _hide_img or config.hide_img_when_low_acc
+            thumbnail = await handle_img(selected_res.thumbnail, proxy, _hide_img)
             if selected_res.origin["data"].get("source"):
                 source = await shorten_url(selected_res.origin["data"]["source"])
             else:

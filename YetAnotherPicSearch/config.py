@@ -14,6 +14,9 @@ class Config(BaseConfig):
     hide_img_when_low_acc: bool = False
     # whatanime 得到 R18 结果时隐藏结果缩略图
     hide_img_when_whatanime_r18: bool = False
+    # 对 saucenao 的搜索结果进行 NSFW 判断的严格程度(依次递增), 启用后自动隐藏相应的 NSFW 结果的缩略图
+    # 0 表示不判断， 1 只判断明确的， 2 包括可疑的， 3 非明确为 SFW 的
+    saucenao_nsfw_hide_level: int = 0
     # saucenao 相似度低于这个百分比将被认定为相似度过低
     saucenao_low_acc: int = 60
     # 是否在 saucenao 相似度过低时自动使用 ascii2d

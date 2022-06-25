@@ -77,21 +77,20 @@ async def image_search(
     image_md5 = re.search("[A-F0-9]{32}", url)[0]  # type: ignore
     if not purge and (result := exist_in_cache(_cache, image_md5, mode)):
         return [f"[缓存] {i}" for i in result]
-    else:
-        try:
-            if mode == "a2d":
-                result = await ascii2d_search(url, proxy, hide_img)
-            elif mode == "iqdb":
-                result = await iqdb_search(url, proxy, hide_img)
-            elif mode == "ex":
-                result = await ehentai_search(url, proxy, hide_img)
-            else:
-                result = await saucenao_search(url, mode, proxy, hide_img)
-        except Exception as e:
-            thumbnail = await handle_img(url, proxy, False)
-            return [f"{thumbnail}\n❌️ 该图搜图失败，请稍后再试\nE: {repr(e)}"]
-        upsert_cache(_cache, image_md5, mode, result)
-        return result
+    try:
+        if mode == "a2d":
+            result = await ascii2d_search(url, proxy, hide_img)
+        elif mode == "iqdb":
+            result = await iqdb_search(url, proxy, hide_img)
+        elif mode == "ex":
+            result = await ehentai_search(url, proxy, hide_img)
+        else:
+            result = await saucenao_search(url, mode, proxy, hide_img)
+    except Exception as e:
+        thumbnail = await handle_img(url, proxy, False)
+        return [f"{thumbnail}\n❌️ 该图搜图失败，请稍后再试\nE: {repr(e)}"]
+    upsert_cache(_cache, image_md5, mode, result)
+    return result
 
 
 def get_universal_img_url(url: str) -> str:
