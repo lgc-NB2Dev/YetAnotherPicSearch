@@ -22,9 +22,19 @@ async def saucenao_search(
     }
     async with Network(proxies=proxy) as client:
         if isinstance(db := saucenao_db[mode], list):
-            saucenao = SauceNAO(client=client, api_key=config.saucenao_api_key, dbs=db)
+            saucenao = SauceNAO(
+                client=client,
+                api_key=config.saucenao_api_key,
+                hide=config.saucenao_nsfw_hide_level,
+                dbs=db,
+            )
         else:
-            saucenao = SauceNAO(client=client, api_key=config.saucenao_api_key, db=db)
+            saucenao = SauceNAO(
+                client=client,
+                api_key=config.saucenao_api_key,
+                hide=config.saucenao_nsfw_hide_level,
+                db=db,
+            )
         res = await saucenao.search(url)
         final_res = []
         if res and res.raw:
@@ -50,9 +60,7 @@ async def saucenao_search(
                 for i in ext_urls:
                     if "danbooru" in i:
                         selected_res.url = i
-            _hide_img = hide_img or (
-                config.saucenao_nsfw_hide_level and selected_res.hidden
-            )
+            _hide_img = hide_img or selected_res.hidden
             if selected_res.similarity < config.saucenao_low_acc:
                 _hide_img = _hide_img or config.hide_img_when_low_acc
             thumbnail = await handle_img(selected_res.thumbnail, proxy, _hide_img)
@@ -96,13 +104,12 @@ async def saucenao_search(
                             url, proxy, hide_img or config.hide_img_when_low_acc
                         )
                     )
-            else:
-                if selected_res.index_id in saucenao_db["doujin"]:  # type: ignore
-                    final_res.extend(
-                        await ehentai_title_search(selected_res.title, proxy, hide_img)
-                    )
-                elif selected_res.index_id == saucenao_db["anime"]:
-                    final_res.extend(await whatanime_search(url, proxy, hide_img))
+            elif selected_res.index_id in saucenao_db["doujin"]:  # type: ignore
+                final_res.extend(
+                    await ehentai_title_search(selected_res.title, proxy, hide_img)
+                )
+            elif selected_res.index_id == saucenao_db["anime"]:
+                final_res.extend(await whatanime_search(url, proxy, hide_img))
         else:
             final_res.append("SauceNAO 暂时无法使用，自动使用 Ascii2D 进行搜索")
             final_res.extend(await ascii2d_search(url, proxy, hide_img))
