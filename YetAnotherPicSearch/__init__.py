@@ -3,6 +3,7 @@ import re
 from collections import defaultdict
 from typing import DefaultDict, List, Optional, Tuple, Union
 
+import aiohttp
 import arrow
 from diskcache import Cache
 from nonebot.adapters.onebot.v11 import (
@@ -73,7 +74,7 @@ async def image_search(
     proxy: Optional[str] = config.proxy,
     hide_img: bool = config.hide_img,
 ) -> List[str]:
-    url = get_universal_img_url(url)
+    url = await get_universal_img_url(url)
     image_md5 = re.search("[A-F0-9]{32}", url)[0]  # type: ignore
     if not purge and (result := exist_in_cache(_cache, image_md5, mode)):
         return [f"[缓存] {i}" for i in result]
@@ -93,13 +94,17 @@ async def image_search(
     return result
 
 
-def get_universal_img_url(url: str) -> str:
+async def get_universal_img_url(url: str) -> str:
     fianl_url = url.replace(
         "/c2cpicdw.qpic.cn/offpic_new/", "/gchat.qpic.cn/gchatpic_new/"
     )
     final_url = re.sub(r"/\d+/+\d+-\d+-", "/0/0-0-", fianl_url)
     final_url = re.sub(r"\?.*$", "", final_url)
-    return final_url
+    async with aiohttp.ClientSession() as session:
+        async with session.get(final_url) as resp:
+            if resp.status == 200:
+                return final_url
+    return url
 
 
 def get_image_urls(event: MessageEvent) -> List[str]:
