@@ -1,4 +1,5 @@
 import itertools
+from collections import defaultdict
 from typing import Any, Dict, List, Optional, Union
 
 import aiohttp
@@ -66,16 +67,13 @@ async def search_result_filter(
     if not res.raw:
         return ["EHentai 搜索结果为空"]
     # 尽可能过滤掉非预期结果(大概
-    priority = {
-        "Doujinshi": 0,
-        "Manga": 0,
-        "Artist CG": 0,
-        "Game CG": 0,
-        "Image Set": 1,
-        "Non-H": 2,
-        "Western": 3,
-        "Misc": 4,
-    }
+    priority = defaultdict(lambda: 0)
+    priority["Image Set"] = 1
+    priority["Non-H"] = 2
+    priority["Western"] = 3
+    priority["Misc"] = 4
+    priority["Cosplay"] = 5
+    priority["Asian Porn"] = 6
     res.raw.sort(key=lambda x: priority[x.type], reverse=True)
     for key, group in itertools.groupby(res.raw, key=lambda x: x.type):
         group_list = list(group)
