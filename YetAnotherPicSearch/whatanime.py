@@ -18,35 +18,33 @@ async def whatanime_search(url: str, proxy: Optional[str], hide_img: bool) -> Li
             time_str = f"{minutes:02d}:{seconds:02d}"
             if res.raw[0].isAdult:
                 thumbnail = await handle_img(
-                    res.raw[0].anime_info["coverImage"]["large"],
+                    res.raw[0].cover_image,
                     proxy,
                     hide_img or config.hide_img_when_whatanime_r18,
                 )
             else:
                 thumbnail = await handle_img(
-                    res.raw[0].anime_info["coverImage"]["large"],
+                    res.raw[0].cover_image,
                     proxy,
                     hide_img,
                 )
             chinese_title = res.raw[0].title_chinese
             native_title = res.raw[0].title_native
-            _type = res.raw[0].anime_info["type"]
-            _format = res.raw[0].anime_info["format"]
 
             def date_to_str(date: Dict[str, Any]) -> str:
                 return f"{date['year']}-{date['month']}-{date['day']}"
 
-            start_date = date_to_str(res.raw[0].anime_info["startDate"])
+            start_date = date_to_str(res.raw[0].start_date)
             end_date = ""
-            if res.raw[0].anime_info["endDate"]["year"] > 0:
-                end_date = date_to_str(res.raw[0].anime_info["endDate"])
+            if res.raw[0].end_date["year"] > 0:
+                end_date = date_to_str(res.raw[0].end_date)
             res_list = [
                 f"WhatAnime（{res.raw[0].similarity}%）",
                 f"该截图出自第 {res.raw[0].episode} 集的 {time_str}",
                 thumbnail,
                 chinese_title,
                 native_title,
-                f"类型：{_type}-{_format}",
+                f"类型：{res.raw[0].type}-{res.raw[0].format}",
                 f"开播：{start_date}",
                 f"完结：{end_date}" if end_date else "",
             ]
