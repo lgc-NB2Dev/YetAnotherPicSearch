@@ -14,13 +14,13 @@ keywords = ["nonebot", "saucenao", "pixiv", "danbooru", "doujin", "anime", "asci
 
 [tool.poetry.dependencies]
 python = "^3.9"
-aiohttp = "^3.8.1"
-arrow = "^1.2.0"
+aiohttp = { extras = ["speedups"], version = "^3.8.1" }
+arrow = "^1.2.2"
 diskcache = "^5.4.0"
 lxml = "^4.8.0"
-nonebot-adapter-onebot = "^2.0.0b1"
-nonebot2 = "^2.0.0b1"
-PicImageSearch = "^3.3.6"
+nonebot-adapter-onebot = "^2.1.1"
+nonebot2 = "^2.0.0b4"
+PicImageSearch = "^3.3.7"
 pyquery = "^1.4.3"
 yarl = "^1.7.2"
 
