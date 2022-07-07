@@ -33,7 +33,7 @@ class Config(BaseConfig):
     exhentai_cookies: str = ""
 
     class Config:
-        extra = "ignore"
+        extra = "allow"
 
 
 config = Config(**get_driver().config.dict())
