@@ -98,10 +98,10 @@ async def image_search(
 
 
 async def get_universal_img_url(url: str) -> str:
-    fianl_url = url.replace(
+    final_url = url.replace(
         "/c2cpicdw.qpic.cn/offpic_new/", "/gchat.qpic.cn/gchatpic_new/"
     )
-    final_url = re.sub(r"/\d+/+\d+-\d+-", "/0/0-0-", fianl_url)
+    final_url = re.sub(r"/\d+/+\d+-\d+-", "/0/0-0-", final_url)
     final_url = re.sub(r"\?.*$", "", final_url)
     async with aiohttp.ClientSession() as session:
         async with session.get(final_url) as resp:
