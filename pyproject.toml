@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "YetAnotherPicSearch"
-version = "1.5.11"
+version = "1.5.12"
 description = "Yet Another Picture Search Nonebot Plugin"
 authors = ["NekoAria"]
 license = "GPL-3.0-only"
@@ -10,7 +10,7 @@ packages = [
 ]
 homepage = "https://github.com/NekoAria/YetAnotherPicSearch"
 repository = "https://github.com/NekoAria/YetAnotherPicSearch"
-keywords = ["nonebot", "saucenao", "pixiv", "danbooru", "doujin", "anime", "ascii2d", "exhentai"]
+keywords = ["nonebot", "saucenao", "pixiv", "danbooru", "doujin", "anime", "ascii2d", "iqdb", "exhentai"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
@@ -20,7 +20,7 @@ diskcache = "^5.4.0"
 lxml = "^4.8.0"
 nonebot-adapter-onebot = "^2.1.1"
 nonebot2 = "^2.0.0b4"
-PicImageSearch = "^3.3.8"
+PicImageSearch = "^3.3.9"
 pyquery = "^1.4.3"
 yarl = "^1.7.2"
 
