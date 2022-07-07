@@ -14,6 +14,7 @@ from nonebot.adapters.onebot.v11 import (
     MessageEvent,
     PrivateMessageEvent,
 )
+from nonebot.log import logger
 from nonebot.matcher import Matcher
 from nonebot.params import CommandArg
 from nonebot.plugin.on import on_command, on_message
@@ -75,7 +76,7 @@ async def image_search(
     hide_img: bool = config.hide_img,
 ) -> List[str]:
     url = await get_universal_img_url(url)
-    image_md5 = re.search("[A-F0-9]{32}", url)[0]  # type: ignore
+    image_md5 = re.search(r"[A-F\d]{32}", url)[0]  # type: ignore
     if not purge and (result := exist_in_cache(_cache, image_md5, mode)):
         return [f"[缓存] {i}" for i in result]
     try:
@@ -89,7 +90,9 @@ async def image_search(
             result = await saucenao_search(url, mode, proxy, hide_img)
     except Exception as e:
         thumbnail = await handle_img(url, proxy, False)
-        return [f"{thumbnail}\n❌️ 该图搜图失败，请稍后再试\nE: {repr(e)}"]
+        logger.error(f"❌️ 该图 [{url}] 搜图失败")
+        logger.exception(e)
+        return [f"{thumbnail}\n❌️ 该图搜图失败\nE: {repr(e)}"]
     upsert_cache(_cache, image_md5, mode, result)
     return result
 
