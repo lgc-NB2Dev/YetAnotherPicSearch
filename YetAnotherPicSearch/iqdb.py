@@ -11,6 +11,9 @@ async def iqdb_search(url: str, proxy: Optional[str], hide_img: bool) -> List[st
         res = await iqdb.search(url)
         if not res or not res.raw:
             return ["Iqdb 暂时无法使用"]
+        # 如果遇到搜索结果相似度低的情况，去除第一个只有提示信息的空结果
+        if res.raw[0].content == "No relevant matches":
+            res.raw.pop(0)
         selected_res = res.raw[0]
         # 优先取 danbooru 或 yande.re
         danbooru_res_list = [i for i in res.raw if i.source == "Danbooru"]
