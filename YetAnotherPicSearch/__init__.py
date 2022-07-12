@@ -21,6 +21,7 @@ from nonebot.params import CommandArg
 from nonebot.plugin.on import on_command, on_message
 from nonebot.rule import Rule
 from PicImageSearch import Network
+from tenacity import AsyncRetrying, stop_after_attempt, stop_after_delay
 
 from .ascii2d import ascii2d_search
 from .cache import exist_in_cache, upsert_cache
@@ -81,20 +82,25 @@ async def image_search(
     image_md5 = re.search(r"[A-F\d]{32}", url)[0]  # type: ignore
     if not purge and (result := exist_in_cache(_cache, image_md5, mode)):
         return [f"[缓存] {i}" for i in result]
+    result = []
     try:
-        if mode == "a2d":
-            result = await ascii2d_search(url, client, hide_img)
-        elif mode == "iqdb":
-            result = await iqdb_search(url, client, hide_img)
-        elif mode == "ex":
-            result = await ehentai_search(url, client, hide_img)
-        else:
-            result = await saucenao_search(url, mode, client, hide_img)
+        async for attempt in AsyncRetrying(
+            stop=(stop_after_attempt(3) | stop_after_delay(30)), reraise=True
+        ):
+            with attempt:
+                if mode == "a2d":
+                    result = await ascii2d_search(url, client, hide_img)
+                elif mode == "iqdb":
+                    result = await iqdb_search(url, client, hide_img)
+                elif mode == "ex":
+                    result = await ehentai_search(url, client, hide_img)
+                else:
+                    result = await saucenao_search(url, mode, client, hide_img)
+                upsert_cache(_cache, image_md5, mode, result)
     except Exception as e:
         thumbnail = await handle_img(url, False)
         logger.exception(f"❌️ 该图 [{url}] 搜图失败")
-        return [f"{thumbnail}\n❌️ 该图搜图失败\nE: {repr(e)}"]
-    upsert_cache(_cache, image_md5, mode, result)
+        result = [f"{thumbnail}\n❌️ 该图搜图失败\nE: {repr(e)}"]
     return result
 
 
