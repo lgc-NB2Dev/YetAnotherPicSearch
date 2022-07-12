@@ -1,10 +1,11 @@
 import itertools
 from collections import defaultdict
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Union
 
 import aiohttp
+from aiohttp import ClientSession
 from lxml.html import HTMLParser, fromstring
-from PicImageSearch import EHentai, Network
+from PicImageSearch import EHentai
 from PicImageSearch.model import EHentaiItem, EHentaiResponse
 from pyquery import PyQuery
 
@@ -23,29 +24,26 @@ class EHentaiResponseAioHttp:
         self.url: str = resp_url
 
 
-async def ehentai_search(url: str, proxy: Optional[str], hide_img: bool) -> List[str]:
-    async with Network(proxies=proxy, cookies=config.exhentai_cookies) as client:
-        ex = bool(config.exhentai_cookies)
-        ehentai = EHentai(client=client)
-        if res := await ehentai.search(url, ex=ex):
-            if not res.raw:
-                # 如果第一次没找到，使搜索结果包含被删除的部分，并重新搜索
-                ehentai = EHentai(client=client, exp=True)
-                res = await ehentai.search(url, ex=ex)
-            return await search_result_filter(res, proxy, hide_img)
-        return ["EHentai 暂时无法使用"]
+async def ehentai_search(url: str, client: ClientSession, hide_img: bool) -> List[str]:
+    ex = bool(config.exhentai_cookies)
+    ehentai = EHentai(client=client)
+    if res := await ehentai.search(url, ex=ex):
+        if not res.raw:
+            # 如果第一次没找到，使搜索结果包含被删除的部分，并重新搜索
+            ehentai = EHentai(client=client, exp=True)
+            res = await ehentai.search(url, ex=ex)
+        return await search_result_filter(res, hide_img)
+    return ["EHentai 暂时无法使用"]
 
 
-async def ehentai_title_search(
-    title: str, proxy: Optional[str], hide_img: bool
-) -> List[str]:
+async def ehentai_title_search(title: str, hide_img: bool) -> List[str]:
     headers = {}
     if cookies := config.exhentai_cookies:
         headers["Cookie"] = cookies
     url = "https://exhentai.org" if cookies else "https://e-hentai.org"
     params: Dict[str, Any] = {"f_search": title}
     async with aiohttp.ClientSession(headers=headers) as session:
-        resp = await session.get(url, proxy=proxy, params=params)
+        resp = await session.get(url, proxy=config.proxy, params=params)
         if res := EHentaiResponseAioHttp(await resp.text(), str(resp.url)):
             if not res.raw:
                 # 如果第一次没找到，使搜索结果包含被删除的部分，并重新搜索
@@ -53,15 +51,14 @@ async def ehentai_title_search(
                 params["f_sname"] = "on"
                 params["f_stags"] = "on"
                 params["f_sh"] = "on"
-                resp = await session.get(url, proxy=proxy, params=params)
+                resp = await session.get(url, proxy=config.proxy, params=params)
                 res = EHentaiResponseAioHttp(await resp.text(), str(resp.url))
-            return await search_result_filter(res, proxy, hide_img)
+            return await search_result_filter(res, hide_img)
         return ["EHentai 暂时无法使用"]
 
 
 async def search_result_filter(
     res: Union[EHentaiResponse, EHentaiResponseAioHttp],
-    proxy: Optional[str],
     hide_img: bool,
 ) -> List[str]:
     if not res.raw:
@@ -91,7 +88,7 @@ async def search_result_filter(
         selected_res = res.raw[0]
 
     thumbnail = await handle_img(
-        selected_res.thumbnail, proxy, hide_img, config.exhentai_cookies
+        selected_res.thumbnail, hide_img, cookies=config.exhentai_cookies
     )
     _url = await shorten_url(res.url)
     res_list = [

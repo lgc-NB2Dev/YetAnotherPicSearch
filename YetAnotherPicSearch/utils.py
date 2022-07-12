@@ -6,47 +6,49 @@ import aiohttp
 from pyquery import PyQuery
 from yarl import URL
 
+from .config import config
+
 
 # 将图片转化为 base64
-async def get_pic_base64_by_url(
-    url: str, proxy: Optional[str], cookies: Optional[str] = None
-) -> str:
+async def get_pic_base64_by_url(url: str, cookies: Optional[str] = None) -> str:
     headers = {}
     if cookies:
         headers["Cookie"] = cookies
     async with aiohttp.ClientSession(headers=headers) as session:
-        async with session.get(url, proxy=proxy) as resp:
+        async with session.get(url, proxy=config.proxy) as resp:
             if resp.status == 200:
                 return base64.b64encode(await resp.read()).decode()
     return f"预览图链接：{url}"
 
 
 async def handle_img(
-    url: str, proxy: Optional[str], hide_img: bool, cookies: Optional[str] = None
+    url: str,
+    hide_img: bool,
+    cookies: Optional[str] = None,
 ) -> str:
     if not hide_img:
-        if img_base64 := await get_pic_base64_by_url(url, proxy, cookies):
+        if img_base64 := await get_pic_base64_by_url(url, cookies):
             return f"[CQ:image,file=base64://{img_base64}]"
     return f"预览图链接：{url}"
 
 
-async def get_source(url: str, proxy: Optional[str]) -> str:
+async def get_source(url: str) -> str:
     source = ""
     async with aiohttp.ClientSession() as session:
         if URL(url).host == "danbooru.donmai.us":
-            async with session.get(url, proxy=proxy) as resp:
+            async with session.get(url, proxy=config.proxy) as resp:
                 if resp.status == 200:
                     html = await resp.text()
                     source = PyQuery(html)(".image-container").attr(
                         "data-normalized-source"
                     )
         elif URL(url).host in ["yande.re", "konachan.com"]:
-            async with session.get(url, proxy=proxy) as resp:
+            async with session.get(url, proxy=config.proxy) as resp:
                 if resp.status == 200:
                     html = await resp.text()
                     source = PyQuery(html)("#stats li:contains(Source) a").attr("href")
         elif URL(url).host == "gelbooru.com":
-            async with session.get(url, proxy=proxy) as resp:
+            async with session.get(url, proxy=config.proxy) as resp:
                 if resp.status == 200:
                     html = await resp.text()
                     source = PyQuery(html)("#tag-list li:contains(Source) a").attr(

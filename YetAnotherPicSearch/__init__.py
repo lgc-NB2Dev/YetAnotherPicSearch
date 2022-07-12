@@ -1,10 +1,11 @@
 import asyncio
 import re
 from collections import defaultdict
-from typing import DefaultDict, List, Optional, Tuple, Union
+from typing import DefaultDict, List, Tuple, Union
 
 import aiohttp
 import arrow
+from aiohttp import ClientSession
 from diskcache import Cache
 from nonebot.adapters.onebot.v11 import (
     ActionFailed,
@@ -19,6 +20,7 @@ from nonebot.matcher import Matcher
 from nonebot.params import CommandArg
 from nonebot.plugin.on import on_command, on_message
 from nonebot.rule import Rule
+from PicImageSearch import Network
 
 from .ascii2d import ascii2d_search
 from .cache import exist_in_cache, upsert_cache
@@ -72,7 +74,7 @@ async def image_search(
     mode: str,
     purge: bool,
     _cache: Cache,
-    proxy: Optional[str] = config.proxy,
+    client: ClientSession,
     hide_img: bool = config.hide_img,
 ) -> List[str]:
     url = await get_universal_img_url(url)
@@ -81,17 +83,16 @@ async def image_search(
         return [f"[缓存] {i}" for i in result]
     try:
         if mode == "a2d":
-            result = await ascii2d_search(url, proxy, hide_img)
+            result = await ascii2d_search(url, client, hide_img)
         elif mode == "iqdb":
-            result = await iqdb_search(url, proxy, hide_img)
+            result = await iqdb_search(url, client, hide_img)
         elif mode == "ex":
-            result = await ehentai_search(url, proxy, hide_img)
+            result = await ehentai_search(url, client, hide_img)
         else:
-            result = await saucenao_search(url, mode, proxy, hide_img)
+            result = await saucenao_search(url, mode, client, hide_img)
     except Exception as e:
-        thumbnail = await handle_img(url, proxy, False)
-        logger.error(f"❌️ 该图 [{url}] 搜图失败")
-        logger.exception(e)
+        thumbnail = await handle_img(url, False)
+        logger.exception(f"❌️ 该图 [{url}] 搜图失败")
         return [f"{thumbnail}\n❌️ 该图搜图失败\nE: {repr(e)}"]
     upsert_cache(_cache, image_md5, mode, result)
     return result
@@ -191,7 +192,15 @@ async def handle_image_search(bot: Bot, event: MessageEvent, matcher: Matcher) -
         mode, purge = matcher.state["ARGS"]
     else:
         mode, purge = get_args(event.message)
-    with Cache("picsearch_cache") as c:
-        for i in image_urls:
-            await send_result_message(bot, event, await image_search(i, mode, purge, c))
-        c.expire()
+    network = (
+        Network(proxies=config.proxy, cookies=config.exhentai_cookies, timeout=60)
+        if mode == "ex"
+        else Network(proxies=config.proxy)
+    )
+    async with network as client:
+        with Cache("picsearch_cache") as _cache:
+            for i in image_urls:
+                await send_result_message(
+                    bot, event, await image_search(i, mode, purge, _cache, client)
+                )
+            _cache.expire()
