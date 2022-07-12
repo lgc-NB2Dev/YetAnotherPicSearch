@@ -36,11 +36,12 @@ async def whatanime_search(
 
         start_date = date_to_str(res.raw[0].start_date)
         end_date = ""
-        if res.raw[0].end_date["year"] > 0:
+        if (end_date_year := res.raw[0].end_date["year"]) and end_date_year > 0:
             end_date = date_to_str(res.raw[0].end_date)
+        episode = res.raw[0].episode or 1
         res_list = [
             f"WhatAnime（{res.raw[0].similarity}%）",
-            f"该截图出自第 {res.raw[0].episode} 集的 {time_str}",
+            f"该截图出自第 {episode} 集的 {time_str}",
             thumbnail,
             chinese_title,
             native_title,

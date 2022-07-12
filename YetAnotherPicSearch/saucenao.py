@@ -18,7 +18,7 @@ async def saucenao_search(
         "all": 999,
         "pixiv": 5,
         "danbooru": 9,
-        "anime": 21,
+        "anime": [21, 22],
         "doujin": [18, 38],
     }
     if isinstance(db := saucenao_db[mode], list):
@@ -104,7 +104,7 @@ async def saucenao_search(
                 )
         elif selected_res.index_id in saucenao_db["doujin"]:  # type: ignore
             final_res.extend(await ehentai_title_search(selected_res.title, hide_img))
-        elif selected_res.index_id == saucenao_db["anime"]:
+        elif selected_res.index_id in saucenao_db["anime"]:  # type: ignore
             final_res.extend(await whatanime_search(url, client, hide_img))
     else:
         final_res.append("SauceNAO 暂时无法使用，自动使用 Ascii2D 进行搜索")
