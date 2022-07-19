@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "YetAnotherPicSearch"
-version = "1.5.13"
+version = "1.5.14"
 description = "Yet Another Picture Search Nonebot Plugin"
 authors = ["NekoAria"]
 license = "GPL-3.0-only"
