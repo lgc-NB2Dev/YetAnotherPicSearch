@@ -178,7 +178,7 @@ async def send_forward_msg(bot: Bot, event: MessageEvent, msg_list: List[str]) -
             {
                 "type": "node",
                 "data": {
-                    "name": config.nickname[0] if config.nickname else "\u200b",
+                    "name": list(config.nickname)[0] if config.nickname else "\u200b",
                     "uin": bot.self_id,
                     "content": msg,
                 },
