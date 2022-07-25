@@ -1,7 +1,7 @@
 import asyncio
 import re
 from collections import defaultdict
-from typing import DefaultDict, List, Tuple, Union
+from typing import DefaultDict, List, Optional, Tuple, Union
 
 import aiohttp
 import arrow
@@ -29,7 +29,7 @@ from .config import config
 from .ehentai import ehentai_search
 from .iqdb import iqdb_search
 from .saucenao import saucenao_search
-from .utils import handle_img
+from .utils import handle_img, handle_reply_msg
 
 sending_lock: DefaultDict[Tuple[Union[int, str], str], asyncio.Lock] = defaultdict(
     asyncio.Lock
@@ -98,9 +98,8 @@ async def image_search(
                     result = await saucenao_search(url, mode, client, hide_img)
                 upsert_cache(_cache, image_md5, mode, result)
     except Exception as e:
-        thumbnail = await handle_img(url, False)
         logger.exception(f"❌️ 该图 [{url}] 搜图失败")
-        result = [f"{thumbnail}\n❌️ 该图搜图失败\nE: {repr(e)}"]
+        result = [f"❌️ 该图搜图失败\nE: {repr(e)}"]
     return result
 
 
@@ -136,7 +135,7 @@ def get_args(msg: Message) -> Tuple[str, bool]:
 
 
 async def send_result_message(
-    bot: Bot, event: MessageEvent, msg_list: List[str]
+    bot: Bot, event: MessageEvent, msg_list: List[str], index: Optional[int] = None
 ) -> None:
     if isinstance(event, GroupMessageEvent):
         current_sending_lock = sending_lock[(event.group_id, "group")]
@@ -146,7 +145,7 @@ async def send_result_message(
         try:
             start_time = arrow.now()
             async with current_sending_lock:
-                await send_forward_msg(bot, event, msg_list)
+                await send_forward_msg(bot, event, msg_list, index)
                 await asyncio.sleep(
                     max(1 - (arrow.now() - start_time).total_seconds(), 0)
                 )
@@ -156,13 +155,18 @@ async def send_result_message(
         for msg in msg_list:
             start_time = arrow.now()
             async with current_sending_lock:
-                await send_msg(bot, event, msg)
+                await send_msg(bot, event, msg, index)
                 await asyncio.sleep(
                     max(1 - (arrow.now() - start_time).total_seconds(), 0)
                 )
 
 
-async def send_msg(bot: Bot, event: MessageEvent, message: str) -> None:
+async def send_msg(
+    bot: Bot, event: MessageEvent, message: str, index: Optional[int] = None
+) -> None:
+    if index is not None:
+        message = f"第 {index + 1} 张图片的搜索结果：\n{message}"
+    message = f"{handle_reply_msg(event.message_id)}{message}"
     await bot.send_msg(
         user_id=event.user_id if isinstance(event, PrivateMessageEvent) else 0,
         group_id=event.group_id if isinstance(event, GroupMessageEvent) else 0,
@@ -170,7 +174,11 @@ async def send_msg(bot: Bot, event: MessageEvent, message: str) -> None:
     )
 
 
-async def send_forward_msg(bot: Bot, event: MessageEvent, msg_list: List[str]) -> None:
+async def send_forward_msg(
+    bot: Bot, event: MessageEvent, msg_list: List[str], index: Optional[int] = None
+) -> None:
+    if index is not None:
+        msg_list = [f"第 {index + 1} 张图片的搜索结果：\n"] + msg_list
     await bot.send_forward_msg(
         user_id=event.user_id if isinstance(event, PrivateMessageEvent) else 0,
         group_id=event.group_id if isinstance(event, GroupMessageEvent) else 0,
@@ -205,8 +213,11 @@ async def handle_image_search(bot: Bot, event: MessageEvent, matcher: Matcher) -
     )
     async with network as client:
         with Cache("picsearch_cache") as _cache:
-            for i in image_urls:
+            for index, value in enumerate(image_urls):
                 await send_result_message(
-                    bot, event, await image_search(i, mode, purge, _cache, client)
+                    bot,
+                    event,
+                    await image_search(value, mode, purge, _cache, client),
+                    index if len(image_urls) > 1 else None,
                 )
             _cache.expire()
