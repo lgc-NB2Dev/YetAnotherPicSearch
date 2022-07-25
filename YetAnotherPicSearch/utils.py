@@ -32,6 +32,10 @@ async def handle_img(
     return f"预览图链接：{url}"
 
 
+def handle_reply_msg(message_id: int) -> str:
+    return f"[CQ:reply,id={message_id}]"
+
+
 async def get_source(url: str) -> str:
     source = ""
     async with aiohttp.ClientSession() as session:
