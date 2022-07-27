@@ -13,11 +13,11 @@ repository = "https://github.com/NekoAria/YetAnotherPicSearch"
 keywords = ["nonebot", "saucenao", "pixiv", "danbooru", "doujin", "anime", "ascii2d", "iqdb", "exhentai"]
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.8"
 aiohttp = { extras = ["speedups"], version = "^3.8.1" }
 arrow = "^1.2.2"
 diskcache = "^5.4.0"
-lxml = "^4.8.0"
+lxml = "^4.9.1"
 nonebot-adapter-onebot = "^2.1.1"
 nonebot2 = "^2.0.0b4"
 PicImageSearch = "^3.3.10"
