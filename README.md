@@ -3,7 +3,7 @@
 # YetAnotherPicSearch
 
 [![license](https://img.shields.io/github/license/NekoAria/YetAnotherPicSearch)](https://raw.githubusercontent.com/NekoAria/YetAnotherPicSearch/master/LICENSE)
-![python](https://img.shields.io/badge/python-3.9+-blue)
+![python](https://img.shields.io/badge/python-3.8+-blue)
 [![release](https://img.shields.io/github/v/release/NekoAria/YetAnotherPicSearch)](https://github.com/NekoAria/YetAnotherPicSearch/releases)
 
 基于 [nonebot2](https://github.com/nonebot/nonebot2) 及 [PicImageSearch](https://github.com/kitUIN/PicImageSearch) 的另一个 Nonebot 搜图插件
