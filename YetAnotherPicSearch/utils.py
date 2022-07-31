@@ -11,14 +11,12 @@ from .config import config
 
 # 将图片转化为 base64
 async def get_pic_base64_by_url(url: str, cookies: Optional[str] = None) -> str:
-    headers = {}
-    if cookies:
-        headers["Cookie"] = cookies
+    headers = {"Cookie": cookies} if cookies else None
     async with aiohttp.ClientSession(headers=headers) as session:
         async with session.get(url, proxy=config.proxy) as resp:
             if resp.status == 200:
                 return base64.b64encode(await resp.read()).decode()
-    return f"预览图链接：{url}"
+    return ""
 
 
 async def handle_img(
