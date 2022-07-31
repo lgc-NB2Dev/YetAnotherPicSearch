@@ -37,7 +37,7 @@ def handle_reply_msg(message_id: int) -> str:
 async def get_source(url: str) -> str:
     source = ""
     async with aiohttp.ClientSession() as session:
-        if URL(url).host == "danbooru.donmai.us":
+        if URL(url).host in ["danbooru.donmai.us", "gelbooru.com"]:
             async with session.get(url, proxy=config.proxy) as resp:
                 if resp.status == 200:
                     html = await resp.text()
@@ -48,15 +48,8 @@ async def get_source(url: str) -> str:
             async with session.get(url, proxy=config.proxy) as resp:
                 if resp.status == 200:
                     html = await resp.text()
-                    source = PyQuery(html)("#stats li:contains(Source) a").attr("href")
-        elif URL(url).host == "gelbooru.com":
-            async with session.get(url, proxy=config.proxy) as resp:
-                if resp.status == 200:
-                    html = await resp.text()
-                    source = PyQuery(html)("#tag-list li:contains(Source) a").attr(
-                        "href"
-                    )
-    return str(source)
+                    source = PyQuery(html)("#post_source").attr("value")
+    return source
 
 
 async def shorten_url(url: str) -> str:
