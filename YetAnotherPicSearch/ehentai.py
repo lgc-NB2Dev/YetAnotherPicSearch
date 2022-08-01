@@ -57,12 +57,14 @@ async def ehentai_title_search(title: str, hide_img: bool) -> List[str]:
                 resp = await session.get(url, proxy=config.proxy, params=params)
                 res = EHentaiResponseAioHttp(await resp.text(), str(resp.url))
             # 只保留标题和搜索关键词相关度较高的结果，以此来提高准确度
-            if res.raw:
-                res.raw = [
+            if res.raw and (
+                filtered := [
                     i
                     for i in res.raw
                     if SequenceMatcher(None, title, i.title).ratio() > 0.6
                 ]
+            ):
+                res.raw = filtered
             return await search_result_filter(res, hide_img)
         return ["EHentai 暂时无法使用"]
 
@@ -72,7 +74,8 @@ async def search_result_filter(
     hide_img: bool,
 ) -> List[str]:
     if not res.raw:
-        return ["EHentai 搜索结果为空"]
+        _url = await shorten_url(res.url)
+        return [f"EHentai 搜索结果为空\n搜索页面：{_url}"]
     # 尽可能过滤掉非预期结果(大概
     priority = defaultdict(lambda: 0)
     priority["Image Set"] = 1
