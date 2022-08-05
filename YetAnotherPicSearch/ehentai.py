@@ -4,6 +4,7 @@ from difflib import SequenceMatcher
 from typing import Any, Dict, List, Union
 
 import aiohttp
+import arrow
 from aiohttp import ClientSession
 from lxml.html import HTMLParser, fromstring
 from PicImageSearch import EHentai
@@ -103,13 +104,14 @@ async def search_result_filter(
     thumbnail = await handle_img(
         selected_res.thumbnail, hide_img, cookies=config.exhentai_cookies
     )
+    date = arrow.get(selected_res.date).to("Asia/Shanghai").format("YYYY-MM-DD HH:mm")
     _url = await shorten_url(res.url)
     res_list = [
         "EHentai 搜索结果",
         thumbnail,
         selected_res.title,
         f"类型：{selected_res.type}",
-        f"日期：{selected_res.date}",
+        f"日期：{date}",
         f"来源：{selected_res.url}",
         f"搜索页面：{_url}",
     ]
