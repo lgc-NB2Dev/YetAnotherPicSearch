@@ -1,0 +1,22 @@
+{
+  "extends": [
+    "config:base",
+    "schedule:weekends"
+  ],
+  "dependencyDashboard": false,
+  "rangeStrategy": "bump",
+  "enabledManagers": [
+    "poetry",
+    "github-actions"
+  ],
+  "packageRules": [
+    {
+      "matchPackagePatterns": [
+        "*"
+      ],
+      "labels": [
+        "dependencies"
+      ]
+    }
+  ]
+}
