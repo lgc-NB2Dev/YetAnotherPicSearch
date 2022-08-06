@@ -1,6 +1,6 @@
 name: 问题汇报
 description: 汇报错误或意外行为
-labels: [ Issue-Bug ]
+labels: [ bug ]
 body:
   - type: markdown
     attributes:

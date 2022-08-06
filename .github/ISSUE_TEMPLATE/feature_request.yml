@@ -1,6 +1,6 @@
 name: 功能需求
 description: 希望添加一个功能
-labels: [ Feature-Request ]
+labels: [ enhancement ]
 body:
   - type: markdown
     attributes:
