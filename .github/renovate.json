@@ -1,0 +1,13 @@
+{
+  "extends": [
+    "config:base",
+    "group:all"
+  ],
+  "schedule": [
+    "every weekend"
+  ],
+  "dependencyDashboard": false,
+  "labels": [
+    "dependencies"
+  ]
+}
