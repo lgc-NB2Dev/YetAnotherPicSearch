@@ -19,11 +19,11 @@ arrow = "^1.2.2"
 diskcache = "^5.4.0"
 lxml = "^4.9.1"
 nonebot-adapter-onebot = "^2.1.1"
-nonebot2 = "^2.0.0b4"
+nonebot2 = "^2.0.0-beta.5"
 PicImageSearch = "^3.3.11"
 pyquery = "^1.4.3"
 tenacity = "^8.0.1"
-yarl = "^1.7.2"
+yarl = "^1.8.1"
 
 [tool.poetry.dev-dependencies]
 
