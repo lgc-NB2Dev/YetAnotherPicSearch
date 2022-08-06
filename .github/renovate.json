@@ -1,0 +1,18 @@
+{
+  "extends": [
+    "config:base",
+    "schedule:weekends"
+  ],
+  "dependencyDashboard": false,
+  "packageRules": [
+    {
+      "matchPackagePatterns": [
+        "*"
+      ],
+      "versioning": "pep440",
+      "labels": [
+        "dependencies"
+      ]
+    }
+  ]
+}
