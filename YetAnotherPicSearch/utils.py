@@ -1,8 +1,11 @@
-import base64
 import re
+from base64 import b64encode
+from io import BytesIO
+from random import randint
 from typing import Optional
 
 import aiohttp
+from PIL import Image, UnidentifiedImageError
 from pyquery import PyQuery
 from yarl import URL
 
@@ -14,9 +17,26 @@ async def get_pic_base64_by_url(url: str, cookies: Optional[str] = None) -> str:
     headers = {"Cookie": cookies} if cookies else None
     async with aiohttp.ClientSession(headers=headers) as session:
         async with session.get(url, proxy=config.proxy) as resp:
-            if resp.status == 200:
-                return base64.b64encode(await resp.read()).decode()
+            if resp.status == 200 and (
+                image_bytes := await pic_anti_shielding(await resp.read())
+            ):
+                return b64encode(image_bytes).decode()
     return ""
+
+
+# 图片反和谐
+async def pic_anti_shielding(content: bytes) -> Optional[bytes]:
+    try:
+        im = Image.open(BytesIO(content))
+    except UnidentifiedImageError:
+        return None
+    width, height = im.size
+    points = [(0, 0), (0, height - 1), (width - 1, 0), (width - 1, height - 1)]
+    for x, y in points:
+        im.putpixel((x, y), randint(0, 255))
+    with BytesIO() as output:
+        im.save(output, format=im.format)
+        return output.getvalue()
 
 
 async def handle_img(
