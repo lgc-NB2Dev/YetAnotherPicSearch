@@ -11,6 +11,7 @@ from nonebot.adapters.onebot.v11 import (
     ActionFailed,
     Bot,
     GroupMessageEvent,
+    LifecycleMetaEvent,
     Message,
     MessageEvent,
     PrivateMessageEvent,
@@ -18,7 +19,7 @@ from nonebot.adapters.onebot.v11 import (
 from nonebot.log import logger
 from nonebot.matcher import Matcher
 from nonebot.params import CommandArg
-from nonebot.plugin.on import on_command, on_message
+from nonebot.plugin.on import on_command, on_message, on_metaevent
 from nonebot.rule import Rule
 from PicImageSearch import Network
 from tenacity import AsyncRetrying, stop_after_attempt, stop_after_delay
@@ -34,6 +35,22 @@ from .utils import handle_img, handle_reply_msg
 sending_lock: DefaultDict[Tuple[Union[int, str], str], asyncio.Lock] = defaultdict(
     asyncio.Lock
 )
+
+
+async def check_first_connect(_: LifecycleMetaEvent) -> bool:
+    return True
+
+
+start_metaevent = on_metaevent(rule=check_first_connect, temp=True)
+
+
+@start_metaevent.handle()
+async def _(bot: Bot) -> None:
+    if not config.saucenao_api_key:
+        await bot.send_private_msg(
+            user_id=int(list(config.superusers)[0]),
+            message="请配置 saucenao_api_key ，否则无法正常使用搜图功能",
+        )
 
 
 def has_images(event: MessageEvent) -> bool:
