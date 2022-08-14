@@ -70,7 +70,7 @@ async def to_me_with_images(bot: Bot, event: MessageEvent) -> bool:
         return (
             has_image
             and (event.to_me or at_me)
-            and "再搜" in event.message.extract_plain_text()
+            and "搜图" in event.message.extract_plain_text()
         )
     return has_image and (event.to_me or at_me)
 
@@ -80,10 +80,12 @@ IMAGE_SEARCH_MODE = on_command("搜图", priority=5)
 
 
 @IMAGE_SEARCH_MODE.handle()
-async def handle_first_receive(matcher: Matcher, args: Message = CommandArg()) -> None:
+async def handle_first_receive(
+    event: MessageEvent, matcher: Matcher, args: Message = CommandArg()
+) -> None:
     mode, purge = get_args(args)
     matcher.state["ARGS"] = (mode, purge)
-    if [i for i in args if i.type == "image"]:
+    if has_images(event):
         matcher.set_arg("IMAGES", args)
 
 
