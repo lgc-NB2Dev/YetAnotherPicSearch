@@ -37,7 +37,7 @@ async def ascii2d_search(url: str, client: ClientSession, hide_img: bool) -> Lis
 
     color_final_res = await get_final_res(color_res)
     bovw_final_res = await get_final_res(bovw_res)
-    if color_final_res[:-1] == bovw_final_res[:-1]:
+    if color_final_res[1:-1] == bovw_final_res[1:-1]:
         return ["Ascii2D 色合検索与特徴検索結果完全一致\n" + "\n".join(color_final_res)]
 
     return [
