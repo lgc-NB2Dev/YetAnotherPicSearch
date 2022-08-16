@@ -1,8 +1,9 @@
 import re
 from base64 import b64encode
-from typing import Optional
+from typing import List, Optional
 
 import aiohttp
+from nonebot.adapters.onebot.v11 import Bot
 from pyquery import PyQuery
 from yarl import URL
 
@@ -28,6 +29,11 @@ async def handle_img(
         if img_base64 := await get_pic_base64_by_url(url, cookies):
             return f"[CQ:image,file=base64://{img_base64}]"
     return f"预览图链接：{url}"
+
+
+async def get_bot_friend_list(bot: Bot) -> List[int]:
+    friend_list = await bot.get_friend_list()
+    return [i["user_id"] for i in friend_list]
 
 
 def handle_reply_msg(message_id: int) -> str:

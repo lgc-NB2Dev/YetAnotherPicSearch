@@ -1,6 +1,7 @@
 import asyncio
 import re
 from collections import defaultdict
+from contextlib import suppress
 from typing import DefaultDict, List, Optional, Tuple, Union
 
 import aiohttp
@@ -30,7 +31,7 @@ from .config import config
 from .ehentai import ehentai_search
 from .iqdb import iqdb_search
 from .saucenao import saucenao_search
-from .utils import handle_img, handle_reply_msg
+from .utils import get_bot_friend_list, handle_img, handle_reply_msg
 
 sending_lock: DefaultDict[Tuple[Union[int, str], str], asyncio.Lock] = defaultdict(
     asyncio.Lock
@@ -186,18 +187,26 @@ async def send_msg(
     if index is not None:
         message = f"第 {index + 1} 张图片的搜索结果：\n{message}"
     message = f"{handle_reply_msg(event.message_id)}{message}"
-    await bot.send_msg(
-        user_id=event.user_id if isinstance(event, PrivateMessageEvent) else 0,
-        group_id=event.group_id if isinstance(event, GroupMessageEvent) else 0,
-        message=message,
-    )
+    try:
+        await bot.send_msg(
+            user_id=event.user_id if isinstance(event, PrivateMessageEvent) else 0,
+            group_id=event.group_id if isinstance(event, GroupMessageEvent) else 0,
+            message=message,
+        )
+    except ActionFailed:
+        # 如果群消息发送失败，则尝试发送私聊消息（仅限好友）
+        if isinstance(event, GroupMessageEvent):
+            friend_list = await get_bot_friend_list(bot)
+            if event.user_id in friend_list:
+                with suppress(ActionFailed):
+                    await bot.send_msg(user_id=event.user_id, message=message)
 
 
 async def send_forward_msg(
     bot: Bot, event: MessageEvent, msg_list: List[str], index: Optional[int] = None
 ) -> None:
     if index is not None:
-        msg_list = [f"第 {index + 1} 张图片的搜索结果：\n"] + msg_list
+        msg_list = [f"第 {index + 1} 张图片的搜索结果："] + msg_list
     await bot.send_forward_msg(
         user_id=event.user_id if isinstance(event, PrivateMessageEvent) else 0,
         group_id=event.group_id if isinstance(event, GroupMessageEvent) else 0,
