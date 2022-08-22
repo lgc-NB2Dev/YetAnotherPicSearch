@@ -1,8 +1,12 @@
+import functools
 import re
 from base64 import b64encode
+from contextlib import suppress
 from typing import List, Optional
 
 import aiohttp
+from cachetools import TTLCache
+from cachetools.keys import hashkey
 from nonebot.adapters.onebot.v11 import Bot
 from pyquery import PyQuery
 from yarl import URL
@@ -31,6 +35,34 @@ async def handle_img(
     return f"预览图链接：{url}"
 
 
+def cached_async(cache, key=hashkey):  # type: ignore
+    """
+    https://github.com/tkem/cachetools/commit/3f073633ed4f36f05b57838a3e5655e14d3e3524
+    """
+
+    def decorator(func):  # type: ignore
+        if cache is None:
+
+            async def wrapper(*args, **kwargs):  # type: ignore
+                return await func(*args, **kwargs)
+
+        else:
+
+            async def wrapper(*args, **kwargs):  # type: ignore
+                k = key(*args, **kwargs)
+                with suppress(KeyError):  # key not found
+                    return cache[k]
+                v = await func(*args, **kwargs)
+                with suppress(ValueError):  # value too large
+                    cache[k] = v
+                return v
+
+        return functools.update_wrapper(wrapper, func)
+
+    return decorator
+
+
+@cached_async(TTLCache(maxsize=1, ttl=300))  # type: ignore
 async def get_bot_friend_list(bot: Bot) -> List[int]:
     friend_list = await bot.get_friend_list()
     return [i["user_id"] for i in friend_list]
