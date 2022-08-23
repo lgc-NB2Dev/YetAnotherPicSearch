@@ -26,7 +26,7 @@ class Config(BaseConfig):
     # 大部分请求所使用的代理: http(s)://
     proxy: Optional[str] = None
     # 搜图结果缓存过期时间（天）
-    cache_expire: int = 7
+    cache_expire: int = 3
     # saucenao APIKEY，必填，否则无法使用 saucenao 搜图
     saucenao_api_key: str = ""
     # exhentai cookies，选填，没有的情况下自动改用 e-hentai 搜图

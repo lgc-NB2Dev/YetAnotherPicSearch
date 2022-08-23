@@ -110,16 +110,17 @@ async def image_search(
             with attempt:
                 if mode == "a2d":
                     result = await ascii2d_search(url, client, hide_img)
-                elif mode == "iqdb":
-                    result = await iqdb_search(url, client, hide_img)
                 elif mode == "ex":
                     result = await ehentai_search(url, client, hide_img)
+                elif mode == "iqdb":
+                    result = await iqdb_search(url, client, hide_img)
                 else:
                     result = await saucenao_search(url, mode, client, hide_img)
-                upsert_cache(_cache, image_md5, mode, result)
+                    # 仅对涉及到 saucenao 的搜图结果做缓存
+                    upsert_cache(_cache, image_md5, mode, result)
     except Exception as e:
-        logger.exception(f"❌️ 该图 [{url}] 搜图失败")
-        result = [f"❌️ 该图搜图失败\nE: {repr(e)}"]
+        logger.exception(f"该图 [{url}] 搜图失败")
+        result = [f"该图搜图失败\nE: {repr(e)}"]
     return result
 
 
