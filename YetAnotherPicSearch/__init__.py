@@ -1,5 +1,6 @@
 import asyncio
 import re
+import sys
 from collections import defaultdict
 from contextlib import suppress
 from typing import DefaultDict, List, Optional, Tuple, Union
@@ -36,6 +37,10 @@ from .utils import get_bot_friend_list, handle_img, handle_reply_msg
 sending_lock: DefaultDict[Tuple[Union[int, str], str], asyncio.Lock] = defaultdict(
     asyncio.Lock
 )
+
+# issue 30
+if sys.version_info >= (3, 8) and sys.platform == "win32":
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 
 async def check_first_connect(_: LifecycleMetaEvent) -> bool:

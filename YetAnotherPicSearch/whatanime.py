@@ -12,7 +12,7 @@ async def whatanime_search(
     url: str, client: ClientSession, hide_img: bool
 ) -> List[str]:
     whatanime = TraceMoe(client=client)
-    res = await whatanime.search(url=url)
+    res = await whatanime.search(url)
     if res and res.raw:
         time = res.raw[0].From
         minutes = math.floor(time / 60)
