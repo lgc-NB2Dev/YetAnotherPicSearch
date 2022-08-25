@@ -25,7 +25,9 @@ class EHentaiResponseAioHttp:
         utf8_parser = HTMLParser(encoding="utf-8")
         data = PyQuery(fromstring(self.origin, parser=utf8_parser))
         self.raw: List[EHentaiItem] = [
-            EHentaiItem(i) for i in data.find(".glcat").parents("tr").items()
+            EHentaiItem(i)
+            for i in data.find(".itg").children("tr").items()
+            if i.children("td")
         ]
         self.url: str = resp_url
 
