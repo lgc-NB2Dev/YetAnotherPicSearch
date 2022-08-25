@@ -41,6 +41,8 @@
 
 - [cq-picsearcher-bot](https://github.com/Tsuk1ko/cq-picsearcher-bot)
 - [PicImageSearch](https://github.com/kitUIN/PicImageSearch)
+- [nonebot2](https://github.com/nonebot/nonebot2)
+- [go-cqhttp](https://github.com/Mrs4s/go-cqhttp)
 
 ## Star History
 
