@@ -41,3 +41,7 @@
 
 - [cq-picsearcher-bot](https://github.com/Tsuk1ko/cq-picsearcher-bot)
 - [PicImageSearch](https://github.com/kitUIN/PicImageSearch)
+
+## Star History
+
+[![Star History](https://starchart.cc/NekoAria/YetAnotherPicSearch.svg)](https://starchart.cc/NekoAria/YetAnotherPicSearch)
