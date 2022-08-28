@@ -4,7 +4,7 @@ from base64 import b64encode
 from contextlib import suppress
 from typing import List, Optional
 
-import aiohttp
+from aiohttp import ClientSession
 from cachetools import TTLCache
 from cachetools.keys import hashkey
 from nonebot.adapters.onebot.v11 import Bot
@@ -17,7 +17,7 @@ from .config import config
 # 将图片转化为 base64
 async def get_pic_base64_by_url(url: str, cookies: Optional[str] = None) -> str:
     headers = {"Cookie": cookies} if cookies else None
-    async with aiohttp.ClientSession(headers=headers) as session:
+    async with ClientSession(headers=headers) as session:
         async with session.get(url, proxy=config.proxy) as resp:
             if resp.status == 200 and (image_bytes := await resp.read()):
                 return b64encode(image_bytes).decode()
@@ -74,7 +74,7 @@ def handle_reply_msg(message_id: int) -> str:
 
 async def get_source(url: str) -> str:
     source = ""
-    async with aiohttp.ClientSession() as session:
+    async with ClientSession() as session:
         if URL(url).host in ["danbooru.donmai.us", "gelbooru.com"]:
             async with session.get(url, proxy=config.proxy) as resp:
                 if resp.status == 200:
@@ -100,7 +100,7 @@ async def shorten_url(url: str) -> str:
         return url.replace("/post/show/", "/posts/")
     if URL(url).host in ["exhentai.org", "e-hentai.org"]:
         flag = len(url) > 1024
-        async with aiohttp.ClientSession() as session:
+        async with ClientSession() as session:
             if not flag:
                 resp = await session.post("https://yww.uy/shorten", json={"url": url})
                 if resp.status == 200:

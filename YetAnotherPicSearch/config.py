@@ -23,7 +23,7 @@ class Config(BaseConfig):
     use_ascii2d_when_low_acc: bool = True
     # 若结果消息有多条，采用合并转发方式发送搜图结果
     forward_search_result: bool = True
-    # 大部分请求所使用的代理: http(s)://
+    # 大部分请求所使用的代理: http://
     proxy: Optional[str] = None
     # 搜图结果缓存过期时间（天）
     cache_expire: int = 3

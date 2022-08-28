@@ -3,6 +3,7 @@
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,intellij+all,dotenv
 
 ### dotenv ###
+.env
 .env.prod
 
 ### Intellij+all ###
@@ -254,4 +255,3 @@ cython_debug/
 #.idea/
 
 # End of https://www.toptal.com/developers/gitignore/api/python,intellij+all,dotenv
-︽

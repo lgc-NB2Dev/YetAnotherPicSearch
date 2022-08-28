@@ -5,7 +5,6 @@ from collections import defaultdict
 from contextlib import suppress
 from typing import DefaultDict, List, Optional, Tuple, Union
 
-import aiohttp
 import arrow
 from aiohttp import ClientSession
 from diskcache import Cache
@@ -135,7 +134,7 @@ async def get_universal_img_url(url: str) -> str:
     )
     final_url = re.sub(r"/\d+/+\d+-\d+-", "/0/0-0-", final_url)
     final_url = re.sub(r"\?.*$", "", final_url)
-    async with aiohttp.ClientSession() as session:
+    async with ClientSession() as session:
         async with session.get(final_url) as resp:
             if resp.status == 200:
                 return final_url
