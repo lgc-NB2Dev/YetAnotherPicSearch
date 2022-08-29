@@ -96,6 +96,9 @@ async def shorten_url(url: str) -> str:
     )
     if pid_search.search(url):
         return f"https://pixiv.net/i/{pid_search.search(url)[1]}"  # type: ignore
+    uid_search = re.compile(r"pixiv.+(?:member\.php\?id=|users/)(\d+)")
+    if uid_search.search(url):
+        return f"https://pixiv.net/u/{uid_search.search(url)[1]}"  # type: ignore
     if URL(url).host == "danbooru.donmai.us":
         return url.replace("/post/show/", "/posts/")
     if URL(url).host in ["exhentai.org", "e-hentai.org"]:
