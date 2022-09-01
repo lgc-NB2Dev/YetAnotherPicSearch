@@ -1,4 +1,5 @@
 import re
+from asyncio import sleep
 from typing import List
 
 from aiohttp import ClientSession
@@ -109,6 +110,13 @@ async def saucenao_search(
             final_res.extend(await ehentai_title_search(selected_res.title, hide_img))
         elif selected_res.index_id in saucenao_db["anime"]:  # type: ignore
             final_res.extend(await whatanime_search(url, client, hide_img))
+    elif (
+        res
+        and res.status == 429
+        and "4 searches every 30 seconds" in res.origin["header"]["message"]
+    ):
+        await sleep(30 / 4)
+        return await saucenao_search(url, mode, client, hide_img)
     else:
         final_res.append("SauceNAO 暂时无法使用，自动使用 Ascii2D 进行搜索")
         final_res.extend(await ascii2d_search(url, client, hide_img))
