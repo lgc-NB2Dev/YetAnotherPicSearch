@@ -2,6 +2,7 @@ from typing import List
 
 from aiohttp import ClientSession
 from PicImageSearch import Iqdb
+from yarl import URL
 
 from .utils import get_source, handle_img, shorten_url
 
@@ -23,15 +24,16 @@ async def iqdb_search(url: str, client: ClientSession, hide_img: bool) -> List[s
     elif yandere_res_list:
         selected_res = yandere_res_list[0]
     thumbnail = await handle_img(selected_res.thumbnail, hide_img)
-    source = (
-        await shorten_url(await get_source(selected_res.url))
-        if selected_res.url
-        else ""
-    )
+    source = await get_source(selected_res.url)
+    if source:
+        if URL(source).host:
+            source = await shorten_url(source)
+        else:
+            source = f"来源：{source}"
     res_list = [
         f"Iqdb（{selected_res.similarity}%）",
         thumbnail,
-        selected_res.url or "",
-        f"来源：{source}" if source else "",
+        selected_res.url,
+        source,
     ]
     return ["\n".join([i for i in res_list if i != ""])]
