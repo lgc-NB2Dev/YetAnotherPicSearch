@@ -46,11 +46,14 @@ async def ehentai_title_search(title: str, hide_img: bool) -> List[str]:
             # 只保留标题和搜索关键词相关度较高的结果，并排序，以此来提高准确度
             if res.raw:
                 raw_with_ratio = [
-                    (i, SequenceMatcher(None, title, i.title).ratio()) for i in res.raw
+                    (i, SequenceMatcher(lambda x: x == " ", title, i.title).ratio())
+                    for i in res.raw
                 ]
                 raw_with_ratio.sort(key=lambda x: x[1], reverse=True)
-                if filtered := [i[0] for i in raw_with_ratio if i[1] > 0.6]:
+                if filtered := [i[0] for i in raw_with_ratio if i[1] > 0.65]:
                     res.raw = filtered
+                else:
+                    res.raw = [i[0] for i in raw_with_ratio]
             return await search_result_filter(res, hide_img)
         return ["EHentai 暂时无法使用"]
 
