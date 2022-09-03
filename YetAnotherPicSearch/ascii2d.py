@@ -34,6 +34,7 @@ async def ascii2d_search(url: str, client: ClientSession, hide_img: bool) -> Lis
         res_list = [
             thumbnail,
             selected_res.title,
+            selected_res.detail,
             f"作者：{author}" if author else "",
             f"来源：{_url}" if _url else "",
             f"搜索页面：{res.url}",
