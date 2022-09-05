@@ -5,14 +5,18 @@ from PicImageSearch import Ascii2D
 from PicImageSearch.model import Ascii2DResponse
 
 from .config import config
-from .utils import handle_img, shorten_url
+from .utils import get_image_bytes_by_url, handle_img, shorten_url
 
 
 async def ascii2d_search(url: str, client: ClientSession, hide_img: bool) -> List[str]:
     ascii2d_color = Ascii2D(client=client)
     color_res = await ascii2d_color.search(url)
-    if not color_res or not color_res.raw:
-        return ["Ascii2D 暂时无法使用"]
+    if not color_res.raw:
+        # 当 url 搜索抽风时，自动改用 file 搜索
+        file = await get_image_bytes_by_url(url)
+        color_res = await ascii2d_color.search(file=file)
+        if not color_res.raw:
+            return ["Ascii2D 暂时无法使用"]
     # 针对 QQ 图片链接反盗链做处理
     if color_res.raw[0].hash == "5bb9bec07e71ef10a1a47521d396811d":
         url = f"https://images.weserv.nl/?url={url}"
