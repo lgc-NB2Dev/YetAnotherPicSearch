@@ -30,7 +30,7 @@ from .config import config
 from .ehentai import ehentai_search
 from .iqdb import iqdb_search
 from .saucenao import saucenao_search
-from .utils import get_bot_friend_list, handle_img, handle_reply_msg
+from .utils import DEFAULT_HEADERS, get_bot_friend_list, handle_img, handle_reply_msg
 
 sending_lock: DefaultDict[Tuple[Union[int, str], str], asyncio.Lock] = defaultdict(
     asyncio.Lock
@@ -133,7 +133,7 @@ async def get_universal_img_url(url: str) -> str:
     )
     final_url = re.sub(r"/\d+/+\d+-\d+-", "/0/0-0-", final_url)
     final_url = re.sub(r"\?.*$", "", final_url)
-    async with ClientSession() as session:
+    async with ClientSession(headers=DEFAULT_HEADERS) as session:
         async with session.get(final_url) as resp:
             if resp.status == 200:
                 return final_url

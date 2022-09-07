@@ -5,7 +5,7 @@ from PicImageSearch import Ascii2D
 from PicImageSearch.model import Ascii2DResponse
 
 from .config import config
-from .utils import get_image_bytes_by_url, handle_img, shorten_url
+from .utils import DEFAULT_HEADERS, get_image_bytes_by_url, handle_img, shorten_url
 
 
 async def ascii2d_search(url: str, client: ClientSession, hide_img: bool) -> List[str]:
@@ -21,7 +21,7 @@ async def ascii2d_search(url: str, client: ClientSession, hide_img: bool) -> Lis
     if color_res.raw[0].hash == "5bb9bec07e71ef10a1a47521d396811d":
         url = f"https://images.weserv.nl/?url={url}"
         color_res = await ascii2d_color.search(url)
-    async with ClientSession() as session:
+    async with ClientSession(headers=DEFAULT_HEADERS) as session:
         resp = await session.get(
             color_res.url.replace("/color/", "/bovw/"), proxy=config.proxy
         )

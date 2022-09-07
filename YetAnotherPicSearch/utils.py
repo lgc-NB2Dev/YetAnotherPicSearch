@@ -13,11 +13,15 @@ from yarl import URL
 
 from .config import config
 
+DEFAULT_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.82 Safari/537.36"
+}
+
 
 async def get_image_bytes_by_url(
     url: str, cookies: Optional[str] = None
 ) -> Optional[bytes]:
-    headers = {"Cookie": cookies} if cookies else None
+    headers = {"Cookie": cookies, **DEFAULT_HEADERS} if cookies else DEFAULT_HEADERS
     async with ClientSession(headers=headers) as session:
         async with session.get(url, proxy=config.proxy) as resp:
             if resp.status == 200 and (image_bytes := await resp.read()):
@@ -75,7 +79,7 @@ def handle_reply_msg(message_id: int) -> str:
 
 async def get_source(url: str) -> str:
     source = ""
-    async with ClientSession() as session:
+    async with ClientSession(headers=DEFAULT_HEADERS) as session:
         if URL(url).host in ["danbooru.donmai.us", "gelbooru.com"]:
             async with session.get(url, proxy=config.proxy) as resp:
                 if resp.status == 200:
@@ -104,7 +108,7 @@ async def shorten_url(url: str) -> str:
         return url.replace("/post/show/", "/posts/")
     if URL(url).host in ["exhentai.org", "e-hentai.org"]:
         flag = len(url) > 1024
-        async with ClientSession() as session:
+        async with ClientSession(headers=DEFAULT_HEADERS) as session:
             if not flag:
                 resp = await session.post("https://yww.uy/shorten", json={"url": url})
                 if resp.status == 200:
