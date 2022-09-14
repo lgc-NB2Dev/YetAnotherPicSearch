@@ -90,7 +90,7 @@ async def saucenao_search(
         ]
         if res.long_remaining < 10:
             final_res.append(f"SauceNAO 24h 内仅剩 {res.long_remaining} 次使用次数")
-        final_res.append("\n".join([i for i in res_list if i != ""]))
+        final_res.append("\n".join([i for i in res_list if i]))
         if selected_res.similarity < config.saucenao_low_acc:
             # 因为 saucenao 的动画搜索数据库更新不够快，所以当搜索模式为动画时额外增加 whatanime 的搜索结果
             if mode == "anime":

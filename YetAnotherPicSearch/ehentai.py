@@ -105,4 +105,4 @@ async def search_result_filter(
         f"来源：{selected_res.url}",
         f"搜索页面：{_url}",
     ]
-    return ["\n".join([i for i in res_list if i != ""])]
+    return ["\n".join([i for i in res_list if i])]

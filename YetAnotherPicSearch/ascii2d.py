@@ -43,7 +43,7 @@ async def ascii2d_search(url: str, client: ClientSession, hide_img: bool) -> Lis
             f"来源：{_url}" if _url else "",
             f"搜索页面：{res.url}",
         ]
-        return [i for i in res_list if i != ""]
+        return [i for i in res_list if i]
 
     color_final_res = await get_final_res(color_res)
     bovw_final_res = await get_final_res(bovw_res)
