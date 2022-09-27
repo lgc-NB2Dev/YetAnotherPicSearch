@@ -99,7 +99,7 @@ async def saucenao_search(
                         url, client, hide_img or config.hide_img_when_low_acc
                     )
                 )
-            elif config.use_ascii2d_when_low_acc:
+            elif config.auto_use_ascii2d:
                 final_res.append(f"相似度 {selected_res.similarity}% 过低，自动使用 Ascii2D 进行搜索")
                 final_res.extend(
                     await ascii2d_search(

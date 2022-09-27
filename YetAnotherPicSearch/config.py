@@ -19,8 +19,8 @@ class Config(BaseConfig):
     saucenao_nsfw_hide_level: int = 0
     # saucenao 相似度低于这个百分比将被认定为相似度过低
     saucenao_low_acc: int = 60
-    # 是否在 saucenao 相似度过低时自动使用 ascii2d
-    use_ascii2d_when_low_acc: bool = True
+    # 是否在 saucenao 或 iqdb 相似度过低时 / ehentai 无结果时 自动使用 ascii2d
+    auto_use_ascii2d: bool = True
     # 若结果消息有多条，采用合并转发方式发送搜图结果
     forward_search_result: bool = True
     # 大部分请求所使用的代理: http://
