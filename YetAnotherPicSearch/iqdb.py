@@ -28,10 +28,9 @@ async def iqdb_search(url: str, client: ClientSession, hide_img: bool) -> List[s
     if source:
         if URL(source).host:
             source = await shorten_url(source)
-        else:
-            source = f"来源：{source}"
+        source = f"来源：{source}"
     res_list = [
-        f"Iqdb（{selected_res.similarity}%）",
+        f"Iqdb ({selected_res.similarity}%)",
         thumbnail,
         selected_res.url,
         source,

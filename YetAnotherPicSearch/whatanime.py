@@ -40,11 +40,11 @@ async def whatanime_search(
             end_date = date_to_str(res.raw[0].end_date)
         episode = res.raw[0].episode or 1
         res_list = [
-            f"WhatAnime（{res.raw[0].similarity}%）",
+            f"WhatAnime ({res.raw[0].similarity}%)",
             f"该截图出自第 {episode} 集的 {time_str}",
             thumbnail,
-            chinese_title,
             native_title,
+            chinese_title if chinese_title != native_title else "",
             f"类型：{res.raw[0].type}-{res.raw[0].format}",
             f"开播：{start_date}",
             f"完结：{end_date}" if end_date else "",
