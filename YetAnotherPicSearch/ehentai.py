@@ -7,6 +7,7 @@ import arrow
 from aiohttp import ClientSession
 from PicImageSearch import EHentai
 from PicImageSearch.model import EHentaiResponse
+from pyquery import PyQuery
 
 from .config import config
 from .utils import DEFAULT_HEADERS, handle_img, shorten_url
@@ -22,6 +23,8 @@ async def ehentai_search(url: str, client: ClientSession, hide_img: bool) -> Lis
     ex = bool(config.exhentai_cookies)
     ehentai = EHentai(client=client)
     if res := await ehentai.search(url, ex=ex):
+        if "Please wait a bit longer between each file search" in res.origin:
+            return ["EHentai 触发搜图频率限制"]
         if not res.raw:
             # 如果第一次没找到，使搜索结果包含被删除的部分，并重新搜索
             async with ClientSession(headers=EHENTAI_HEADERS) as session:
@@ -42,6 +45,7 @@ async def ehentai_title_search(title: str, hide_img: bool) -> List[str]:
                 params["advsearch"] = 1
                 params["f_sname"] = "on"
                 params["f_stags"] = "on"
+                params["f_sdesc"] = "on"
                 params["f_sh"] = "on"
                 resp = await session.get(url, proxy=config.proxy, params=params)
                 res = EHentaiResponse(await resp.text(), str(resp.url))
@@ -81,12 +85,21 @@ async def search_result_filter(
         if priority[key] > 0 and len(res.raw) != len(group_list):
             res.raw = [i for i in res.raw if i not in group_list]
 
-    # 优先找汉化版或原版
+    # 过滤那些无主题的杂图图集
+    if not_themeless_res := [i for i in res.raw if "themeless" not in " ".join(i.tags)]:
+        res.raw = not_themeless_res
+    # 优先找汉化版，并尝试过滤只有评分 1 星的结果；没找到就优先找原版
     if chinese_res := [
-        i for i in res.raw if all(tag in i.tags for tag in ["translated", "chinese"])
+        i
+        for i in res.raw
+        if "translated" in " ".join(i.tags)
+        and "chinese" in " ".join(i.tags)
+        and ("-64px" not in PyQuery(i.origin)("div.ir").attr("style"))
     ]:
         selected_res = chinese_res[0]
-    elif not_translated_res := [i for i in res.raw if "translated" not in i.tags]:
+    elif not_translated_res := [
+        i for i in res.raw if "translated" not in " ".join(i.tags)
+    ]:
         selected_res = not_translated_res[0]
     else:
         selected_res = res.raw[0]
