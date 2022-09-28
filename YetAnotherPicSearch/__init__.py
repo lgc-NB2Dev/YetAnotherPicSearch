@@ -41,7 +41,7 @@ sending_lock: DefaultDict[Tuple[Union[int, str], str], asyncio.Lock] = defaultdi
 #     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 
-async def check_first_connect(_: LifecycleMetaEvent) -> bool:
+def check_first_connect(_: LifecycleMetaEvent) -> bool:
     return True
 
 
@@ -62,7 +62,7 @@ def has_images(event: MessageEvent) -> bool:
     return bool([i for i in message if i.type == "image"])
 
 
-async def to_me_with_images(bot: Bot, event: MessageEvent) -> bool:
+def to_me_with_images(bot: Bot, event: MessageEvent) -> bool:
     with_command_keyword = "搜图" in event.message.extract_plain_text()
     has_image = has_images(event)
     if isinstance(event, PrivateMessageEvent):
