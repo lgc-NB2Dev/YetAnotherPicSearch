@@ -90,16 +90,19 @@ async def search_result_filter(
         if priority[key] > 0 and len(res.raw) != len(group_list):
             res.raw = [i for i in res.raw if i not in group_list]
 
-    # 过滤那些无主题的杂图图集
+    # 尝试过滤无主题的杂图图集
     if not_themeless_res := [i for i in res.raw if "themeless" not in " ".join(i.tags)]:
         res.raw = not_themeless_res
-    # 优先找汉化版，并尝试过滤只有评分 1 星的结果；没找到就优先找原版
+    # 尝试过滤评分只有 1 星的
+    if not_1_star_res := [
+        i for i in res.raw if ("-64px" not in PyQuery(i.origin)("div.ir").attr("style"))
+    ]:
+        res.raw = not_1_star_res
+    # 优先找汉化版；没找到就优先找原版
     if chinese_res := [
         i
         for i in res.raw
-        if "translated" in " ".join(i.tags)
-        and "chinese" in " ".join(i.tags)
-        and ("-64px" not in PyQuery(i.origin)("div.ir").attr("style"))
+        if "translated" in " ".join(i.tags) and "chinese" in " ".join(i.tags)
     ]:
         selected_res = chinese_res[0]
     elif not_translated_res := [
