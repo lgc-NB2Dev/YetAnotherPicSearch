@@ -10,8 +10,8 @@ from .utils import DEFAULT_HEADERS, get_image_bytes_by_url, handle_img, shorten_
 
 async def ascii2d_search(url: str, client: ClientSession, hide_img: bool) -> List[str]:
     ascii2d_color = Ascii2D(client=client)
-    file = await get_image_bytes_by_url(url)
-    color_res = await ascii2d_color.search(file=file)
+    _file = await get_image_bytes_by_url(url)
+    color_res = await ascii2d_color.search(file=_file)
     if not color_res.raw:
         return ["Ascii2D 暂时无法使用"]
     async with ClientSession(headers=DEFAULT_HEADERS) as session:
@@ -31,6 +31,9 @@ async def ascii2d_search(url: str, client: ClientSession, hide_img: bool) -> Lis
             if not hide_img and thumbnail.startswith("预览图链接"):
                 continue
             source = ""
+            title = r.title
+            if r.url_list and title == r.url_list[0][1]:
+                title = ""
             if r.url:
                 source = await shorten_url(r.url)
             elif r.url_list:
@@ -42,7 +45,7 @@ async def ascii2d_search(url: str, client: ClientSession, hide_img: bool) -> Lis
             res_list = [
                 thumbnail,
                 r.detail,
-                r.title,
+                title,
                 f"作者：{author}" if author else "",
                 f"来源：{source}" if source else "",
             ]
