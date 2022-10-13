@@ -25,6 +25,7 @@ from PicImageSearch import Network
 from tenacity import AsyncRetrying, stop_after_attempt, stop_after_delay
 
 from .ascii2d import ascii2d_search
+from .baidu import baidu_search
 from .cache import exist_in_cache, upsert_cache
 from .config import config
 from .ehentai import ehentai_search
@@ -114,6 +115,8 @@ async def image_search(
                     result = await ehentai_search(url, client, hide_img)
                 elif mode == "iqdb":
                     result = await iqdb_search(url, client, hide_img)
+                elif mode == "baidu":
+                    result = await baidu_search(url, client, hide_img)
                 else:
                     result = await saucenao_search(url, mode, client, hide_img)
                     # 仅对涉及到 saucenao 的搜图结果做缓存
@@ -145,7 +148,7 @@ def get_image_urls(event: MessageEvent) -> List[str]:
 def get_args(msg: Message) -> Tuple[str, bool]:
     mode = "all"
     plain_text = msg.extract_plain_text()
-    args = ["pixiv", "danbooru", "doujin", "anime", "a2d", "ex", "iqdb"]
+    args = ["pixiv", "danbooru", "doujin", "anime", "a2d", "ex", "iqdb", "baidu"]
     if plain_text:
         for i in args:
             if f"--{i}" in plain_text:
