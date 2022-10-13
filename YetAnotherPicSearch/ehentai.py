@@ -49,8 +49,6 @@ async def ehentai_title_search(title: str, hide_img: bool) -> List[str]:
                 # 如果第一次没找到，使搜索结果包含被删除的部分，并重新搜索
                 params["advsearch"] = 1
                 params["f_sname"] = "on"
-                params["f_stags"] = "on"
-                params["f_sdesc"] = "on"
                 params["f_sh"] = "on"
                 resp = await session.get(url, proxy=config.proxy, params=params)
                 res = EHentaiResponse(await resp.text(), str(resp.url))
