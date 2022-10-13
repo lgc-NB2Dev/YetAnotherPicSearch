@@ -92,7 +92,9 @@ async def get_source(url: str) -> str:
                 if resp.status == 200:
                     html = await resp.text()
                     source = PyQuery(html)("#post_source").attr("value")
-    return source
+                if not source:
+                    source = PyQuery(html)('a[href^="/pool/show/"]').text()
+    return source or ""
 
 
 async def shorten_url(url: str) -> str:
