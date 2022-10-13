@@ -14,7 +14,7 @@ async def baidu_search(url: str, client: ClientSession, hide_img: bool) -> List[
         return [f"Baidu 搜索结果为空\n搜索页面：{_url}"]
     thumbnail = await handle_img(res.raw[0].thumbnail, hide_img)
     res_list = [
-        f"Baidu ({res.raw[0].similarity})",
+        f"Baidu ({res.raw[0].similarity}%)",
         thumbnail,
         res.raw[0].title,
         res.raw[0].url,
