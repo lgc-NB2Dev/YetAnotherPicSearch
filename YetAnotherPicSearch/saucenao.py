@@ -83,6 +83,7 @@ async def saucenao_search(
             f"作者：{author}" if author else "",
             _url,
             f"来源：{source}" if source else "",
+            f"搜索页面：{res.url}",
         ]
         if res.long_remaining < 10:
             final_res.append(f"SauceNAO 24h 内仅剩 {res.long_remaining} 次使用次数")

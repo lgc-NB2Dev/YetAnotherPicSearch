@@ -39,6 +39,7 @@ async def iqdb_search(url: str, client: ClientSession, hide_img: bool) -> List[s
         thumbnail,
         selected_res.url,
         source,
+        f"搜索页面：{res.url}",
     ]
     final_res.append("\n".join([i for i in res_list if i]))
 
