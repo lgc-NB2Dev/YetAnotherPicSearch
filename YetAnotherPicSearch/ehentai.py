@@ -71,8 +71,8 @@ async def search_result_filter(
     res: EHentaiResponse,
     hide_img: bool,
 ) -> List[str]:
+    _url = await shorten_url(res.url)
     if not res.raw:
-        _url = await shorten_url(res.url)
         return [f"EHentai 搜索结果为空\n搜索页面：{_url}"]
     # 尽可能过滤掉非预期结果(大概
     priority = defaultdict(lambda: 0)
@@ -114,7 +114,6 @@ async def search_result_filter(
         selected_res.thumbnail, hide_img, cookies=config.exhentai_cookies
     )
     date = arrow.get(selected_res.date).to("Asia/Shanghai").format("YYYY-MM-DD HH:mm")
-    _url = await shorten_url(res.url)
     res_list = [
         "EHentai 搜索结果",
         thumbnail,
