@@ -16,11 +16,12 @@
 
 目前支持的搜图服务：
 
-- [saucenao](https://saucenao.com)
-- [ascii2d](https://ascii2d.net)
-- [iqdb](https://iqdb.org)
-- [exhentai](https://exhentai.org)
-- [whatanime](https://trace.moe)
+- [SauceNAO](https://saucenao.com)
+- [Ascii2D](https://ascii2d.net)
+- [Iqdb](https://iqdb.org)
+- [E-Hentai](https://e-hentai.org)
+- [WhatAnime](https://trace.moe)
+- [Baidu](https://graph.baidu.com/)
 
 目前适配的是 `OneBot V11` ，没适配 QQ 频道。
 
