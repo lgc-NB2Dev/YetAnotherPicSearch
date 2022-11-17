@@ -64,17 +64,19 @@ def has_images(event: MessageEvent) -> bool:
 
 
 def to_me_with_images(bot: Bot, event: MessageEvent) -> bool:
-    with_command_keyword = "搜图" in event.message.extract_plain_text()
+    plain_text = event.message.extract_plain_text()
+    if plain_text.startswith("搜图"):
+        return False
     has_image = has_images(event)
     if isinstance(event, PrivateMessageEvent):
-        return not with_command_keyword and has_image and config.search_immediately
+        return has_image and config.search_immediately
+    # 群里回复机器人发送的消息时，必须带上 "搜图" 才会搜图，否则会被无视
+    if event.reply and event.reply.sender.user_id == int(bot.self_id):
+        return has_image and "搜图" in plain_text
     at_me = bool(
         [i for i in event.message if i.type == "at" and i.data["qq"] == bot.self_id]
     )
-    # 群里回复机器人发送的消息时，必须带上 "搜图" 才会搜图，否则会被无视
-    if event.reply and event.reply.sender.user_id == int(bot.self_id):
-        return with_command_keyword and has_image and (event.to_me or at_me)
-    return not with_command_keyword and has_image and (event.to_me or at_me)
+    return has_image and (event.to_me or at_me or "搜图" in plain_text)
 
 
 IMAGE_SEARCH = on_message(rule=Rule(to_me_with_images), priority=5)
