@@ -78,22 +78,24 @@ def handle_reply_msg(message_id: int) -> str:
 
 
 async def get_source(url: str) -> str:
-    source = ""
-    async with ClientSession(headers=DEFAULT_HEADERS) as session:
-        if URL(url).host in ["danbooru.donmai.us", "gelbooru.com"]:
-            async with session.get(url, proxy=config.proxy) as resp:
-                if resp.status == 200:
-                    html = await resp.text()
-                    source = PyQuery(html)(".image-container").attr(
-                        "data-normalized-source"
-                    )
-        elif URL(url).host in ["yande.re", "konachan.com"]:
-            async with session.get(url, proxy=config.proxy) as resp:
-                if resp.status == 200:
-                    html = await resp.text()
-                    source = PyQuery(html)("#post_source").attr("value")
-                if not source:
-                    source = PyQuery(html)('a[href^="/pool/show/"]').text()
+    source = url
+    if host := URL(url).host:
+        async with ClientSession(headers=DEFAULT_HEADERS) as session:
+            if host in ["danbooru.donmai.us", "gelbooru.com"]:
+                async with session.get(url, proxy=config.proxy) as resp:
+                    if resp.status == 200:
+                        html = await resp.text()
+                        source = PyQuery(html)(".image-container").attr(
+                            "data-normalized-source"
+                        )
+            elif host in ["yande.re", "konachan.com"]:
+                async with session.get(url, proxy=config.proxy) as resp:
+                    if resp.status == 200:
+                        html = await resp.text()
+                        source = PyQuery(html)("#post_source").attr("value")
+                    if not source:
+                        source = PyQuery(html)('a[href^="/pool/show/"]').text()
+
     return source or ""
 
 
