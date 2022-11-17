@@ -27,7 +27,7 @@ async def ehentai_search(url: str, client: ClientSession, hide_img: bool) -> Lis
     if res := await ehentai.search(url, ex=ex):
         if "Please wait a bit longer between each file search" in res.origin:
             await sleep(30 / 4)
-            return await ehentai_search(file, client, hide_img)
+            return await ehentai_search(url, client, hide_img)
         if not res.raw:
             # 如果第一次没找到，使搜索结果包含被删除的部分，并重新搜索
             async with ClientSession(headers=EHENTAI_HEADERS) as session:
