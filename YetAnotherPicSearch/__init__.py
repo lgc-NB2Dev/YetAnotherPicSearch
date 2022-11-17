@@ -95,6 +95,7 @@ async def handle_first_receive(
 
 async def image_search(
     url: str,
+    md5: str,
     mode: str,
     purge: bool,
     _cache: Cache,
@@ -102,8 +103,7 @@ async def image_search(
     hide_img: bool = config.hide_img,
 ) -> List[str]:
     url = await get_universal_img_url(url)
-    image_md5 = re.search(r"[A-F\d]{32}", url)[0]  # type: ignore
-    if not purge and (result := exist_in_cache(_cache, image_md5, mode)):
+    if not purge and (result := exist_in_cache(_cache, md5, mode)):
         return [f"[缓存] {i}" for i in result]
     result = []
     try:
@@ -122,7 +122,7 @@ async def image_search(
                 else:
                     result = await saucenao_search(url, mode, client, hide_img)
                     # 仅对涉及到 saucenao 的搜图结果做缓存
-                    upsert_cache(_cache, image_md5, mode, result)
+                    upsert_cache(_cache, md5, mode, result)
     except Exception as e:
         logger.exception(f"该图 [{url}] 搜图失败")
         result = [f"该图搜图失败\nE: {repr(e)}"]
@@ -142,9 +142,13 @@ async def get_universal_img_url(url: str) -> str:
     return url
 
 
-def get_image_urls(event: MessageEvent) -> List[str]:
+def get_image_urls_with_md5(event: MessageEvent) -> List[Tuple[str, str]]:
     message = event.reply.message if event.reply else event.message
-    return [i.data["url"] for i in message if i.type == "image" and i.data.get("url")]
+    return [
+        (i.data["url"], str(i.data["file"]).rstrip(".image").upper())
+        for i in message
+        if i.type == "image" and i.data.get("url")
+    ]
 
 
 def get_args(msg: Message) -> Tuple[str, bool]:
@@ -233,8 +237,8 @@ async def send_forward_msg(
 @IMAGE_SEARCH.handle()
 @IMAGE_SEARCH_MODE.got("IMAGES", prompt="请发送图片")
 async def handle_image_search(bot: Bot, event: MessageEvent, matcher: Matcher) -> None:
-    image_urls = get_image_urls(event)
-    if not image_urls:
+    image_urls_with_md5 = get_image_urls_with_md5(event)
+    if not image_urls_with_md5:
         await IMAGE_SEARCH_MODE.reject()
     if "ARGS" in matcher.state:
         mode, purge = matcher.state["ARGS"]
@@ -247,11 +251,11 @@ async def handle_image_search(bot: Bot, event: MessageEvent, matcher: Matcher) -
     )
     async with network as client:
         with Cache("picsearch_cache") as _cache:
-            for index, value in enumerate(image_urls):
+            for index, (url, md5) in enumerate(image_urls_with_md5):
                 await send_result_message(
                     bot,
                     event,
-                    await image_search(value, mode, purge, _cache, client),
-                    index if len(image_urls) > 1 else None,
+                    await image_search(url, md5, mode, purge, _cache, client),
+                    index if len(image_urls_with_md5) > 1 else None,
                 )
             _cache.expire()
