@@ -1,4 +1,5 @@
 import itertools
+from asyncio import sleep
 from collections import defaultdict
 from difflib import SequenceMatcher
 from typing import Any, Dict, List
@@ -25,7 +26,8 @@ async def ehentai_search(url: str, client: ClientSession, hide_img: bool) -> Lis
     ehentai = EHentai(client=client)
     if res := await ehentai.search(url, ex=ex):
         if "Please wait a bit longer between each file search" in res.origin:
-            return ["EHentai 触发搜图频率限制"]
+            await sleep(30 / 4)
+            return await ehentai_search(file, client, hide_img)
         if not res.raw:
             # 如果第一次没找到，使搜索结果包含被删除的部分，并重新搜索
             async with ClientSession(headers=EHENTAI_HEADERS) as session:
