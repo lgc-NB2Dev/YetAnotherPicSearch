@@ -40,6 +40,7 @@ async def ehentai_search(url: str, client: ClientSession, hide_img: bool) -> Lis
 
 
 async def ehentai_title_search(title: str, hide_img: bool) -> List[str]:
+    title = title.replace(" ::: ", " ")
     url = "https://exhentai.org" if config.exhentai_cookies else "https://e-hentai.org"
     params: Dict[str, Any] = {"f_search": title}
     async with ClientSession(headers=EHENTAI_HEADERS) as session:
@@ -74,6 +75,15 @@ async def search_result_filter(
     _url = await shorten_url(res.url)
     if not res.raw:
         return [f"EHentai 搜索结果为空\n搜索页面：{_url}"]
+    # 尝试过滤无主题的杂图图集
+    if not_themeless_res := [i for i in res.raw if "themeless" not in " ".join(i.tags)]:
+        res.raw = not_themeless_res
+    # 尝试过滤评分只有 1 星的
+    if not_1_star_res := [
+        i for i in res.raw if ("-64px" not in PyQuery(i.origin)("div.ir").attr("style"))
+    ]:
+        res.raw = not_1_star_res
+
     # 尽可能过滤掉非预期结果(大概
     priority = defaultdict(lambda: 0)
     priority["Image Set"] = 1
@@ -88,14 +98,6 @@ async def search_result_filter(
         if priority[key] > 0 and len(res.raw) != len(group_list):
             res.raw = [i for i in res.raw if i not in group_list]
 
-    # 尝试过滤无主题的杂图图集
-    if not_themeless_res := [i for i in res.raw if "themeless" not in " ".join(i.tags)]:
-        res.raw = not_themeless_res
-    # 尝试过滤评分只有 1 星的
-    if not_1_star_res := [
-        i for i in res.raw if ("-64px" not in PyQuery(i.origin)("div.ir").attr("style"))
-    ]:
-        res.raw = not_1_star_res
     # 优先找汉化版；没找到就优先找原版
     if chinese_res := [
         i
