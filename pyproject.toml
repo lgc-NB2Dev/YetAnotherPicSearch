@@ -23,7 +23,7 @@ nonebot2 = "^2.0.0-rc.2"
 PicImageSearch = "^3.7.4"
 pyquery = "^1.4.3"
 tenacity = "^8.1.0"
-yarl = "^1.8.1"
+yarl = "^1.8.2"
 
 [tool.poetry.dev-dependencies]
 
