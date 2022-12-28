@@ -17,6 +17,13 @@ DEFAULT_HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.82 Safari/537.36"
 }
 
+BANNED_HOSTS = [
+    "danbooru.donmai.us",
+    "konachan.com",
+    # "www.fanbox.cc",
+    "pixiv.net",
+]
+
 
 async def get_image_bytes_by_url(
     url: str, cookies: Optional[str] = None
@@ -99,17 +106,26 @@ async def get_source(url: str) -> str:
     return source or ""
 
 
+def confuse_url(url: str) -> str:
+    for host in BANNED_HOSTS:
+        if host in url:
+            return url.replace("//", "//\u200B").replace(
+                host, host.replace(".", ".\u200B")
+            )
+    return url
+
+
 async def shorten_url(url: str) -> str:
     pid_search = re.compile(
         r"(?:pixiv.+(?:illust_id=|artworks/)|/img-original/img/(?:\d+/){6})(\d+)"
     )
     if pid_search.search(url):
-        return f"https://pixiv.net/i/{pid_search.search(url)[1]}"  # type: ignore
+        return confuse_url(f"https://pixiv.net/i/{pid_search.search(url)[1]}")  # type: ignore
     uid_search = re.compile(r"pixiv.+(?:member\.php\?id=|users/)(\d+)")
     if uid_search.search(url):
-        return f"https://pixiv.net/u/{uid_search.search(url)[1]}"  # type: ignore
+        return confuse_url(f"https://pixiv.net/u/{uid_search.search(url)[1]}")  # type: ignore
     if URL(url).host == "danbooru.donmai.us":
-        return url.replace("/post/show/", "/posts/")
+        return confuse_url(url.replace("/post/show/", "/posts/"))
     if URL(url).host in ["exhentai.org", "e-hentai.org", "graph.baidu.com"]:
         flag = len(url) > 1024
         async with ClientSession(headers=DEFAULT_HEADERS) as session:
@@ -127,4 +143,4 @@ async def shorten_url(url: str) -> str:
                     html = await resp.text()
                     final_url = PyQuery(html)("#shortenurl").attr("value")
                     return f"https://{final_url}"
-    return url
+    return confuse_url(url)
