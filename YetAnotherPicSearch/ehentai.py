@@ -77,6 +77,11 @@ async def search_result_filter(
     _url = await shorten_url(res.url)
     if not res.raw:
         return [f"EHentai 搜索结果为空\n搜索页面：{_url}"]
+    # 尝试过滤已删除的
+    if not_expunged_res := [
+        i for i in res.raw if not PyQuery(i.origin)("[id^='posted'] s")
+    ]:
+        res.raw = not_expunged_res
     # 尝试过滤无主题的杂图图集
     if not_themeless_res := [i for i in res.raw if "themeless" not in " ".join(i.tags)]:
         res.raw = not_themeless_res
