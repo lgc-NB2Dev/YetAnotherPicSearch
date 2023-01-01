@@ -107,12 +107,14 @@ async def get_source(url: str) -> str:
 
 
 def confuse_url(url: str) -> str:
-    for host in BANNED_HOSTS:
-        if host in url:
-            return url.replace("//", "//\u200B").replace(
-                host, host.replace(".", ".\u200B")
-            )
-    return url
+    return next(
+        (
+            url.replace("//", "// ").replace(host, host.replace(".", ". "))
+            for host in BANNED_HOSTS
+            if host in url
+        ),
+        url,
+    )
 
 
 async def shorten_url(url: str) -> str:
