@@ -37,7 +37,7 @@ async def ascii2d_search(url: str, client: ClientSession, hide_img: bool) -> Lis
             if r.url:
                 source = await shorten_url(r.url)
             elif r.url_list:
-                source = r.url_list[0][0]
+                source = await shorten_url(r.url_list[0][0])
             author = r.author
             if author and r.author_url:
                 author_url = await shorten_url(r.author_url)

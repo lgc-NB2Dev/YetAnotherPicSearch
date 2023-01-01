@@ -37,7 +37,7 @@ async def iqdb_search(url: str, client: ClientSession, hide_img: bool) -> List[s
     res_list = [
         f"Iqdb ({selected_res.similarity}%)",
         thumbnail,
-        selected_res.url,
+        await shorten_url(selected_res.url),
         source,
         f"搜索页面：{res.url}",
     ]
