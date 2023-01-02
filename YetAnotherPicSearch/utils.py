@@ -17,13 +17,6 @@ DEFAULT_HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.82 Safari/537.36"
 }
 
-BANNED_HOSTS = [
-    "danbooru.donmai.us",
-    "konachan.com",
-    # "www.fanbox.cc",
-    "pixiv.net",
-]
-
 
 async def get_image_bytes_by_url(
     url: str, cookies: Optional[str] = None
@@ -110,7 +103,7 @@ def confuse_url(url: str) -> str:
     return next(
         (
             url.replace("//", "// ").replace(host, host.replace(".", ". "))
-            for host in BANNED_HOSTS
+            for host in config.to_confuse_urls
             if host in url
         ),
         url,

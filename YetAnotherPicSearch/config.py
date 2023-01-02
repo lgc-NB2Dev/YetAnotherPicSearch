@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 
 from nonebot import get_driver
 from nonebot.config import BaseConfig
@@ -31,6 +31,8 @@ class Config(BaseConfig):
     saucenao_api_key: str = ""
     # exhentai cookies，选填，没有的情况下自动改用 e-hentai 搜图
     exhentai_cookies: str = ""
+    # 要处理的红链网址列表
+    to_confuse_urls: List[str] = ["danbooru.donmai.us", "konachan.com"]
 
     class Config:
         extra = "allow"
