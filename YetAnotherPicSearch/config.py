@@ -32,7 +32,12 @@ class Config(BaseConfig):
     # exhentai cookies，选填，没有的情况下自动改用 e-hentai 搜图
     exhentai_cookies: str = ""
     # 要处理的红链网址列表
-    to_confuse_urls: List[str] = ["danbooru.donmai.us", "konachan.com", "pixiv.net"]
+    to_confuse_urls: List[str] = [
+        "ascii2d.net",
+        "danbooru.donmai.us",
+        "konachan.com",
+        "pixiv.net",
+    ]
 
     class Config:
         extra = "allow"
