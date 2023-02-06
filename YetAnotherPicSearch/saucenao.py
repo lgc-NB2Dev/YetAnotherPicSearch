@@ -81,7 +81,7 @@ async def saucenao_search(
             thumbnail,
             selected_res.title,
             f"作者：{author}" if author else "",
-            _url,
+            _url if _url != source else "",
             f"来源：{source}" if source else "",
             f"搜索页面：{res.url}",
         ]
