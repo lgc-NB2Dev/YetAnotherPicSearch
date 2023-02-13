@@ -14,7 +14,7 @@ keywords = ["nonebot", "saucenao", "pixiv", "danbooru", "doujin", "anime", "asci
 
 [tool.poetry.dependencies]
 python = "^3.8"
-aiohttp = {extras = ["speedups"], version = "^3.8.3"}
+aiohttp = {extras = ["speedups"], version = "^3.8.4"}
 arrow = "^1.2.3"
 cachetools = "^5.3.0"
 diskcache = "^5.4.0"
