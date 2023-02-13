@@ -18,8 +18,7 @@ from nonebot.adapters.onebot.v11 import (
 )
 from nonebot.log import logger
 from nonebot.matcher import Matcher
-from nonebot.params import CommandArg
-from nonebot.plugin.on import on_command, on_message, on_metaevent
+from nonebot.plugin.on import on_message, on_metaevent
 from nonebot.rule import Rule
 from PicImageSearch import Network
 from tenacity import AsyncRetrying, stop_after_attempt, stop_after_delay
@@ -36,10 +35,6 @@ from .utils import DEFAULT_HEADERS, get_bot_friend_list, handle_img, handle_repl
 sending_lock: DefaultDict[Tuple[Union[int, str], str], asyncio.Lock] = defaultdict(
     asyncio.Lock
 )
-
-# issue #30 and #32 ?
-# if sys.version_info >= (3, 8) and sys.platform == "win32":
-#     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 
 def check_first_connect(_: LifecycleMetaEvent) -> bool:
@@ -65,32 +60,27 @@ def has_images(event: MessageEvent) -> bool:
 
 def to_me_with_images(bot: Bot, event: MessageEvent) -> bool:
     plain_text = event.message.extract_plain_text()
-    if plain_text.startswith("搜图"):
-        return False
-    has_image = has_images(event)
+    has_command = "搜图" in plain_text
     if isinstance(event, PrivateMessageEvent):
-        return has_image and config.search_immediately
+        return config.search_immediately or has_command
     # 群里回复机器人发送的消息时，必须带上 "搜图" 才会搜图，否则会被无视
     if event.reply and event.reply.sender.user_id == int(bot.self_id):
-        return has_image and "搜图" in plain_text
+        return has_command
     at_me = bool(
         [i for i in event.message if i.type == "at" and i.data["qq"] == bot.self_id]
     )
-    return has_image and (event.to_me or at_me or "搜图" in plain_text)
+    return event.to_me or at_me or has_command
 
 
 IMAGE_SEARCH = on_message(rule=Rule(to_me_with_images), priority=5)
-IMAGE_SEARCH_MODE = on_command("搜图", priority=5)
 
 
-@IMAGE_SEARCH_MODE.handle()
-async def handle_first_receive(
-    event: MessageEvent, matcher: Matcher, args: Message = CommandArg()
-) -> None:
-    mode, purge = get_args(args)
+@IMAGE_SEARCH.handle()
+async def handle_first_receive(event: MessageEvent, matcher: Matcher) -> None:
+    mode, purge = get_args(event.message)
     matcher.state["ARGS"] = (mode, purge)
     if has_images(event):
-        matcher.set_arg("IMAGES", args)
+        matcher.state["IMAGES"] = event
 
 
 async def image_search(
@@ -234,16 +224,12 @@ async def send_forward_msg(
     )
 
 
-@IMAGE_SEARCH.handle()
-@IMAGE_SEARCH_MODE.got("IMAGES", prompt="请发送图片")
+@IMAGE_SEARCH.got("IMAGES", prompt="请发送图片")
 async def handle_image_search(bot: Bot, event: MessageEvent, matcher: Matcher) -> None:
     image_urls_with_md5 = get_image_urls_with_md5(event)
     if not image_urls_with_md5:
-        await IMAGE_SEARCH_MODE.reject()
-    if "ARGS" in matcher.state:
-        mode, purge = matcher.state["ARGS"]
-    else:
-        mode, purge = get_args(event.message)
+        await IMAGE_SEARCH.reject()
+    mode, purge = matcher.state["ARGS"]
     network = (
         Network(proxies=config.proxy, cookies=config.exhentai_cookies, timeout=60)
         if mode == "ex"
