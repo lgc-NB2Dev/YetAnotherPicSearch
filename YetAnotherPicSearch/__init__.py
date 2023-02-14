@@ -53,33 +53,35 @@ async def _(bot: Bot) -> None:
         )
 
 
-def has_images(event: MessageEvent) -> bool:
+def contains_image(event: MessageEvent) -> bool:
     message = event.reply.message if event.reply else event.message
     return bool([i for i in message if i.type == "image"])
 
 
-def to_me_with_images(bot: Bot, event: MessageEvent) -> bool:
-    plain_text = event.message.extract_plain_text()
-    has_command = "搜图" in plain_text
+def to_me_with_image_or_command(bot: Bot, event: MessageEvent) -> bool:
+    plain_text = event.message.extract_plain_text().strip()
+    if command_exists := re.search(r"^搜图(\s+)?(--\w+)?$", plain_text):
+        return True
+    image_exists = contains_image(event)
     if isinstance(event, PrivateMessageEvent):
-        return config.search_immediately or has_command
+        return image_exists and config.search_immediately
     # 群里回复机器人发送的消息时，必须带上 "搜图" 才会搜图，否则会被无视
-    if event.reply and event.reply.sender.user_id == int(bot.self_id):
-        return has_command
+    if event.reply and event.to_me:
+        return image_exists and command_exists
     at_me = bool(
         [i for i in event.message if i.type == "at" and i.data["qq"] == bot.self_id]
     )
-    return event.to_me or at_me or has_command
+    return image_exists and at_me
 
 
-IMAGE_SEARCH = on_message(rule=Rule(to_me_with_images), priority=5)
+IMAGE_SEARCH = on_message(rule=Rule(to_me_with_image_or_command), priority=5)
 
 
 @IMAGE_SEARCH.handle()
 async def handle_first_receive(event: MessageEvent, matcher: Matcher) -> None:
     mode, purge = get_args(event.message)
     matcher.state["ARGS"] = (mode, purge)
-    if has_images(event):
+    if contains_image(event):
         matcher.state["IMAGES"] = event
 
 
@@ -143,7 +145,7 @@ def get_image_urls_with_md5(event: MessageEvent) -> List[Tuple[str, str]]:
 
 def get_args(msg: Message) -> Tuple[str, bool]:
     mode = "all"
-    plain_text = msg.extract_plain_text()
+    plain_text = msg.extract_plain_text().strip()
     args = ["pixiv", "danbooru", "doujin", "anime", "a2d", "ex", "iqdb", "baidu"]
     if plain_text:
         for i in args:
