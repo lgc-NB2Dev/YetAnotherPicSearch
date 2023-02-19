@@ -60,7 +60,7 @@ def contains_image(event: MessageEvent) -> bool:
 
 def to_me_with_image_or_command(bot: Bot, event: MessageEvent) -> bool:
     plain_text = event.message.extract_plain_text().strip()
-    if command_exists := re.search(r"^搜图(\s+)?(--\w+)?$", plain_text):
+    if command_exists := bool(re.search(r"^搜图(\s+)?(--\w+)?$", plain_text)):
         return True
     image_exists = contains_image(event)
     if isinstance(event, PrivateMessageEvent):

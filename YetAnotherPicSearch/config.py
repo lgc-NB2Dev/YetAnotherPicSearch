@@ -5,7 +5,6 @@ from nonebot.config import BaseConfig
 
 
 class Config(BaseConfig):
-
     # 私聊发送图片立即搜图，否则需要先发送搜图命令
     search_immediately = True
     # 隐藏所有搜索结果的缩略图

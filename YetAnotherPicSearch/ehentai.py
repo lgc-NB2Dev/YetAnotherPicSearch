@@ -1,4 +1,5 @@
 import itertools
+import re
 from asyncio import sleep
 from collections import defaultdict
 from difflib import SequenceMatcher
@@ -42,7 +43,7 @@ async def ehentai_search(url: str, client: ClientSession, hide_img: bool) -> Lis
 
 
 async def ehentai_title_search(title: str, hide_img: bool) -> List[str]:
-    title = title.replace(" ::: ", " ")
+    title = re.sub(r"●|~| ::: |[中国翻訳]", " ", title).strip()
     url = "https://exhentai.org" if config.exhentai_cookies else "https://e-hentai.org"
     params: Dict[str, Any] = {"f_search": title}
     async with ClientSession(headers=EHENTAI_HEADERS) as session:
