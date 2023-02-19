@@ -80,7 +80,9 @@ def handle_reply_msg(message_id: int) -> str:
 async def get_source(url: str) -> str:
     source = url
     if host := URL(url).host:
-        async with ClientSession(headers=DEFAULT_HEADERS) as session:
+        async with ClientSession(
+            headers=None if host == "danbooru.donmai.us" else DEFAULT_HEADERS
+        ) as session:
             if host in ["danbooru.donmai.us", "gelbooru.com"]:
                 async with session.get(url, proxy=config.proxy) as resp:
                     if resp.status == 200:
