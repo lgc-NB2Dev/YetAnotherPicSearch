@@ -25,6 +25,8 @@
 
 目前适配的是 `OneBot V11` ，没适配 QQ 频道。
 
+此外，还有使用体验更好的 Telegram 移植版： [YetAnotherPicSearch4Telegram](https://github.com/NekoAria/YetAnotherPicSearch4Telegram)
+
 ## 文档目录
 
 - [使用教程](docs/使用教程.md)
