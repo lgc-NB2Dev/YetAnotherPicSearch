@@ -159,6 +159,13 @@ def get_args(msg: Message) -> Tuple[str, bool]:
 async def send_result_message(
     bot: Bot, event: MessageEvent, msg_list: List[str], index: Optional[int] = None
 ) -> None:
+    if not (
+        isinstance(event, PrivateMessageEvent)
+        and event.user_id == int(list(config.superusers)[0])
+    ):
+        msg_list = [
+            msg.replace("❤️ 已收藏\n", "") if "已收藏" in msg else msg for msg in msg_list
+        ]
     if isinstance(event, GroupMessageEvent):
         current_sending_lock = sending_lock[(event.group_id, "group")]
     else:
