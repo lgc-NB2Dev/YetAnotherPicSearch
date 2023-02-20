@@ -14,7 +14,6 @@ from nonebot.adapters.onebot.v11 import (
     LifecycleMetaEvent,
     Message,
     MessageEvent,
-    MessageSegment,
     PrivateMessageEvent,
 )
 from nonebot.log import logger
@@ -241,7 +240,7 @@ async def handle_image_search(bot: Bot, event: MessageEvent, matcher: Matcher) -
         await IMAGE_SEARCH.reject()
 
     searching_tips: Dict[str, Any] = await IMAGE_SEARCH.send(
-        MessageSegment.reply(event.message_id) + "正在进行搜索，请稍候"
+        "正在进行搜索，请稍候", reply_message=True
     )
 
     mode, purge = matcher.state["ARGS"]
