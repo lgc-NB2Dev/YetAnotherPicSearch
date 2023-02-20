@@ -238,6 +238,9 @@ async def handle_image_search(bot: Bot, event: MessageEvent, matcher: Matcher) -
     image_urls_with_md5 = get_image_urls_with_md5(event)
     if not image_urls_with_md5:
         await IMAGE_SEARCH.reject()
+
+    await IMAGE_SEARCH.send("正在搜索，请稍候～")
+
     mode, purge = matcher.state["ARGS"]
     network = (
         Network(proxies=config.proxy, cookies=config.exhentai_cookies, timeout=60)
