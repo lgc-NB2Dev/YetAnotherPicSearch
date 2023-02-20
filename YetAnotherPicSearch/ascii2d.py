@@ -20,40 +20,48 @@ async def ascii2d_search(url: str, client: ClientSession, hide_img: bool) -> Lis
         )
         bovw_res = Ascii2DResponse(await resp.text(), str(resp.url))
 
-    async def get_final_res(res: Ascii2DResponse, bovw: bool = False) -> List[str]:
-        final_res_list: List[str] = []
-        for r in res.raw:
-            if len(final_res_list) == 3:
-                break
-            if not (r.title or r.url_list):
-                continue
-            thumbnail = await handle_img(r.thumbnail, hide_img)
-            if not hide_img and thumbnail.startswith("预览图链接"):
-                continue
-            source = ""
-            title = r.title
-            if r.url_list and title == r.url_list[0][1]:
-                title = ""
-            if r.url:
-                source = await shorten_url(r.url)
-            elif r.url_list:
-                source = await shorten_url(r.url_list[0][0])
-            author = r.author
-            if author and r.author_url:
-                author_url = await shorten_url(r.author_url)
-                author = f"[{author}]({author_url})"
-            res_list = [
-                thumbnail,
-                r.detail,
-                title,
-                f"作者：{author}" if author else "",
-                f"来源：{source}" if source else "",
-            ]
-            final_res_list.append("\n".join([i for i in res_list if i]))
-        return (
-            [f"Ascii2D 特徴検索結果\n搜索页面：{res.url}"] + final_res_list
-            if bovw
-            else [f"Ascii2D 色合検索結果\n搜索页面：{res.url}"] + final_res_list
-        )
+    return await get_final_res(color_res, hide_img) + await get_final_res(
+        bovw_res, hide_img, True
+    )
 
-    return await get_final_res(color_res) + await get_final_res(bovw_res, True)
+
+async def get_final_res(
+    res: Ascii2DResponse, hide_img: bool, bovw: bool = False
+) -> List[str]:
+    final_res_list: List[str] = []
+    for r in res.raw:
+        if not (r.title or r.url_list):
+            continue
+
+        thumbnail = await handle_img(r.thumbnail, hide_img)
+        if not hide_img and thumbnail.startswith("预览图链接"):
+            continue
+
+        title = r.title
+        if r.url_list and title == r.url_list[0][1]:
+            title = ""
+
+        source = r.url or (r.url_list and r.url_list[0][0])
+        source = await shorten_url(source) if source else ""
+
+        author = r.author
+        if author and r.author_url:
+            author_url = await shorten_url(r.author_url)
+            author = f"[{author}]({author_url})"
+
+        res_list = [
+            thumbnail,
+            r.detail,
+            title,
+            f"作者：{author}" if author else "",
+            f"来源：{source}" if source else "",
+        ]
+        final_res_list.append("\n".join([i for i in res_list if i]))
+
+        if len(final_res_list) == 3:
+            break
+
+    search_type = "特徴" if bovw else "色合"
+    result_type = f"Ascii2D {search_type}検索結果"
+    result_header = f"{result_type}\n搜索页面：{res.url}"
+    return [result_header] + final_res_list

@@ -113,7 +113,7 @@ async def image_search(
                 elif mode == "baidu":
                     result = await baidu_search(url, client, hide_img)
                 else:
-                    result = await saucenao_search(url, mode, client, hide_img)
+                    result = await saucenao_search(url, client, hide_img, mode)
                     # 仅对涉及到 saucenao 的搜图结果做缓存
                     upsert_cache(_cache, md5, mode, result)
     except Exception as e:
