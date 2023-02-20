@@ -2,7 +2,7 @@ import asyncio
 import re
 from collections import defaultdict
 from contextlib import suppress
-from typing import DefaultDict, List, Optional, Tuple, Union
+from typing import Any, DefaultDict, Dict, List, Optional, Tuple, Union
 
 import arrow
 from aiohttp import ClientSession
@@ -14,6 +14,7 @@ from nonebot.adapters.onebot.v11 import (
     LifecycleMetaEvent,
     Message,
     MessageEvent,
+    MessageSegment,
     PrivateMessageEvent,
 )
 from nonebot.log import logger
@@ -239,7 +240,9 @@ async def handle_image_search(bot: Bot, event: MessageEvent, matcher: Matcher) -
     if not image_urls_with_md5:
         await IMAGE_SEARCH.reject()
 
-    await IMAGE_SEARCH.send("正在搜索，请稍候～")
+    searching_tips: Dict[str, Any] = await IMAGE_SEARCH.send(
+        MessageSegment.reply(event.message_id) + "正在进行搜索，请稍候"
+    )
 
     mode, purge = matcher.state["ARGS"]
     network = (
@@ -257,3 +260,5 @@ async def handle_image_search(bot: Bot, event: MessageEvent, matcher: Matcher) -
                     index if len(image_urls_with_md5) > 1 else None,
                 )
             _cache.expire()
+
+    await bot.delete_msg(message_id=searching_tips["message_id"])
