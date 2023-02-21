@@ -1,5 +1,6 @@
 import asyncio
 import re
+from asyncio import Lock
 from collections import defaultdict
 from contextlib import suppress
 from typing import Any, DefaultDict, Dict, List, Optional, Tuple, Union
@@ -133,7 +134,7 @@ async def get_universal_img_url(url: str) -> str:
     final_url = re.sub(r"\?.*$", "", final_url)
     async with ClientSession(headers=DEFAULT_HEADERS) as session:
         async with session.get(final_url) as resp:
-            if resp.status == 200:
+            if resp.status < 400:
                 return final_url
     return url
 
@@ -170,28 +171,38 @@ async def send_result_message(
         msg_list = [
             msg.replace("❤️ 已收藏\n", "") if "已收藏" in msg else msg for msg in msg_list
         ]
+
     if isinstance(event, GroupMessageEvent):
         current_sending_lock = sending_lock[(event.group_id, "group")]
     else:
         current_sending_lock = sending_lock[(event.user_id, "private")]
+
     if flag := (config.forward_search_result and len(msg_list) > 1):
         try:
-            start_time = arrow.now()
-            async with current_sending_lock:
-                await send_forward_msg(bot, event, msg_list, index)
-                await asyncio.sleep(
-                    max(1 - (arrow.now() - start_time).total_seconds(), 0)
-                )
+            await send_message_with_lock(
+                bot, event, msg_list, current_sending_lock, index
+            )
         except ActionFailed:
             flag = False
     if not flag:
         for msg in msg_list:
-            start_time = arrow.now()
-            async with current_sending_lock:
-                await send_msg(bot, event, msg, index)
-                await asyncio.sleep(
-                    max(1 - (arrow.now() - start_time).total_seconds(), 0)
-                )
+            await send_message_with_lock(bot, event, [msg], current_sending_lock, index)
+
+
+async def send_message_with_lock(
+    bot: Bot,
+    event: MessageEvent,
+    msg_list: List[str],
+    current_sending_lock: Lock,
+    index: Optional[int] = None,
+) -> None:
+    start_time = arrow.now()
+    async with current_sending_lock:
+        if len(msg_list) == 1:
+            await send_msg(bot, event, msg_list[0], index)
+        else:
+            await send_forward_msg(bot, event, msg_list, index)
+        await asyncio.sleep(max(1 - (arrow.now() - start_time).total_seconds(), 0))
 
 
 async def send_msg(
@@ -200,6 +211,7 @@ async def send_msg(
     if index is not None:
         message = f"第 {index + 1} 张图片的搜索结果：\n{message}"
     message = f"{handle_reply_msg(event.message_id)}{message}"
+
     try:
         await bot.send_msg(
             user_id=event.user_id if isinstance(event, PrivateMessageEvent) else 0,

@@ -14,6 +14,7 @@ async def ascii2d_search(url: str, client: ClientSession, hide_img: bool) -> Lis
     color_res = await ascii2d_color.search(file=_file)
     if not color_res.raw:
         return ["Ascii2D 暂时无法使用"]
+
     async with ClientSession(headers=DEFAULT_HEADERS) as session:
         resp = await session.get(
             color_res.url.replace("/color/", "/bovw/"), proxy=config.proxy

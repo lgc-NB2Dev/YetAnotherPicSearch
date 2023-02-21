@@ -18,6 +18,7 @@ async def whatanime_search(
         minutes = math.floor(time / 60)
         seconds = math.floor(time % 60)
         time_str = f"{minutes:02d}:{seconds:02d}"
+
         if res.raw[0].isAdult:
             thumbnail = await handle_img(
                 res.raw[0].cover_image,
@@ -28,11 +29,9 @@ async def whatanime_search(
                 res.raw[0].cover_image,
                 hide_img,
             )
+
         chinese_title = res.raw[0].title_chinese
         native_title = res.raw[0].title_native
-
-        def date_to_str(date: Dict[str, Any]) -> str:
-            return f"{date['year']}-{date['month']}-{date['day']}"
 
         start_date = date_to_str(res.raw[0].start_date)
         end_date = ""
@@ -50,4 +49,9 @@ async def whatanime_search(
             f"完结：{end_date}" if end_date else "",
         ]
         return ["\n".join([i for i in res_list if i])]
+
     return ["WhatAnime 暂时无法使用"]
+
+
+def date_to_str(date: Dict[str, Any]) -> str:
+    return f"{date['year']}-{date['month']}-{date['day']}"
