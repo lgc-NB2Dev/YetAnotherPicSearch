@@ -62,16 +62,20 @@ def to_me_with_image_or_command(bot: Bot, event: MessageEvent) -> bool:
     plain_text = event.message.extract_plain_text().strip()
     if command_exists := bool(re.search(r"^搜图(\s+)?(--\w+)?$", plain_text)):
         return True
-    image_exists = contains_image(event)
+
+    if not contains_image(event):
+        return False
+
     if isinstance(event, PrivateMessageEvent):
-        return image_exists and config.search_immediately
+        return config.search_immediately
+
     # 群里回复机器人发送的消息时，必须带上 "搜图" 才会搜图，否则会被无视
     if event.reply and event.to_me:
-        return image_exists and command_exists
-    at_me = bool(
-        [i for i in event.message if i.type == "at" and i.data["qq"] == bot.self_id]
+        return command_exists
+
+    return event.to_me or any(
+        i.type == "at" and i.data["qq"] == bot.self_id for i in event.message
     )
-    return image_exists and at_me
 
 
 IMAGE_SEARCH = on_message(rule=Rule(to_me_with_image_or_command), priority=5)
