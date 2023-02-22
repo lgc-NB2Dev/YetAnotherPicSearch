@@ -22,31 +22,31 @@ EHENTAI_HEADERS = (
 )
 
 
-async def ehentai_search(url: str, client: ClientSession, hide_img: bool) -> List[str]:
+async def ehentai_search(url: str, client: ClientSession) -> List[str]:
     ex = bool(config.exhentai_cookies)
     ehentai = EHentai(client=client)
 
     if res := await ehentai.search(url, ex=ex):
         if "Please wait a bit longer between each file search" in res.origin:
             await sleep(30 / 4)
-            return await ehentai_search(url, client, hide_img)
+            return await ehentai_search(url, client)
 
         if not res.raw:
             # 如果第一次没找到，使搜索结果包含被删除的部分，并重新搜索
             async with ClientSession(headers=EHENTAI_HEADERS) as session:
                 resp = await session.get(f"{res.url}&fs_exp=on", proxy=config.proxy)
                 res = EHentaiResponse(await resp.text(), str(resp.url))
-        final_res: List[str] = await search_result_filter(res, hide_img)
+        final_res: List[str] = await search_result_filter(res)
 
         if not res.raw and config.auto_use_ascii2d:
             final_res.append("自动使用 Ascii2D 进行搜索")
-            final_res.extend(await ascii2d_search(url, client, hide_img))
+            final_res.extend(await ascii2d_search(url, client))
         return final_res
 
     return ["EHentai 暂时无法使用"]
 
 
-async def ehentai_title_search(title: str, hide_img: bool) -> List[str]:
+async def ehentai_title_search(title: str) -> List[str]:
     title = re.sub(r"●|~| ::: |[中国翻訳]", " ", title).strip()
     url = "https://exhentai.org" if config.exhentai_cookies else "https://e-hentai.org"
     params: Dict[str, Any] = {"f_search": title}
@@ -73,14 +73,13 @@ async def ehentai_title_search(title: str, hide_img: bool) -> List[str]:
                     res.raw = filtered
                 else:
                     res.raw = [i[0] for i in raw_with_ratio]
-            return await search_result_filter(res, hide_img)
+            return await search_result_filter(res)
 
         return ["EHentai 暂时无法使用"]
 
 
 async def search_result_filter(
     res: EHentaiResponse,
-    hide_img: bool,
 ) -> List[str]:
     _url = await shorten_url(res.url)
     if not res.raw:
@@ -132,7 +131,7 @@ async def search_result_filter(
         selected_res = res.raw[0]
 
     thumbnail = await handle_img(
-        selected_res.thumbnail, hide_img, cookies=config.exhentai_cookies
+        selected_res.thumbnail, cookies=config.exhentai_cookies
     )
     date = arrow.get(selected_res.date).to("Asia/Shanghai").format("YYYY-MM-DD HH:mm")
     favorited = bool(selected_res.origin.find("[id^='posted']").eq(0).attr("style"))

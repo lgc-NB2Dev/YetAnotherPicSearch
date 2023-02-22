@@ -23,9 +23,7 @@ SAUCENAO_DB = {
 }
 
 
-async def saucenao_search(
-    url: str, client: ClientSession, hide_img: bool, mode: str
-) -> List[str]:
+async def saucenao_search(url: str, client: ClientSession, mode: str) -> List[str]:
     db = SAUCENAO_DB[mode]
     if isinstance(db, list):
         saucenao = SauceNAO(
@@ -49,15 +47,15 @@ async def saucenao_search(
         and "4 searches every 30 seconds" in res.origin["header"]["message"]
     ):
         await sleep(30 / 4)
-        return await saucenao_search(url, client, hide_img, mode)
+        return await saucenao_search(url, client, mode)
 
     if not res or not res.raw:
         final_res = ["SauceNAO 暂时无法使用，自动使用 Ascii2D 进行搜索"]
-        final_res.extend(await ascii2d_search(url, client, hide_img))
+        final_res.extend(await ascii2d_search(url, client))
         return final_res
 
     selected_res = get_best_result(res, res.raw[0])
-    return await get_final_res(url, client, hide_img, mode, res, selected_res)
+    return await get_final_res(url, client, mode, res, selected_res)
 
 
 def get_best_pixiv_result(
@@ -94,17 +92,16 @@ def get_best_result(res: SauceNAOResponse, selected_res: SauceNAOItem) -> SauceN
 async def get_final_res(
     url: str,
     client: ClientSession,
-    hide_img: bool,
     mode: str,
     res: SauceNAOResponse,
     selected_res: SauceNAOItem,
 ) -> List[str]:
     low_acc = selected_res.similarity < config.saucenao_low_acc
-    _hide_img = hide_img or (
+    hide_img = config.hide_img or (
         selected_res.hidden or low_acc and config.hide_img_when_low_acc
     )
 
-    thumbnail = await handle_img(selected_res.thumbnail, _hide_img)
+    thumbnail = await handle_img(selected_res.thumbnail, hide_img)
 
     source = selected_res.source if selected_res.source != selected_res.title else ""
     if not source and selected_res.url:
@@ -136,21 +133,17 @@ async def get_final_res(
     final_res.append("\n".join([i for i in res_list if i]))
 
     if low_acc:
-        final_res.extend(
-            await handle_saucenao_low_acc(url, client, hide_img, mode, selected_res)
-        )
+        final_res.extend(await handle_saucenao_low_acc(url, client, mode, selected_res))
     elif selected_res.index_id in SAUCENAO_DB["doujin"]:  # type: ignore
         title = selected_res.title.replace("-", "")
-        final_res.extend(await ehentai_title_search(title, hide_img))
+        final_res.extend(await ehentai_title_search(title))
     # 如果搜索结果为 fakku ，额外返回 ehentai 的搜索结果
     elif selected_res.index_id == SAUCENAO_DB["fakku"]:
         final_res.extend(
-            await ehentai_title_search(
-                f"{selected_res.author} {selected_res.title}", hide_img
-            )
+            await ehentai_title_search(f"{selected_res.author} {selected_res.title}")
         )
     elif selected_res.index_id in SAUCENAO_DB["anime"]:  # type: ignore
-        final_res.extend(await whatanime_search(url, client, hide_img))
+        final_res.extend(await whatanime_search(url, client))
 
     return final_res
 
@@ -158,21 +151,15 @@ async def get_final_res(
 async def handle_saucenao_low_acc(
     url: str,
     client: ClientSession,
-    hide_img: bool,
     mode: str,
     selected_res: SauceNAOItem,
 ) -> List[str]:
     final_res = []
     # 因为 saucenao 的动画搜索数据库更新不够快，所以当搜索模式为动画时额外增加 whatanime 的搜索结果
     if mode == "anime":
-        final_res.extend(
-            await whatanime_search(
-                url, client, hide_img or config.hide_img_when_low_acc
-            )
-        )
+        final_res.extend(await whatanime_search(url, client))
     elif config.auto_use_ascii2d:
         final_res.append(f"相似度 {selected_res.similarity}% 过低，自动使用 Ascii2D 进行搜索")
-        final_res.extend(
-            await ascii2d_search(url, client, hide_img or config.hide_img_when_low_acc)
-        )
+        final_res.extend(await ascii2d_search(url, client))
+
     return final_res

@@ -8,9 +8,7 @@ from .config import config
 from .utils import handle_img
 
 
-async def whatanime_search(
-    url: str, client: ClientSession, hide_img: bool
-) -> List[str]:
+async def whatanime_search(url: str, client: ClientSession) -> List[str]:
     whatanime = TraceMoe(client=client)
     res = await whatanime.search(url)
     if res and res.raw:
@@ -22,12 +20,11 @@ async def whatanime_search(
         if res.raw[0].isAdult:
             thumbnail = await handle_img(
                 res.raw[0].cover_image,
-                hide_img or config.hide_img_when_whatanime_r18,
+                config.hide_img or config.hide_img_when_whatanime_r18,
             )
         else:
             thumbnail = await handle_img(
                 res.raw[0].cover_image,
-                hide_img,
             )
 
         chinese_title = res.raw[0].title_chinese

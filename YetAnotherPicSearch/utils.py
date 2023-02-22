@@ -31,7 +31,7 @@ async def get_image_bytes_by_url(
 
 async def handle_img(
     url: str,
-    hide_img: bool,
+    hide_img: bool = config.hide_img,
     cookies: Optional[str] = None,
 ) -> str:
     if not hide_img:

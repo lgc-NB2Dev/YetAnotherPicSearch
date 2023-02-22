@@ -6,13 +6,13 @@ from PicImageSearch import BaiDu
 from .utils import handle_img, shorten_url
 
 
-async def baidu_search(url: str, client: ClientSession, hide_img: bool) -> List[str]:
+async def baidu_search(url: str, client: ClientSession) -> List[str]:
     baidu = BaiDu(client=client)
     res = await baidu.search(url)
     _url = await shorten_url(res.url)
     if not res.raw:
         return [f"Baidu 搜索结果为空\n搜索页面：{_url}"]
-    thumbnail = await handle_img(res.raw[0].thumbnail, hide_img)
+    thumbnail = await handle_img(res.raw[0].thumbnail)
     res_list = [
         f"Baidu ({res.raw[0].similarity}%)",
         thumbnail,

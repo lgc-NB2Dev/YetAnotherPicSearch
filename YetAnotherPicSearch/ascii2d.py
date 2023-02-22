@@ -8,7 +8,7 @@ from .config import config
 from .utils import DEFAULT_HEADERS, get_image_bytes_by_url, handle_img, shorten_url
 
 
-async def ascii2d_search(url: str, client: ClientSession, hide_img: bool) -> List[str]:
+async def ascii2d_search(url: str, client: ClientSession) -> List[str]:
     ascii2d_color = Ascii2D(client=client)
     _file = await get_image_bytes_by_url(url)
     color_res = await ascii2d_color.search(file=_file)
@@ -21,21 +21,17 @@ async def ascii2d_search(url: str, client: ClientSession, hide_img: bool) -> Lis
         )
         bovw_res = Ascii2DResponse(await resp.text(), str(resp.url))
 
-    return await get_final_res(color_res, hide_img) + await get_final_res(
-        bovw_res, hide_img, True
-    )
+    return await get_final_res(color_res) + await get_final_res(bovw_res, True)
 
 
-async def get_final_res(
-    res: Ascii2DResponse, hide_img: bool, bovw: bool = False
-) -> List[str]:
+async def get_final_res(res: Ascii2DResponse, bovw: bool = False) -> List[str]:
     final_res_list: List[str] = []
     for r in res.raw:
         if not (r.title or r.url_list):
             continue
 
-        thumbnail = await handle_img(r.thumbnail, hide_img)
-        if not hide_img and thumbnail.startswith("预览图链接"):
+        thumbnail = await handle_img(r.thumbnail)
+        if not config.hide_img and thumbnail.startswith("预览图链接"):
             continue
 
         title = r.title

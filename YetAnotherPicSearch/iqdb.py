@@ -9,7 +9,7 @@ from .config import config
 from .utils import get_source, handle_img, shorten_url
 
 
-async def iqdb_search(url: str, client: ClientSession, hide_img: bool) -> List[str]:
+async def iqdb_search(url: str, client: ClientSession) -> List[str]:
     iqdb = Iqdb(client=client)
     res = await iqdb.search(url)
     if not res.raw:
@@ -22,6 +22,7 @@ async def iqdb_search(url: str, client: ClientSession, hide_img: bool) -> List[s
         low_acc = True
         res.raw.pop(0)
     selected_res = res.raw[0]
+    hide_img = config.hide_img or (low_acc and config.hide_img_when_low_acc)
 
     # 优先取 danbooru 或 yande.re
     danbooru_res_list = [i for i in res.raw if i.source == "Danbooru"]
@@ -48,6 +49,6 @@ async def iqdb_search(url: str, client: ClientSession, hide_img: bool) -> List[s
 
     if low_acc and config.auto_use_ascii2d:
         final_res.append(f"相似度 {selected_res.similarity}% 过低，自动使用 Ascii2D 进行搜索")
-        final_res.extend(await ascii2d_search(url, client, hide_img))
+        final_res.extend(await ascii2d_search(url, client))
 
     return final_res

@@ -22,7 +22,7 @@ from nonebot.matcher import Matcher
 from nonebot.plugin.on import on_message, on_metaevent
 from nonebot.rule import Rule
 from PicImageSearch import Network
-from tenacity import AsyncRetrying, stop_after_attempt, stop_after_delay
+from tenacity import retry, stop_after_attempt, stop_after_delay
 
 from .ascii2d import ascii2d_search
 from .baidu import baidu_search
@@ -97,32 +97,35 @@ async def image_search(
     purge: bool,
     _cache: Cache,
     client: ClientSession,
-    hide_img: bool = config.hide_img,
 ) -> List[str]:
     url = await get_universal_img_url(url)
     if not purge and (result := exist_in_cache(_cache, md5, mode)):
         return [f"[缓存] {i}" for i in result]
-    result = []
     try:
-        async for attempt in AsyncRetrying(
-            stop=(stop_after_attempt(3) | stop_after_delay(30)), reraise=True
-        ):
-            with attempt:
-                if mode == "a2d":
-                    result = await ascii2d_search(url, client, hide_img)
-                elif mode == "ex":
-                    result = await ehentai_search(url, client, hide_img)
-                elif mode == "iqdb":
-                    result = await iqdb_search(url, client, hide_img)
-                elif mode == "baidu":
-                    result = await baidu_search(url, client, hide_img)
-                else:
-                    result = await saucenao_search(url, client, hide_img, mode)
-                    # 仅对涉及到 saucenao 的搜图结果做缓存
-                    upsert_cache(_cache, md5, mode, result)
+        result = await handle_search_mode(url, md5, mode, _cache, client)
     except Exception as e:
         logger.exception(f"该图 [{url}] 搜图失败")
         result = [f"该图搜图失败\nE: {repr(e)}"]
+    return result
+
+
+@retry(stop=(stop_after_attempt(3) | stop_after_delay(30)), reraise=True)
+async def handle_search_mode(
+    url: str, md5: str, mode: str, _cache: Cache, client: ClientSession
+) -> List[str]:
+    if mode == "a2d":
+        result = await ascii2d_search(url, client)
+    elif mode == "ex":
+        result = await ehentai_search(url, client)
+    elif mode == "iqdb":
+        result = await iqdb_search(url, client)
+    elif mode == "baidu":
+        result = await baidu_search(url, client)
+    else:
+        result = await saucenao_search(url, client, mode)
+        # 仅对涉及到 saucenao 的搜图结果做缓存
+        upsert_cache(_cache, md5, mode, result)
+
     return result
 
 

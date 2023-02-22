@@ -9,7 +9,7 @@ class Config(BaseConfig):
     search_immediately = True
     # 隐藏所有搜索结果的缩略图
     hide_img: bool = False
-    # saucenao 得到低相似度结果时隐藏结果缩略图（包括 ascii2d 和 whatanime）
+    # saucenao / iqdb 得到低相似度结果时隐藏结果缩略图
     hide_img_when_low_acc: bool = False
     # whatanime 得到 R18 结果时隐藏结果缩略图
     hide_img_when_whatanime_r18: bool = False
@@ -24,7 +24,7 @@ class Config(BaseConfig):
     forward_search_result: bool = True
     # 大部分请求所使用的代理: http://
     proxy: Optional[str] = None
-    # 搜图结果缓存过期时间（天）
+    # saucenao 搜图结果缓存过期时间（天）
     cache_expire: int = 3
     # saucenao APIKEY，必填，否则无法使用 saucenao 搜图
     saucenao_api_key: str = ""
