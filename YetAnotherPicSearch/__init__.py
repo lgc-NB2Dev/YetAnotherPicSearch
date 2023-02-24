@@ -2,15 +2,7 @@ import asyncio
 import re
 from collections import defaultdict
 from contextlib import suppress
-from typing import (
-    Any,
-    DefaultDict,
-    Dict,
-    List,
-    Optional,
-    Tuple,
-    Union,
-)
+from typing import Any, DefaultDict, Dict, List, Optional, Tuple, Union
 
 import arrow
 from aiohttp import ClientSession
@@ -77,27 +69,31 @@ def contains_image(event: MessageEvent) -> bool:
     return bool([i for i in message if i.type == "image"])
 
 
-def to_me_with_image_or_command(bot: Bot, event: MessageEvent) -> bool:
+def message_needs_handling(bot: Bot, event: MessageEvent) -> bool:
     plain_text = event.message.extract_plain_text().strip()
-    if command_exists := bool(re.search(r"^搜图(\s+)?(--\w+)?$", plain_text)):
+    if keyword_exists := bool(
+        re.search(rf"^{config.search_keyword}(\s+)?(--\w+)?$", plain_text)
+    ):
         return True
-
-    if not contains_image(event):
+    elif config.search_keyword_only or (not contains_image(event)):
         return False
 
     if isinstance(event, PrivateMessageEvent):
+        # 回复机器人发送的消息时，必须带上搜图关键词才会搜图，否则会被无视
+        if event.reply:
+            return keyword_exists
         return config.search_immediately
 
-    # 群里回复机器人发送的消息时，必须带上 "搜图" 才会搜图，否则会被无视
+    # 回复机器人发送的消息时，必须带上搜图关键词才会搜图，否则会被无视
     if event.reply and event.to_me:
-        return command_exists
+        return keyword_exists
 
-    return event.to_me or any(
-        i.type == "at" and i.data["qq"] == bot.self_id for i in event.message
-    )
+    # @机器人如果在消息开头或结尾会被截去，并且 event.to_me 设为 True ，但是如果在消息中间就不会被处理
+    to_me = any(i.type == "at" and i.data["qq"] == bot.self_id for i in event.message)
+    return event.to_me or to_me
 
 
-IMAGE_SEARCH = on_message(rule=Rule(to_me_with_image_or_command), priority=5)
+IMAGE_SEARCH = on_message(rule=Rule(message_needs_handling), priority=5)
 
 
 @IMAGE_SEARCH.handle()
