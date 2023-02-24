@@ -17,11 +17,11 @@ python = "^3.8"
 aiohttp = {extras = ["speedups"], version = "^3.8.4"}
 arrow = "^1.2.3"
 cachetools = "^5.3.0"
-diskcache = "^5.4.0"
 nonebot-adapter-onebot = "^2.2.1"
 nonebot2 = "^2.0.0-rc.3"
 PicImageSearch = "^3.7.8"
 pyquery = "^2.0.0"
+shelved-cache = "^0.3.0"
 tenacity = "^8.2.1"
 yarl = "^1.8.2"
 

@@ -1,13 +1,20 @@
 import asyncio
 import re
-from asyncio import Lock
 from collections import defaultdict
 from contextlib import suppress
-from typing import Any, DefaultDict, Dict, List, Optional, Tuple, Union
+from typing import (
+    Any,
+    DefaultDict,
+    Dict,
+    List,
+    Optional,
+    Tuple,
+    Union,
+)
 
 import arrow
 from aiohttp import ClientSession
-from diskcache import Cache
+from cachetools import TTLCache
 from nonebot.adapters.onebot.v11 import (
     ActionFailed,
     Bot,
@@ -22,19 +29,30 @@ from nonebot.matcher import Matcher
 from nonebot.plugin.on import on_message, on_metaevent
 from nonebot.rule import Rule
 from PicImageSearch import Network
+from shelved_cache import PersistentCache
 from tenacity import retry, stop_after_attempt, stop_after_delay
 
 from .ascii2d import ascii2d_search
 from .baidu import baidu_search
-from .cache import exist_in_cache, upsert_cache
 from .config import config
 from .ehentai import ehentai_search
 from .iqdb import iqdb_search
 from .saucenao import saucenao_search
-from .utils import DEFAULT_HEADERS, get_bot_friend_list, handle_img, handle_reply_msg
+from .utils import (
+    DEFAULT_HEADERS,
+    SEARCH_FUNCTION_TYPE,
+    get_bot_friend_list,
+    handle_reply_msg,
+)
 
 sending_lock: DefaultDict[Tuple[Union[int, str], str], asyncio.Lock] = defaultdict(
     asyncio.Lock
+)
+pic_search_cache = PersistentCache(
+    TTLCache,
+    filename="pic_search_cache",
+    maxsize=config.cache_expire * 100,
+    ttl=config.cache_expire * 24 * 60 * 60,
 )
 
 
@@ -91,42 +109,58 @@ async def handle_first_receive(event: MessageEvent, matcher: Matcher) -> None:
 
 
 async def image_search(
+    bot: Bot,
+    event: MessageEvent,
     url: str,
     md5: str,
     mode: str,
     purge: bool,
-    _cache: Cache,
     client: ClientSession,
-) -> List[str]:
+    index: Optional[int] = None,
+) -> None:
     url = await get_universal_img_url(url)
-    if not purge and (result := exist_in_cache(_cache, md5, mode)):
-        return [f"[缓存] {i}" for i in result]
+    cache_key = f"{md5}_{mode}"
     try:
-        result = await handle_search_mode(url, md5, mode, _cache, client)
+        if not purge and cache_key in pic_search_cache:
+            result, extra_handle = pic_search_cache[cache_key]
+            await send_result_message(bot, event, [f"[缓存] {i}" for i in result], index)
+            if callable(extra_handle):
+                await send_result_message(
+                    bot, event, await extra_handle(url, client), index
+                )
+            return
+
+        result, extra_handle = await handle_search_mode(url, md5, mode, client)
+        await send_result_message(bot, event, result, index)
+        if callable(extra_handle):
+            await send_result_message(
+                bot, event, await extra_handle(url, client), index
+            )
     except Exception as e:
         logger.exception(f"该图 [{url}] 搜图失败")
-        result = [f"该图搜图失败\nE: {repr(e)}"]
-    return result
+        await send_result_message(bot, event, [f"该图搜图失败\nE: {repr(e)}"], index)
 
 
 @retry(stop=(stop_after_attempt(3) | stop_after_delay(30)), reraise=True)
 async def handle_search_mode(
-    url: str, md5: str, mode: str, _cache: Cache, client: ClientSession
-) -> List[str]:
+    url: str, md5: str, mode: str, client: ClientSession
+) -> Tuple[List[str], Optional[SEARCH_FUNCTION_TYPE]]:
+    extra_handle = None
+
     if mode == "a2d":
         result = await ascii2d_search(url, client)
     elif mode == "ex":
-        result = await ehentai_search(url, client)
+        result, extra_handle = await ehentai_search(url, client)
     elif mode == "iqdb":
-        result = await iqdb_search(url, client)
+        result, extra_handle = await iqdb_search(url, client)
     elif mode == "baidu":
         result = await baidu_search(url, client)
     else:
-        result = await saucenao_search(url, client, mode)
-        # 仅对涉及到 saucenao 的搜图结果做缓存
-        upsert_cache(_cache, md5, mode, result)
+        result, extra_handle = await saucenao_search(url, client, mode)
 
-    return result
+    pic_search_cache[f"{md5}_{mode}"] = result, extra_handle
+
+    return result, extra_handle
 
 
 async def get_universal_img_url(url: str) -> str:
@@ -196,7 +230,7 @@ async def send_message_with_lock(
     bot: Bot,
     event: MessageEvent,
     msg_list: List[str],
-    current_sending_lock: Lock,
+    current_sending_lock: asyncio.Lock,
     index: Optional[int] = None,
 ) -> None:
     start_time = arrow.now()
@@ -269,14 +303,16 @@ async def handle_image_search(bot: Bot, event: MessageEvent, matcher: Matcher) -
         else Network(proxies=config.proxy)
     )
     async with network as client:
-        with Cache("picsearch_cache") as _cache:
-            for index, (url, md5) in enumerate(image_urls_with_md5):
-                await send_result_message(
-                    bot,
-                    event,
-                    await image_search(url, md5, mode, purge, _cache, client),
-                    index if len(image_urls_with_md5) > 1 else None,
-                )
-            _cache.expire()
+        for index, (url, md5) in enumerate(image_urls_with_md5):
+            await image_search(
+                bot,
+                event,
+                url,
+                md5,
+                mode,
+                purge,
+                client,
+                index if len(image_urls_with_md5) > 1 else None,
+            )
 
     await bot.delete_msg(message_id=searching_tips["message_id"])

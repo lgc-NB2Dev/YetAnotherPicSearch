@@ -3,7 +3,7 @@ import re
 from asyncio import sleep
 from collections import defaultdict
 from difflib import SequenceMatcher
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional, Tuple
 
 import arrow
 from aiohttp import ClientSession
@@ -13,7 +13,7 @@ from pyquery import PyQuery
 
 from .ascii2d import ascii2d_search
 from .config import config
-from .utils import DEFAULT_HEADERS, handle_img, shorten_url
+from .utils import DEFAULT_HEADERS, SEARCH_FUNCTION_TYPE, handle_img, shorten_url
 
 EHENTAI_HEADERS = (
     {"Cookie": config.exhentai_cookies, **DEFAULT_HEADERS}
@@ -22,7 +22,9 @@ EHENTAI_HEADERS = (
 )
 
 
-async def ehentai_search(url: str, client: ClientSession) -> List[str]:
+async def ehentai_search(
+    url: str, client: ClientSession
+) -> Tuple[List[str], Optional[SEARCH_FUNCTION_TYPE]]:
     ex = bool(config.exhentai_cookies)
     ehentai = EHentai(client=client)
 
@@ -40,10 +42,11 @@ async def ehentai_search(url: str, client: ClientSession) -> List[str]:
 
         if not res.raw and config.auto_use_ascii2d:
             final_res.append("自动使用 Ascii2D 进行搜索")
-            final_res.extend(await ascii2d_search(url, client))
-        return final_res
+            return final_res, ascii2d_search
 
-    return ["EHentai 暂时无法使用"]
+        return final_res, None
+
+    return ["EHentai 暂时无法使用"], None
 
 
 async def ehentai_title_search(title: str) -> List[str]:
