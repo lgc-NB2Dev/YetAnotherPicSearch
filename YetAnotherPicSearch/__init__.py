@@ -85,10 +85,10 @@ def message_needs_handling(bot: Bot, event: MessageEvent) -> bool:
         return config.search_immediately
 
     # 回复机器人发送的消息时，必须带上搜图关键词才会搜图，否则会被无视
-    if event.reply and event.to_me:
+    if event.reply and event.reply.sender.user_id == int(bot.self_id):
         return keyword_exists
 
-    # @机器人如果在消息开头或结尾会被截去，并且 event.to_me 设为 True ，但是如果在消息中间就不会被处理
+    # @机器人 如果在消息开头或结尾会被截去，并且 event.to_me 设为 True ，这里针对 @机器人 在消息中间的情况做处理
     to_me = any(i.type == "at" and i.data["qq"] == bot.self_id for i in event.message)
     return event.to_me or to_me
 
