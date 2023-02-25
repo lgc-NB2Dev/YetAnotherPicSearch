@@ -60,5 +60,5 @@ async def get_final_res(res: Ascii2DResponse, bovw: bool = False) -> List[str]:
 
     search_type = "特徴" if bovw else "色合"
     result_type = f"Ascii2D {search_type}検索結果"
-    result_header = f"{result_type}\n搜索页面：{res.url}"
+    result_header = f"{result_type}\n搜索页面：{await shorten_url(res.url)}"
     return [result_header] + final_res_list
