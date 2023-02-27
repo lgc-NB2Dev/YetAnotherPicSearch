@@ -71,22 +71,19 @@ def contains_image(event: MessageEvent) -> bool:
 
 def message_needs_handling(bot: Bot, event: MessageEvent) -> bool:
     plain_text = event.message.extract_plain_text().strip()
-    if keyword_exists := bool(
-        re.search(rf"^{config.search_keyword}(\s+)?(--\w+)?$", plain_text)
-    ):
+    # 有搜图关键词必响应
+    if re.search(rf"^{config.search_keyword}(\s+)?(--\w+)?$", plain_text):
         return True
-    elif config.search_keyword_only or (not contains_image(event)):
+    elif (
+        config.search_keyword_only
+        or (not contains_image(event))
+        # 回复机器人发送的消息时，必须带上搜图关键词才会搜图，否则会被无视
+        or (event.reply and event.reply.sender.user_id == int(bot.self_id))
+    ):
         return False
 
     if isinstance(event, PrivateMessageEvent):
-        # 回复机器人发送的消息时，必须带上搜图关键词才会搜图，否则会被无视
-        if event.reply:
-            return keyword_exists
         return config.search_immediately
-
-    # 回复机器人发送的消息时，必须带上搜图关键词才会搜图，否则会被无视
-    if event.reply and event.reply.sender.user_id == int(bot.self_id):
-        return keyword_exists
 
     # @机器人 如果在消息开头或结尾会被截去，并且 event.to_me 设为 True ，这里针对 @机器人 在消息中间的情况做处理
     to_me = any(i.type == "at" and i.data["qq"] == bot.self_id for i in event.message)
