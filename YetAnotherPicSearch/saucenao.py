@@ -100,6 +100,7 @@ async def get_final_res(
 
     thumbnail = await handle_img(selected_res.thumbnail, hide_img)
 
+    url = await shorten_url(selected_res.url)
     source = selected_res.source if selected_res.source != selected_res.title else ""
     if not source and selected_res.url:
         source = await get_source(selected_res.url)
@@ -117,7 +118,7 @@ async def get_final_res(
         thumbnail,
         selected_res.title,
         f"作者：{author_link}" if author_link else "",
-        await shorten_url(selected_res.url) if selected_res.url != source else "",
+        url if url != source else "",
         f"来源：{source}" if source else "",
         f"搜索页面：{res.url}",
     ]
