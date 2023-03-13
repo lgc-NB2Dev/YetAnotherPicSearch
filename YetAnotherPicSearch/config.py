@@ -34,6 +34,10 @@ class Config(BaseConfig):
     saucenao_api_key: str = ""
     # exhentai cookies，选填，没有的情况下自动改用 e-hentai 搜图
     exhentai_cookies: str = ""
+    # 用来绕过 nhentai cloudflare 拦截的 useragent
+    nhentai_useragent: str = ""
+    # 用来绕过 nhentai cloudflare 拦截的 cookie
+    nhentai_cookies: str = ""
     # 要处理的红链网址列表
     to_confuse_urls: List[str] = [
         "ascii2d.net",

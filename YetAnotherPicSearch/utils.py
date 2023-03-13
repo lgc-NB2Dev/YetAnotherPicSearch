@@ -99,7 +99,12 @@ async def shorten_url(url: str) -> str:
     if URL(url).host == "danbooru.donmai.us":
         return confuse_url(url.replace("/post/show/", "/posts/"))
 
-    if URL(url).host in ["exhentai.org", "e-hentai.org", "graph.baidu.com"]:
+    if URL(url).host in [
+        "exhentai.org",
+        "e-hentai.org",
+        "nhentai.net",
+        "graph.baidu.com",
+    ]:
         flag = len(url) > 1024
         async with ClientSession(headers=DEFAULT_HEADERS) as session:
             if not flag:

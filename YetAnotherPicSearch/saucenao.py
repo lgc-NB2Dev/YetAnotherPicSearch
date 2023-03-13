@@ -10,6 +10,7 @@ from yarl import URL
 from .ascii2d import ascii2d_search
 from .config import config
 from .ehentai import ehentai_title_search
+from .nhentai import nhentai_title_search
 from .utils import SEARCH_FUNCTION_TYPE, get_source, handle_img, shorten_url
 from .whatanime import whatanime_search
 
@@ -136,7 +137,15 @@ async def get_final_res(
         return final_res, extra_handle
     elif selected_res.index_id in SAUCENAO_DB["doujin"]:  # type: ignore
         title = selected_res.title.replace("-", "")
-        final_res.extend(await ehentai_title_search(title))
+        ehentai_title_search_result = await ehentai_title_search(title)
+        final_res.extend(ehentai_title_search_result)
+        if (
+            ehentai_title_search_result[0].startswith("EHentai 搜索结果为空")
+            and config.nhentai_useragent
+            and config.nhentai_cookies
+        ):
+            final_res.append("自动使用 NHentai 进行搜索")
+            final_res.extend(await nhentai_title_search(title))
     # 如果搜索结果为 fakku ，额外返回 ehentai 的搜索结果
     elif selected_res.index_id == SAUCENAO_DB["fakku"]:
         final_res.extend(

@@ -84,9 +84,9 @@ async def ehentai_title_search(title: str) -> List[str]:
 async def search_result_filter(
     res: EHentaiResponse,
 ) -> List[str]:
-    _url = await shorten_url(res.url)
+    url = await shorten_url(res.url)
     if not res.raw:
-        return [f"EHentai 搜索结果为空\n搜索页面：{_url}"]
+        return [f"EHentai 搜索结果为空\n搜索页面：{url}"]
 
     # 尝试过滤已删除的
     if not_expunged_res := [
@@ -146,6 +146,6 @@ async def search_result_filter(
         f"类型：{selected_res.type}",
         f"日期：{date}",
         f"来源：{selected_res.url}",
-        f"搜索页面：{_url}",
+        f"搜索页面：{url}",
     ]
     return ["\n".join([i for i in res_list if i])]
