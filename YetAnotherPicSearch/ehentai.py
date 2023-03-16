@@ -13,7 +13,13 @@ from pyquery import PyQuery
 
 from .ascii2d import ascii2d_search
 from .config import config
-from .utils import DEFAULT_HEADERS, SEARCH_FUNCTION_TYPE, handle_img, shorten_url
+from .utils import (
+    DEFAULT_HEADERS,
+    SEARCH_FUNCTION_TYPE,
+    get_session_with_proxy,
+    handle_img,
+    shorten_url,
+)
 
 EHENTAI_HEADERS = (
     {"Cookie": config.exhentai_cookies, **DEFAULT_HEADERS}
@@ -35,9 +41,8 @@ async def ehentai_search(
 
         if not res.raw:
             # 如果第一次没找到，使搜索结果包含被删除的部分，并重新搜索
-            async with ClientSession(headers=EHENTAI_HEADERS) as session:
-                resp = await session.get(f"{res.url}&fs_exp=on", proxy=config.proxy)
-                res = EHentaiResponse(await resp.text(), str(resp.url))
+            resp_text, resp_url, _ = await ehentai.get(f"{res.url}&fs_exp=on")
+            res = EHentaiResponse(resp_text, resp_url)
         final_res: List[str] = await search_result_filter(res)
 
         if not res.raw and config.auto_use_ascii2d:
@@ -54,15 +59,15 @@ async def ehentai_title_search(title: str) -> List[str]:
     url = "https://exhentai.org" if config.exhentai_cookies else "https://e-hentai.org"
     params: Dict[str, Any] = {"f_search": title}
 
-    async with ClientSession(headers=EHENTAI_HEADERS) as session:
-        resp = await session.get(url, proxy=config.proxy, params=params)
+    async with get_session_with_proxy(headers=EHENTAI_HEADERS) as session:
+        resp = await session.get(url, params=params)
         if res := EHentaiResponse(await resp.text(), str(resp.url)):
             if not res.raw:
                 # 如果第一次没找到，使搜索结果包含被删除的部分，并重新搜索
                 params["advsearch"] = 1
                 params["f_sname"] = "on"
                 params["f_sh"] = "on"
-                resp = await session.get(url, proxy=config.proxy, params=params)
+                resp = await session.get(url, params=params)
                 res = EHentaiResponse(await resp.text(), str(resp.url))
 
             # 只保留标题和搜索关键词相关度较高的结果，并排序，以此来提高准确度

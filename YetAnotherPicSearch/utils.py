@@ -1,8 +1,8 @@
 import re
 from base64 import b64encode
-from typing import Any, Callable, Coroutine, List, Optional
+from typing import Any, Callable, Coroutine, Dict, List, Optional
 
-from aiohttp import ClientSession
+from aiohttp import ClientSession, TCPConnector
 from cachetools import TTLCache
 from nonebot.adapters.onebot.v11 import Bot
 from pyquery import PyQuery
@@ -18,12 +18,34 @@ DEFAULT_HEADERS = {
 }
 
 
+def get_session_with_proxy(headers: Optional[Dict[str, str]] = None) -> ClientSession:
+    if config.proxy and config.proxy.startswith("socks"):
+        try:
+            from aiohttp_socks import ProxyConnector
+
+            connector = ProxyConnector.from_url(config.proxy)
+        except ModuleNotFoundError:
+            connector = TCPConnector()
+    else:
+        connector = TCPConnector()
+
+    session = ClientSession(connector=connector, headers=headers)
+
+    if config.proxy and not config.proxy.startswith("socks"):
+        from functools import partial
+
+        session.get = partial(session.get, proxy=proxy)  # type: ignore
+        session.post = partial(session.post, proxy=proxy)  # type: ignore
+
+    return session
+
+
 async def get_image_bytes_by_url(
     url: str, cookies: Optional[str] = None
 ) -> Optional[bytes]:
     headers = {"Cookie": cookies, **DEFAULT_HEADERS} if cookies else DEFAULT_HEADERS
-    async with ClientSession(headers=headers) as session:
-        async with session.get(url, proxy=config.proxy) as resp:
+    async with get_session_with_proxy(headers=headers) as session:
+        async with session.get(url) as resp:
             if resp.status < 400 and (image_bytes := await resp.read()):
                 return image_bytes
     return None
@@ -53,10 +75,10 @@ def handle_reply_msg(message_id: int) -> str:
 async def get_source(url: str) -> str:
     source = url
     if host := URL(source).host:
-        async with ClientSession(
+        async with get_session_with_proxy(
             headers=None if host == "danbooru.donmai.us" else DEFAULT_HEADERS
         ) as session:
-            async with session.get(source, proxy=config.proxy) as resp:
+            async with session.get(source) as resp:
                 if resp.status >= 400:
                     return ""
 

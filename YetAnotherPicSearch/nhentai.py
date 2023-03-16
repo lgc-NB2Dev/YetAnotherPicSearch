@@ -2,12 +2,11 @@ import re
 from typing import List
 
 import arrow
-from aiohttp import ClientSession
 from lxml.html import HTMLParser, fromstring
 from pyquery import PyQuery
 
 from .config import config
-from .utils import handle_img, shorten_url
+from .utils import get_session_with_proxy, handle_img, shorten_url
 
 NHENTAI_HEADERS = {
     "User-Agent": config.nhentai_useragent,
@@ -39,8 +38,8 @@ class NHentaiResponse:
 
 
 async def update_nhentai_info(item: NHentaiItem) -> None:
-    async with ClientSession(headers=NHENTAI_HEADERS) as session:
-        resp = await session.get(item.url, proxy=config.proxy)
+    async with get_session_with_proxy(headers=NHENTAI_HEADERS) as session:
+        resp = await session.get(item.url)
         uft8_parser = HTMLParser(encoding="utf-8")
         data = PyQuery(fromstring(await resp.text(), parser=uft8_parser))
         item.origin = data
@@ -61,8 +60,8 @@ async def nhentai_title_search(title: str) -> List[str]:
     title = re.sub(r"●|~| ::: |[中国翻訳]", " ", title).strip()
     url = "https://nhentai.net/search/"
     params = {"q": title}
-    async with ClientSession(headers=NHENTAI_HEADERS) as session:
-        resp = await session.get(url, proxy=config.proxy, params=params)
+    async with get_session_with_proxy(headers=NHENTAI_HEADERS) as session:
+        resp = await session.get(url, params=params)
         if res := NHentaiResponse(await resp.text(), str(resp.url)):
             return await search_result_filter(res)
 

@@ -55,12 +55,17 @@ def check_first_connect(_: LifecycleMetaEvent) -> bool:
 start_metaevent = on_metaevent(rule=check_first_connect, temp=True)
 
 
+async def send_message_to_admin(message: str, bot: Bot) -> None:
+    await bot.send_private_msg(user_id=int(list(config.superusers)[0]), message=message)
+
+
 @start_metaevent.handle()
 async def _(bot: Bot) -> None:
     if not config.saucenao_api_key:
-        await bot.send_private_msg(
-            user_id=int(list(config.superusers)[0]),
-            message="请配置 saucenao_api_key ，否则无法正常使用搜图功能",
+        await send_message_to_admin("请配置 saucenao_api_key ，否则无法正常使用搜图功能", bot)
+    if config.proxy.startswith("socks://"):
+        await send_message_to_admin(
+            '请修改代理地址为 "socks5://" 或 "socks4://" 的格式，具体取决于你的代理协议', bot
         )
 
 
