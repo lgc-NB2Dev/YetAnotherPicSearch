@@ -8,10 +8,14 @@ from pyquery import PyQuery
 from .config import config
 from .utils import get_session_with_proxy, handle_img, shorten_url
 
-NHENTAI_HEADERS = {
-    "User-Agent": config.nhentai_useragent,
-    "Cookie": config.nhentai_cookies,
-}
+NHENTAI_HEADERS = (
+    {
+        "User-Agent": config.nhentai_useragent,
+        "Cookie": config.nhentai_cookies,
+    }
+    if config.nhentai_cookies and config.nhentai_useragent
+    else None
+)
 
 
 class NHentaiItem:

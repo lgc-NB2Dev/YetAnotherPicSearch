@@ -2,6 +2,7 @@ from typing import List, Optional
 
 from nonebot import get_driver
 from nonebot.config import BaseConfig
+from pydantic import Extra, validator
 
 
 class Config(BaseConfig):
@@ -26,18 +27,18 @@ class Config(BaseConfig):
     auto_use_ascii2d: bool = True
     # 若结果消息有多条，采用合并转发方式发送搜图结果
     forward_search_result: bool = True
-    # 大部分请求所使用的代理: http://
+    # 大部分请求所使用的代理: http / socks4 / socks5
     proxy: Optional[str] = None
     # saucenao 搜图结果缓存过期时间 (天)
     cache_expire: int = 3
     # saucenao APIKEY，必填，否则无法使用 saucenao 搜图
-    saucenao_api_key: str = ""
+    saucenao_api_key: str
     # exhentai cookies，选填，没有的情况下自动改用 e-hentai 搜图
-    exhentai_cookies: str = ""
+    exhentai_cookies: Optional[str] = None
     # 用来绕过 nhentai cloudflare 拦截的 useragent
-    nhentai_useragent: str = ""
+    nhentai_useragent: Optional[str] = None
     # 用来绕过 nhentai cloudflare 拦截的 cookie
-    nhentai_cookies: str = ""
+    nhentai_cookies: Optional[str] = None
     # 要处理的红链网址列表
     to_confuse_urls: List[str] = [
         "ascii2d.net",
@@ -47,7 +48,19 @@ class Config(BaseConfig):
     ]
 
     class Config:
-        extra = "allow"
+        extra = Extra.allow
+
+    @validator("saucenao_api_key", pre=True)
+    def saucenao_api_key_validator(cls, v: str) -> str:
+        if not v:
+            raise ValueError("请配置 saucenao_api_key ，否则无法正常使用搜图功能！")
+        return v
+
+    @validator("proxy", pre=True)
+    def proxy_validator(cls, v: Optional[str]) -> Optional[str]:
+        if v and v.startswith("socks://"):
+            raise ValueError('请修改代理地址为 "socks5://" 或 "socks4://" 的格式，具体取决于你的代理协议！')
+        return v
 
 
 config = Config(**get_driver().config.dict())
