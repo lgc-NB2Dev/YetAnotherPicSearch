@@ -14,7 +14,11 @@ from .config import config
 SEARCH_FUNCTION_TYPE = Callable[..., Coroutine[Any, Any, List[str]]]
 
 DEFAULT_HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.82 Safari/537.36"
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/99.0.4844.82 Safari/537.36"
+    )
 }
 
 
@@ -34,8 +38,8 @@ def get_session_with_proxy(headers: Optional[Dict[str, str]] = None) -> ClientSe
     if config.proxy and not config.proxy.startswith("socks"):
         from functools import partial
 
-        session.get = partial(session.get, proxy=proxy)  # type: ignore
-        session.post = partial(session.post, proxy=proxy)  # type: ignore
+        session.get = partial(session.get, proxy=config.proxy)  # type: ignore
+        session.post = partial(session.post, proxy=config.proxy)  # type: ignore
 
     return session
 
@@ -111,12 +115,12 @@ async def shorten_url(url: str) -> str:
     pid_search = re.compile(
         r"(?:pixiv.+(?:illust_id=|artworks/)|/img-original/img/(?:\d+/){6})(\d+)"
     )
-    if pid_search.search(url):
-        return confuse_url(f"https://pixiv.net/i/{pid_search.search(url)[1]}")  # type: ignore
+    if pid_match := pid_search.search(url):
+        return confuse_url(f"https://pixiv.net/i/{pid_match[1]}")
 
     uid_search = re.compile(r"pixiv.+(?:member\.php\?id=|users/)(\d+)")
-    if uid_search.search(url):
-        return confuse_url(f"https://pixiv.net/u/{uid_search.search(url)[1]}")  # type: ignore
+    if uid_match := uid_search.search(url):
+        return confuse_url(f"https://pixiv.net/u/{uid_match[1]}")
 
     if URL(url).host == "danbooru.donmai.us":
         return confuse_url(url.replace("/post/show/", "/posts/"))
