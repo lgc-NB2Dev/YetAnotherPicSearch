@@ -137,24 +137,29 @@ async def get_final_res(
         return final_res, extra_handle
     elif selected_res.index_id in SAUCENAO_DB["doujin"]:  # type: ignore
         title = selected_res.title.replace("-", "")
-        ehentai_title_search_result = await ehentai_title_search(title)
-        final_res.extend(ehentai_title_search_result)
-        if (
-            ehentai_title_search_result[0].startswith("EHentai 搜索结果为空")
-            and config.nhentai_useragent
-            and config.nhentai_cookies
-        ):
-            final_res.append("自动使用 NHentai 进行搜索")
-            final_res.extend(await nhentai_title_search(title))
+        final_res.extend(await search_on_ehentai_and_nhentai(title))
     # 如果搜索结果为 fakku ，额外返回 ehentai 的搜索结果
     elif selected_res.index_id == SAUCENAO_DB["fakku"]:
-        final_res.extend(
-            await ehentai_title_search(f"{selected_res.author} {selected_res.title}")
-        )
+        title = f"{selected_res.author} {selected_res.title}"
+        final_res.extend(await search_on_ehentai_and_nhentai(title))
     elif selected_res.index_id in SAUCENAO_DB["anime"]:  # type: ignore
         return final_res, whatanime_search
 
     return final_res, None
+
+
+async def search_on_ehentai_and_nhentai(title: str) -> List[str]:
+    title_search_result = await ehentai_title_search(title)
+
+    if (
+        title_search_result[0].startswith("EHentai 搜索结果为空")
+        and config.nhentai_useragent
+        and config.nhentai_cookies
+    ):
+        title_search_result.append("自动使用 NHentai 进行搜索")
+        title_search_result.extend(await nhentai_title_search(title))
+
+    return title_search_result
 
 
 async def handle_saucenao_low_acc(

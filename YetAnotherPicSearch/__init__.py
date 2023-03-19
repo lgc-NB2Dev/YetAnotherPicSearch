@@ -63,7 +63,8 @@ async def send_message_to_admin(message: str, bot: Bot) -> None:
 async def _(bot: Bot) -> None:
     if not config.saucenao_api_key:
         await send_message_to_admin("请配置 saucenao_api_key ，否则无法正常使用搜图功能", bot)
-    if config.proxy.startswith("socks://"):
+        return
+    if config.proxy and config.proxy.startswith("socks://"):
         await send_message_to_admin(
             '请修改代理地址为 "socks5://" 或 "socks4://" 的格式，具体取决于你的代理协议', bot
         )
