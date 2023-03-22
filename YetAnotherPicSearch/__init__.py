@@ -145,15 +145,16 @@ async def handle_search_mode(
 
 
 async def get_universal_img_url(url: str) -> str:
-    final_url = url.replace(
-        "/c2cpicdw.qpic.cn/offpic_new/", "/gchat.qpic.cn/gchatpic_new/"
-    )
-    final_url = re.sub(r"/\d+/+\d+-\d+-", "/0/0-0-", final_url)
-    final_url = re.sub(r"\?.*$", "", final_url)
-    async with ClientSession(headers=DEFAULT_HEADERS) as session:
-        async with session.get(final_url) as resp:
-            if resp.status < 400:
-                return final_url
+    if re.match("^https?://(c2cpicdw|gchat).qpic.cn/(offpic|gchatpic)_new/", url):
+        final_url = url.replace(
+            "/c2cpicdw.qpic.cn/offpic_new/", "/gchat.qpic.cn/gchatpic_new/"
+        )
+        final_url = re.sub(r"/\d+/+\d+-\d+-", "/0/0-0-", final_url)
+        final_url = re.sub(r"\?.*$", "", final_url)
+        async with ClientSession(headers=DEFAULT_HEADERS) as session:
+            async with session.get(final_url) as resp:
+                if resp.status < 400:
+                    return final_url
     return url
 
 
