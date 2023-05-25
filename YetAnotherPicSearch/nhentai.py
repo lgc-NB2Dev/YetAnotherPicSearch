@@ -1,4 +1,3 @@
-import re
 from typing import List
 
 import arrow
@@ -7,7 +6,7 @@ from lxml.html import HTMLParser, fromstring
 from pyquery import PyQuery
 
 from .config import config
-from .utils import handle_img, parse_cookies, shorten_url
+from .utils import handle_img, parse_cookies, preprocess_search_query, shorten_url
 
 NHENTAI_HEADERS = (
     {
@@ -64,9 +63,9 @@ async def update_nhentai_info(item: NHentaiItem) -> None:
 
 
 async def nhentai_title_search(title: str) -> List[str]:
-    title = re.sub(r"●|~| ::: |[中国翻訳]", " ", title).strip()
+    query = preprocess_search_query(title)
     url = "https://nhentai.net/search/"
-    params = {"q": title}
+    params = {"q": query}
     async with AsyncClient(
         headers=NHENTAI_HEADERS, cookies=NHENTAI_COOKIES, proxies=config.proxy
     ) as session:

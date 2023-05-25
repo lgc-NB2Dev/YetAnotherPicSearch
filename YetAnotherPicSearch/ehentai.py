@@ -1,5 +1,4 @@
 import itertools
-import re
 from asyncio import sleep
 from collections import defaultdict
 from difflib import SequenceMatcher
@@ -18,6 +17,7 @@ from .utils import (
     SEARCH_FUNCTION_TYPE,
     handle_img,
     parse_cookies,
+    preprocess_search_query,
     shorten_url,
 )
 
@@ -49,9 +49,9 @@ async def ehentai_search(
 
 
 async def ehentai_title_search(title: str) -> List[str]:
-    title = re.sub(r"●|~| ::: |[中国翻訳]", " ", title).strip()
+    query = preprocess_search_query(title)
     url = "https://exhentai.org" if config.exhentai_cookies else "https://e-hentai.org"
-    params: Dict[str, Any] = {"f_search": title}
+    params: Dict[str, Any] = {"f_search": query}
 
     async with AsyncClient(
         headers=DEFAULT_HEADERS,

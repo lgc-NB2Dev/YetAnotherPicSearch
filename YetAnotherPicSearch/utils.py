@@ -133,3 +133,16 @@ def parse_cookies(cookies_str: Optional[str] = None) -> Dict[str, str]:
             key, value = line.strip().split("=", 1)
             cookies_dict[key] = value
     return cookies_dict
+
+
+def preprocess_search_query(query: str) -> str:
+    query = re.sub(r"●|・|~|～|〜|、|×|:::|\s+-\s+|\[中国翻訳]", " ", query)
+    # 去除独立的英文、日文、中文字符
+    for i in [
+        r"\b[A-Za-z]\b",
+        r"\b[\u4e00-\u9fff]\b",
+        r"\b[\u3040-\u309f\u30a0-\u30ff]\b",
+    ]:
+        query = re.sub(i, "", query)
+
+    return query.strip()
