@@ -130,12 +130,12 @@ async def handle_search_mode(
 
     if mode == "a2d":
         result = await ascii2d_search(url, client)
+    elif mode == "baidu":
+        result = await baidu_search(url, client)
     elif mode == "ex":
         result, extra_handle = await ehentai_search(url, client)
     elif mode == "iqdb":
         result, extra_handle = await iqdb_search(url, client)
-    elif mode == "baidu":
-        result = await baidu_search(url, client)
     else:
         result, extra_handle = await saucenao_search(url, client, mode)
 

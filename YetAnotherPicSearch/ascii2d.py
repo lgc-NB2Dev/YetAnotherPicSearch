@@ -5,9 +5,10 @@ from PicImageSearch import Ascii2D
 from PicImageSearch.model import Ascii2DResponse
 
 from .config import config
-from .utils import get_image_bytes_by_url, handle_img, shorten_url
+from .utils import async_lock, get_image_bytes_by_url, handle_img, shorten_url
 
 
+@async_lock()
 async def ascii2d_search(url: str, client: AsyncClient) -> List[str]:
     ascii2d_color = Ascii2D(client=client)
     _file = await get_image_bytes_by_url(url)

@@ -1,16 +1,22 @@
+import asyncio
 import re
 from base64 import b64encode
+from collections import defaultdict
 from difflib import SequenceMatcher
+from functools import wraps
 from typing import (
     Any,
     Callable,
     Coroutine,
+    DefaultDict,
     Dict,
     List,
     Optional,
+    TypeVar,
     Union,
 )
 
+import arrow
 from cachetools import TTLCache
 from httpx import URL, AsyncClient
 from nonebot.adapters.onebot.v11 import Bot
@@ -21,6 +27,7 @@ from shelved_cache import cachedasyncmethod
 from .config import config
 from .nhentai_model import NHentaiItem, NHentaiResponse
 
+T = TypeVar("T")
 SEARCH_FUNCTION_TYPE = Callable[..., Coroutine[Any, Any, List[str]]]
 
 DEFAULT_HEADERS = {
@@ -149,6 +156,35 @@ def parse_cookies(cookies_str: Optional[str] = None) -> Dict[str, str]:
             key, value = line.strip().split("=", 1)
             cookies_dict[key] = value
     return cookies_dict
+
+
+def async_lock(
+    freq: float = 1,
+) -> Callable[
+    [Callable[..., Coroutine[Any, Any, T]]], Callable[..., Coroutine[Any, Any, T]]
+]:
+    def decorator(
+        func: Callable[..., Coroutine[Any, Any, T]]
+    ) -> Callable[..., Coroutine[Any, Any, T]]:
+        locks: DefaultDict[str, asyncio.Lock] = defaultdict(asyncio.Lock)
+        call_times: DefaultDict[str, arrow.Arrow] = defaultdict(
+            lambda: arrow.now().shift(seconds=-freq)
+        )
+
+        @wraps(func)
+        async def wrapper(*args: Any, **kwargs: Any) -> T:
+            async with locks[func.__name__]:
+                last_call_time = call_times[func.__name__]
+                elapsed_time = arrow.now() - last_call_time
+                if elapsed_time.total_seconds() < freq:
+                    await asyncio.sleep(freq - elapsed_time.total_seconds())
+                result = await func(*args, **kwargs)
+                call_times[func.__name__] = arrow.now()
+                return result
+
+        return wrapper
+
+    return decorator
 
 
 def preprocess_search_query(query: str) -> str:

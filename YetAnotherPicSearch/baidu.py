@@ -3,9 +3,10 @@ from typing import List
 from httpx import AsyncClient
 from PicImageSearch import BaiDu
 
-from .utils import handle_img, shorten_url
+from .utils import async_lock, handle_img, shorten_url
 
 
+@async_lock()
 async def baidu_search(url: str, client: AsyncClient) -> List[str]:
     baidu = BaiDu(client=client)
     res = await baidu.search(url)

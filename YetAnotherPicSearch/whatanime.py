@@ -5,9 +5,10 @@ from httpx import AsyncClient
 from PicImageSearch import TraceMoe
 
 from .config import config
-from .utils import handle_img
+from .utils import async_lock, handle_img
 
 
+@async_lock()
 async def whatanime_search(url: str, client: AsyncClient) -> List[str]:
     whatanime = TraceMoe(client=client)
     res = await whatanime.search(url)

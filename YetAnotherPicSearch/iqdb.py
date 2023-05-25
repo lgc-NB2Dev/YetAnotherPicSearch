@@ -5,9 +5,10 @@ from PicImageSearch import Iqdb
 
 from .ascii2d import ascii2d_search
 from .config import config
-from .utils import SEARCH_FUNCTION_TYPE, get_source, handle_img, shorten_url
+from .utils import SEARCH_FUNCTION_TYPE, async_lock, get_source, handle_img, shorten_url
 
 
+@async_lock()
 async def iqdb_search(
     url: str, client: AsyncClient
 ) -> Tuple[List[str], Optional[SEARCH_FUNCTION_TYPE]]:

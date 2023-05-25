@@ -1,6 +1,5 @@
 import itertools
 import re
-from asyncio import sleep
 from collections import defaultdict
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -15,6 +14,7 @@ from .config import config
 from .utils import (
     DEFAULT_HEADERS,
     SEARCH_FUNCTION_TYPE,
+    async_lock,
     filter_results_with_ratio,
     handle_img,
     parse_cookies,
@@ -23,6 +23,7 @@ from .utils import (
 )
 
 
+@async_lock(freq=8)
 async def ehentai_search(
     url: str, client: AsyncClient
 ) -> Tuple[List[str], Optional[SEARCH_FUNCTION_TYPE]]:
@@ -31,15 +32,9 @@ async def ehentai_search(
 
     if res := await ehentai.search(url, ex=ex):
         if "Please wait a bit longer between each file search" in res.origin:
-            await sleep(30 / 4)
             return await ehentai_search(url, client)
 
-        if not res.raw:
-            # 如果第一次没找到，使搜索结果包含被删除的部分，并重新搜索
-            resp_text, resp_url, _ = await ehentai.get(f"{res.url}&fs_exp=on")
-            res = EHentaiResponse(resp_text, resp_url)
         final_res: List[str] = await search_result_filter(res)
-
         if not res.raw and config.auto_use_ascii2d:
             final_res.append("自动使用 Ascii2D 进行搜索")
             return final_res, ascii2d_search
