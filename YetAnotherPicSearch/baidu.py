@@ -1,12 +1,12 @@
 from typing import List
 
-from aiohttp import ClientSession
+from httpx import AsyncClient
 from PicImageSearch import BaiDu
 
 from .utils import handle_img, shorten_url
 
 
-async def baidu_search(url: str, client: ClientSession) -> List[str]:
+async def baidu_search(url: str, client: AsyncClient) -> List[str]:
     baidu = BaiDu(client=client)
     res = await baidu.search(url)
     _url = await shorten_url(res.url)

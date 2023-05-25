@@ -2,12 +2,11 @@ import re
 from base64 import b64encode
 from typing import Any, Callable, Coroutine, Dict, List, Optional
 
-from aiohttp import ClientSession, TCPConnector
 from cachetools import TTLCache
+from httpx import URL, AsyncClient
 from nonebot.adapters.onebot.v11 import Bot
 from pyquery import PyQuery
 from shelved_cache import cachedasyncmethod
-from yarl import URL
 
 from .config import config
 
@@ -22,36 +21,15 @@ DEFAULT_HEADERS = {
 }
 
 
-def get_session_with_proxy(headers: Optional[Dict[str, str]] = None) -> ClientSession:
-    if config.proxy and config.proxy.startswith("socks"):
-        try:
-            from aiohttp_socks import ProxyConnector
-
-            connector = ProxyConnector.from_url(config.proxy)
-        except ModuleNotFoundError:
-            connector = TCPConnector()
-    else:
-        connector = TCPConnector()
-
-    session = ClientSession(connector=connector, headers=headers)
-
-    if config.proxy and not config.proxy.startswith("socks"):
-        from functools import partial
-
-        session.get = partial(session.get, proxy=config.proxy)  # type: ignore
-        session.post = partial(session.post, proxy=config.proxy)  # type: ignore
-
-    return session
-
-
 async def get_image_bytes_by_url(
     url: str, cookies: Optional[str] = None
 ) -> Optional[bytes]:
-    headers = {"Cookie": cookies, **DEFAULT_HEADERS} if cookies else DEFAULT_HEADERS
-    async with get_session_with_proxy(headers=headers) as session:
-        async with session.get(url) as resp:
-            if resp.status < 400 and (image_bytes := await resp.read()):
-                return image_bytes
+    async with AsyncClient(
+        headers=DEFAULT_HEADERS, cookies=parse_cookies(cookies), proxies=config.proxy
+    ) as session:
+        resp = await session.get(url)
+        if resp.status_code < 400:
+            return resp.content
     return None
 
 
@@ -79,23 +57,21 @@ def handle_reply_msg(message_id: int) -> str:
 async def get_source(url: str) -> str:
     source = url
     if host := URL(source).host:
-        async with get_session_with_proxy(
-            headers=None if host == "danbooru.donmai.us" else DEFAULT_HEADERS
-        ) as session:
-            async with session.get(source) as resp:
-                if resp.status >= 400:
-                    return ""
+        headers = None if host == "danbooru.donmai.us" else DEFAULT_HEADERS
+        async with AsyncClient(headers=headers, proxies=config.proxy) as session:
+            resp = await session.get(source)
+            if resp.status_code >= 400:
+                return ""
 
-                html = await resp.text()
-                if host in ["danbooru.donmai.us", "gelbooru.com"]:
-                    source = PyQuery(html)(".image-container").attr(
-                        "data-normalized-source"
-                    )
+            if host in ["danbooru.donmai.us", "gelbooru.com"]:
+                source = PyQuery(resp.text)(".image-container").attr(
+                    "data-normalized-source"
+                )
 
-                elif host in ["yande.re", "konachan.com"]:
-                    source = PyQuery(html)("#post_source").attr("value")
-                    if not source:
-                        source = PyQuery(html)('a[href^="/pool/show/"]').text()
+            elif host in ["yande.re", "konachan.com"]:
+                source = PyQuery(resp.text)("#post_source").attr("value")
+                if not source:
+                    source = PyQuery(resp.text)('a[href^="/pool/show/"]').text()
 
     return source or ""
 
@@ -132,20 +108,28 @@ async def shorten_url(url: str) -> str:
         "graph.baidu.com",
     ]:
         flag = len(url) > 1024
-        async with ClientSession(headers=DEFAULT_HEADERS) as session:
+        async with AsyncClient(headers=DEFAULT_HEADERS) as session:
             if not flag:
                 resp = await session.post("https://yww.uy/shorten", json={"url": url})
-                if resp.status < 400:
-                    return (await resp.json())["url"]  # type: ignore
+                if resp.status_code < 400:
+                    return resp.json()["url"]  # type: ignore
                 else:
                     flag = True
             if flag:
                 resp = await session.post(
                     "https://www.shorturl.at/shortener.php", data={"u": url}
                 )
-                if resp.status < 400:
-                    html = await resp.text()
-                    final_url = PyQuery(html)("#shortenurl").attr("value")
+                if resp.status_code < 400:
+                    final_url = PyQuery(resp.text)("#shortenurl").attr("value")
                     return f"https://{final_url}"
 
     return confuse_url(url)
+
+
+def parse_cookies(cookies_str: Optional[str] = None) -> Dict[str, str]:
+    cookies_dict: Dict[str, str] = {}
+    if cookies_str:
+        for line in cookies_str.split(";"):
+            key, value = line.strip().split("=", 1)
+            cookies_dict[key] = value
+    return cookies_dict

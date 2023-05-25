@@ -5,8 +5,8 @@ from contextlib import suppress
 from typing import Any, DefaultDict, Dict, List, Optional, Tuple, Union
 
 import arrow
-from aiohttp import ClientSession
 from cachetools import TTLCache
+from httpx import AsyncClient
 from nonebot.adapters.onebot.v11 import (
     ActionFailed,
     Bot,
@@ -96,7 +96,7 @@ async def image_search(
     md5: str,
     mode: str,
     purge: bool,
-    client: ClientSession,
+    client: AsyncClient,
     index: Optional[int] = None,
 ) -> None:
     url = await get_universal_img_url(url)
@@ -124,7 +124,7 @@ async def image_search(
 
 @retry(stop=(stop_after_attempt(3) | stop_after_delay(30)), reraise=True)
 async def handle_search_mode(
-    url: str, md5: str, mode: str, client: ClientSession
+    url: str, md5: str, mode: str, client: AsyncClient
 ) -> Tuple[List[str], Optional[SEARCH_FUNCTION_TYPE]]:
     extra_handle = None
 
@@ -151,10 +151,10 @@ async def get_universal_img_url(url: str) -> str:
         )
         final_url = re.sub(r"/\d+/+\d+-\d+-", "/0/0-0-", final_url)
         final_url = re.sub(r"\?.*$", "", final_url)
-        async with ClientSession(headers=DEFAULT_HEADERS) as session:
-            async with session.get(final_url) as resp:
-                if resp.status < 400:
-                    return final_url
+        async with AsyncClient(headers=DEFAULT_HEADERS) as session:
+            resp = await session.get(final_url)
+            if resp.status_code < 400:
+                return final_url
     return url
 
 

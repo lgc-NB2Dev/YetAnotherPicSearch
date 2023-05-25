@@ -2,10 +2,9 @@ import re
 from asyncio import sleep
 from typing import List, Optional, Tuple
 
-from aiohttp import ClientSession
+from httpx import URL, AsyncClient
 from PicImageSearch import SauceNAO
 from PicImageSearch.model import SauceNAOItem, SauceNAOResponse
-from yarl import URL
 
 from .ascii2d import ascii2d_search
 from .config import config
@@ -25,7 +24,7 @@ SAUCENAO_DB = {
 
 
 async def saucenao_search(
-    url: str, client: ClientSession, mode: str
+    url: str, client: AsyncClient, mode: str
 ) -> Tuple[List[str], Optional[SEARCH_FUNCTION_TYPE]]:
     db = SAUCENAO_DB[mode]
     if isinstance(db, list):

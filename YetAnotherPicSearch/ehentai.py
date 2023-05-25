@@ -6,7 +6,7 @@ from difflib import SequenceMatcher
 from typing import Any, Dict, List, Optional, Tuple
 
 import arrow
-from aiohttp import ClientSession
+from httpx import AsyncClient
 from PicImageSearch import EHentai
 from PicImageSearch.model import EHentaiResponse
 from pyquery import PyQuery
@@ -16,20 +16,14 @@ from .config import config
 from .utils import (
     DEFAULT_HEADERS,
     SEARCH_FUNCTION_TYPE,
-    get_session_with_proxy,
     handle_img,
+    parse_cookies,
     shorten_url,
-)
-
-EHENTAI_HEADERS = (
-    {"Cookie": config.exhentai_cookies, **DEFAULT_HEADERS}
-    if config.exhentai_cookies
-    else DEFAULT_HEADERS
 )
 
 
 async def ehentai_search(
-    url: str, client: ClientSession
+    url: str, client: AsyncClient
 ) -> Tuple[List[str], Optional[SEARCH_FUNCTION_TYPE]]:
     ex = bool(config.exhentai_cookies)
     ehentai = EHentai(client=client)
@@ -59,16 +53,20 @@ async def ehentai_title_search(title: str) -> List[str]:
     url = "https://exhentai.org" if config.exhentai_cookies else "https://e-hentai.org"
     params: Dict[str, Any] = {"f_search": title}
 
-    async with get_session_with_proxy(headers=EHENTAI_HEADERS) as session:
+    async with AsyncClient(
+        headers=DEFAULT_HEADERS,
+        cookies=parse_cookies(config.exhentai_cookies),
+        proxies=config.proxy,
+    ) as session:
         resp = await session.get(url, params=params)
-        if res := EHentaiResponse(await resp.text(), str(resp.url)):
+        if res := EHentaiResponse(resp.text, str(resp.url)):
             if not res.raw:
                 # 如果第一次没找到，使搜索结果包含被删除的部分，并重新搜索
                 params["advsearch"] = 1
                 params["f_sname"] = "on"
                 params["f_sh"] = "on"
                 resp = await session.get(url, params=params)
-                res = EHentaiResponse(await resp.text(), str(resp.url))
+                res = EHentaiResponse(resp.text, str(resp.url))
 
             # 只保留标题和搜索关键词相关度较高的结果，并排序，以此来提高准确度
             if res.raw:

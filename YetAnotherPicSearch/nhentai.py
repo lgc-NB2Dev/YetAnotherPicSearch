@@ -2,20 +2,21 @@ import re
 from typing import List
 
 import arrow
+from httpx import AsyncClient
 from lxml.html import HTMLParser, fromstring
 from pyquery import PyQuery
 
 from .config import config
-from .utils import get_session_with_proxy, handle_img, shorten_url
+from .utils import handle_img, parse_cookies, shorten_url
 
 NHENTAI_HEADERS = (
     {
         "User-Agent": config.nhentai_useragent,
-        "Cookie": config.nhentai_cookies,
     }
     if config.nhentai_cookies and config.nhentai_useragent
     else None
 )
+NHENTAI_COOKIES = parse_cookies(config.nhentai_cookies)
 
 
 class NHentaiItem:
@@ -42,10 +43,12 @@ class NHentaiResponse:
 
 
 async def update_nhentai_info(item: NHentaiItem) -> None:
-    async with get_session_with_proxy(headers=NHENTAI_HEADERS) as session:
+    async with AsyncClient(
+        headers=NHENTAI_HEADERS, cookies=NHENTAI_COOKIES, proxies=config.proxy
+    ) as session:
         resp = await session.get(item.url)
         uft8_parser = HTMLParser(encoding="utf-8")
-        data = PyQuery(fromstring(await resp.text(), parser=uft8_parser))
+        data = PyQuery(fromstring(resp.text, parser=uft8_parser))
         item.origin = data
         item.title = (
             data.find("h2.title").text()
@@ -64,9 +67,11 @@ async def nhentai_title_search(title: str) -> List[str]:
     title = re.sub(r"●|~| ::: |[中国翻訳]", " ", title).strip()
     url = "https://nhentai.net/search/"
     params = {"q": title}
-    async with get_session_with_proxy(headers=NHENTAI_HEADERS) as session:
+    async with AsyncClient(
+        headers=NHENTAI_HEADERS, cookies=NHENTAI_COOKIES, proxies=config.proxy
+    ) as session:
         resp = await session.get(url, params=params)
-        if res := NHentaiResponse(await resp.text(), str(resp.url)):
+        if res := NHentaiResponse(resp.text, str(resp.url)):
             return await search_result_filter(res)
 
         return ["NHentai 暂时无法使用"]

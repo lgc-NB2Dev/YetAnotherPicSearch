@@ -27,7 +27,7 @@ class Config(BaseConfig):
     auto_use_ascii2d: bool = True
     # 若结果消息有多条，采用合并转发方式发送搜图结果
     forward_search_result: bool = True
-    # 大部分请求所使用的代理: http / socks4 / socks5
+    # 大部分请求所使用的代理: http / socks4(a) / socks5(h)
     proxy: Optional[str] = None
     # saucenao 搜图结果缓存过期时间 (天)
     cache_expire: int = 3
