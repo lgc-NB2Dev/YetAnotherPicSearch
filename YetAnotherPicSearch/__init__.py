@@ -8,7 +8,6 @@ from nonebot.adapters.onebot.v11 import (
     ActionFailed,
     Bot,
     GroupMessageEvent,
-    LifecycleMetaEvent,
     Message,
     MessageEvent,
     PrivateMessageEvent,
@@ -42,10 +41,6 @@ pic_search_cache = PersistentCache(
     maxsize=config.cache_expire * 100,
     ttl=config.cache_expire * 24 * 60 * 60,
 )
-
-
-def check_first_connect(_: LifecycleMetaEvent) -> bool:
-    return True
 
 
 def contains_image(event: MessageEvent) -> bool:
