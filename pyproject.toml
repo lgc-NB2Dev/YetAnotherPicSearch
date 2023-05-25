@@ -29,7 +29,7 @@ shelved-cache = "^0.3.1"
 tenacity = "^8.2.2"
 
 [tool.poetry.extras]
-socks = ["python-socks[asyncio]", "socksio"]
+socks = ["python-socks", "socksio"]
 
 [tool.poetry.dev-dependencies]
 
