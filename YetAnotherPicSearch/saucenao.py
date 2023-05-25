@@ -155,8 +155,9 @@ async def search_on_ehentai_and_nhentai(title: str) -> List[str]:
         and config.nhentai_useragent
         and config.nhentai_cookies
     ):
-        title_search_result.append("自动使用 NHentai 进行搜索")
-        title_search_result.extend(await nhentai_title_search(title))
+        nhentai_title_search_result = await nhentai_title_search(title)
+        if not nhentai_title_search_result[0].startswith("NHentai 搜索结果为空"):
+            title_search_result = nhentai_title_search_result
 
     return title_search_result
 
