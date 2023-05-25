@@ -1,10 +1,7 @@
-import asyncio
 import re
-from collections import defaultdict
 from contextlib import suppress
-from typing import Any, DefaultDict, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple
 
-import arrow
 from cachetools import TTLCache
 from httpx import AsyncClient
 from nonebot.adapters.onebot.v11 import (
@@ -37,9 +34,6 @@ from .utils import (
     handle_reply_msg,
 )
 
-sending_lock: DefaultDict[Tuple[Union[int, str], str], asyncio.Lock] = defaultdict(
-    asyncio.Lock
-)
 pic_search_cache = PersistentCache(
     TTLCache,
     filename="pic_search_cache",
@@ -191,37 +185,14 @@ async def send_result_message(
             msg.replace("❤️ 已收藏\n", "") if "已收藏" in msg else msg for msg in msg_list
         ]
 
-    if isinstance(event, GroupMessageEvent):
-        current_sending_lock = sending_lock[(event.group_id, "group")]
-    else:
-        current_sending_lock = sending_lock[(event.user_id, "private")]
-
     if flag := (config.forward_search_result and len(msg_list) > 1):
         try:
-            await send_message_with_lock(
-                bot, event, msg_list, current_sending_lock, index
-            )
+            await send_forward_msg(bot, event, msg_list, index)
         except ActionFailed:
             flag = False
     if not flag:
         for msg in msg_list:
-            await send_message_with_lock(bot, event, [msg], current_sending_lock, index)
-
-
-async def send_message_with_lock(
-    bot: Bot,
-    event: MessageEvent,
-    msg_list: List[str],
-    current_sending_lock: asyncio.Lock,
-    index: Optional[int] = None,
-) -> None:
-    start_time = arrow.now()
-    async with current_sending_lock:
-        if len(msg_list) == 1:
-            await send_msg(bot, event, msg_list[0], index)
-        else:
-            await send_forward_msg(bot, event, msg_list, index)
-        await asyncio.sleep(max(1 - (arrow.now() - start_time).total_seconds(), 0))
+            await send_msg(bot, event, msg, index)
 
 
 async def send_msg(
