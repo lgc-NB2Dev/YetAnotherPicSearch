@@ -25,7 +25,10 @@ async def get_image_bytes_by_url(
     url: str, cookies: Optional[str] = None
 ) -> Optional[bytes]:
     async with AsyncClient(
-        headers=DEFAULT_HEADERS, cookies=parse_cookies(cookies), proxies=config.proxy
+        headers=DEFAULT_HEADERS,
+        cookies=parse_cookies(cookies),
+        proxies=config.proxy,
+        follow_redirects=True,
     ) as session:
         resp = await session.get(url)
         if resp.status_code < 400:
@@ -58,7 +61,9 @@ async def get_source(url: str) -> str:
     source = url
     if host := URL(source).host:
         headers = None if host == "danbooru.donmai.us" else DEFAULT_HEADERS
-        async with AsyncClient(headers=headers, proxies=config.proxy) as session:
+        async with AsyncClient(
+            headers=headers, proxies=config.proxy, follow_redirects=True
+        ) as session:
             resp = await session.get(source)
             if resp.status_code >= 400:
                 return ""
