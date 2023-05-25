@@ -19,7 +19,7 @@ from pyquery import PyQuery
 from shelved_cache import cachedasyncmethod
 
 from .config import config
-from .nhentai import NHentaiItem, NHentaiResponse
+from .nhentai_model import NHentaiItem, NHentaiResponse
 
 SEARCH_FUNCTION_TYPE = Callable[..., Coroutine[Any, Any, List[str]]]
 

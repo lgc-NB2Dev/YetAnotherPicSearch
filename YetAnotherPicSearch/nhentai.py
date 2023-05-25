@@ -6,6 +6,7 @@ from lxml.html import HTMLParser, fromstring
 from pyquery import PyQuery
 
 from .config import config
+from .nhentai_model import NHentaiItem, NHentaiResponse
 from .utils import (
     filter_results_with_ratio,
     handle_img,
@@ -22,29 +23,6 @@ NHENTAI_HEADERS = (
     else None
 )
 NHENTAI_COOKIES = parse_cookies(config.nhentai_cookies)
-
-
-class NHentaiItem:
-    def __init__(self, data: PyQuery):
-        self.origin: PyQuery = data  # 原始数据
-        self.title: str = data.find(".caption").text()
-        cover = data.find(".cover")
-        self.url: str = f'https://nhentai.net{cover.attr("href")}'
-        self.thumbnail: str = cover.find("img").attr("data-src")
-        self.type: str = ""
-        self.date: str = ""
-        self.tags: List[str] = []
-
-
-class NHentaiResponse:
-    def __init__(self, resp_text: str, resp_url: str):
-        self.origin: str = resp_text  # 原始数据
-        uft8_parser = HTMLParser(encoding="utf-8")
-        data = PyQuery(fromstring(self.origin, parser=uft8_parser))
-        self.raw: List[NHentaiItem] = [
-            NHentaiItem(i) for i in data.find(".gallery").items()
-        ]
-        self.url: str = resp_url
 
 
 async def update_nhentai_info(item: NHentaiItem) -> None:
