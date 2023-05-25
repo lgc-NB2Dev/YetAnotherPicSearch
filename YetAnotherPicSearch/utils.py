@@ -1,14 +1,25 @@
 import re
 from base64 import b64encode
-from typing import Any, Callable, Coroutine, Dict, List, Optional
+from difflib import SequenceMatcher
+from typing import (
+    Any,
+    Callable,
+    Coroutine,
+    Dict,
+    List,
+    Optional,
+    Union,
+)
 
 from cachetools import TTLCache
 from httpx import URL, AsyncClient
 from nonebot.adapters.onebot.v11 import Bot
+from PicImageSearch.model.ehentai import EHentaiItem, EHentaiResponse
 from pyquery import PyQuery
 from shelved_cache import cachedasyncmethod
 
 from .config import config
+from .nhentai import NHentaiItem, NHentaiResponse
 
 SEARCH_FUNCTION_TYPE = Callable[..., Coroutine[Any, Any, List[str]]]
 
@@ -151,3 +162,18 @@ def preprocess_search_query(query: str) -> str:
         query = re.sub(i, "", query)
 
     return query.strip()
+
+
+def filter_results_with_ratio(
+    res: Union[EHentaiResponse, NHentaiResponse], title: str
+) -> Union[List[EHentaiItem], List[NHentaiItem]]:
+    raw_with_ratio = [
+        (i, SequenceMatcher(lambda x: x == " ", title, i.title).ratio())
+        for i in res.raw
+    ]
+    raw_with_ratio.sort(key=lambda x: x[1], reverse=True)
+
+    if filtered := [i[0] for i in raw_with_ratio if i[1] > 0.65]:
+        return filtered
+
+    return [i[0] for i in raw_with_ratio]

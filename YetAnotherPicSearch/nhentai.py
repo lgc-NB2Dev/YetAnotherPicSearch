@@ -6,7 +6,13 @@ from lxml.html import HTMLParser, fromstring
 from pyquery import PyQuery
 
 from .config import config
-from .utils import handle_img, parse_cookies, preprocess_search_query, shorten_url
+from .utils import (
+    filter_results_with_ratio,
+    handle_img,
+    parse_cookies,
+    preprocess_search_query,
+    shorten_url,
+)
 
 NHENTAI_HEADERS = (
     {
@@ -71,6 +77,9 @@ async def nhentai_title_search(title: str) -> List[str]:
     ) as session:
         resp = await session.get(url, params=params)
         if res := NHentaiResponse(resp.text, str(resp.url)):
+            # 只保留标题和搜索关键词相关度较高的结果，并排序，以此来提高准确度
+            if res.raw:
+                res.raw = filter_results_with_ratio(res, title)
             return await search_result_filter(res)
 
         return ["NHentai 暂时无法使用"]
