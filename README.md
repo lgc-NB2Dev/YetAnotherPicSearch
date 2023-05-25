@@ -16,12 +16,15 @@
 
 目前支持的搜图服务：
 
-- [SauceNAO](https://saucenao.com)
-- [Ascii2D](https://ascii2d.net)
-- [Iqdb](https://iqdb.org)
-- [E-Hentai](https://e-hentai.org)
-- [WhatAnime](https://trace.moe)
+- [Ascii2D](https://ascii2d.net/)
 - [Baidu](https://graph.baidu.com/)
+- [E-Hentai](https://e-hentai.org/)
+- [ExHentai](https://exhentai.org/)
+- [Google](https://www.google.com/imghp)
+- [Iqdb](https://iqdb.org/)
+- [SauceNAO](https://saucenao.com/)
+- [TraceMoe](https://trace.moe/)
+- [Yandex](https://yandex.com/images/search)
 
 目前适配的是 `OneBot V11` ，没适配 QQ 频道。
 

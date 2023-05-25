@@ -25,6 +25,7 @@ from .ascii2d import ascii2d_search
 from .baidu import baidu_search
 from .config import config
 from .ehentai import ehentai_search
+from .google import google_search
 from .iqdb import iqdb_search
 from .saucenao import saucenao_search
 from .utils import (
@@ -33,6 +34,7 @@ from .utils import (
     get_bot_friend_list,
     handle_reply_msg,
 )
+from .yandex import yandex_search
 
 pic_search_cache = PersistentCache(
     TTLCache,
@@ -128,8 +130,12 @@ async def handle_search_mode(
         result = await baidu_search(url, client)
     elif mode == "ex":
         result, extra_handle = await ehentai_search(url, client)
+    elif mode == "google":
+        result = await google_search(url, client)
     elif mode == "iqdb":
         result, extra_handle = await iqdb_search(url, client)
+    elif mode == "yandex":
+        result = await yandex_search(url, client)
     else:
         result, extra_handle = await saucenao_search(url, client, mode)
 
@@ -164,7 +170,18 @@ def get_image_urls_with_md5(event: MessageEvent) -> List[Tuple[str, str]]:
 def get_args(msg: Message) -> Tuple[str, bool]:
     mode = "all"
     plain_text = msg.extract_plain_text().strip()
-    args = ["pixiv", "danbooru", "doujin", "anime", "a2d", "ex", "iqdb", "baidu"]
+    args = [
+        "a2d",
+        "anime",
+        "baidu",
+        "danbooru",
+        "doujin",
+        "ex",
+        "google",
+        "iqdb",
+        "pixiv",
+        "yandex",
+    ]
     if plain_text:
         for i in args:
             if f"--{i}" in plain_text:

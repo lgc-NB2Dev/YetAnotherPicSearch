@@ -10,7 +10,7 @@ packages = [
 ]
 homepage = "https://github.com/NekoAria/YetAnotherPicSearch"
 repository = "https://github.com/NekoAria/YetAnotherPicSearch"
-keywords = ["nonebot", "saucenao", "pixiv", "danbooru", "doujin", "anime", "ascii2d", "iqdb", "exhentai"]
+keywords = ["nonebot", "ascii2d", "baidu", "e-hentai", "google", "iqdb", "saucenao", "tracemoe", "yandex", "anime", "danbooru", "doujin", "pixiv"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
