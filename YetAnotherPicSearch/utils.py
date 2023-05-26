@@ -191,13 +191,13 @@ def async_lock(
 
 def preprocess_search_query(query: str) -> str:
     query = re.sub(r"●|・|~|～|〜|、|×|:::|\s+-\s+|\[中国翻訳]", " ", query)
-    # 去除独立的英文、日文、中文字符
+    # 去除独立的英文、日文、中文字符，但不去除带连字符的
     for i in [
         r"\b[A-Za-z]\b",
         r"\b[\u4e00-\u9fff]\b",
         r"\b[\u3040-\u309f\u30a0-\u30ff]\b",
     ]:
-        query = re.sub(i, "", query)
+        query = re.sub(rf"(?<!-){i}(?!-)", "", query)
 
     return query.strip()
 
