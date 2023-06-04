@@ -1,7 +1,7 @@
 import re
 from typing import List, Optional, Tuple
 
-from httpx import URL, AsyncClient
+from httpx import AsyncClient
 from PicImageSearch import SauceNAO
 from PicImageSearch.model import SauceNAOItem, SauceNAOResponse
 
@@ -9,7 +9,14 @@ from .ascii2d import ascii2d_search
 from .config import config
 from .ehentai import ehentai_title_search
 from .nhentai import nhentai_title_search
-from .utils import SEARCH_FUNCTION_TYPE, async_lock, get_source, handle_img, shorten_url
+from .utils import (
+    SEARCH_FUNCTION_TYPE,
+    async_lock,
+    get_source,
+    get_valid_url,
+    handle_img,
+    shorten_url,
+)
 from .whatanime import whatanime_search
 
 SAUCENAO_DB = {
@@ -103,7 +110,7 @@ async def get_final_res(
     source = selected_res.source if selected_res.source != selected_res.title else ""
     if not source and selected_res.url:
         source = await get_source(selected_res.url)
-    if source and URL(source).host:
+    if source and get_valid_url(source):
         source = await shorten_url(source)
 
     author_link = (

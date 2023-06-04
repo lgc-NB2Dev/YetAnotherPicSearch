@@ -1,11 +1,18 @@
 from typing import List, Optional, Tuple
 
-from httpx import URL, AsyncClient
+from httpx import AsyncClient
 from PicImageSearch import Iqdb
 
 from .ascii2d import ascii2d_search
 from .config import config
-from .utils import SEARCH_FUNCTION_TYPE, async_lock, get_source, handle_img, shorten_url
+from .utils import (
+    SEARCH_FUNCTION_TYPE,
+    async_lock,
+    get_source,
+    get_valid_url,
+    handle_img,
+    shorten_url,
+)
 
 
 @async_lock()
@@ -37,7 +44,7 @@ async def iqdb_search(
     thumbnail = await handle_img(selected_res.thumbnail, hide_img)
     source = await get_source(selected_res.url)
     if source:
-        if URL(source).host:
+        if get_valid_url(source):
             source = await shorten_url(source)
         source = f"来源：{source}"
     res_list = [

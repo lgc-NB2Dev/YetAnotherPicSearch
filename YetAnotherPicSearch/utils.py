@@ -18,7 +18,7 @@ from typing import (
 
 import arrow
 from cachetools import TTLCache
-from httpx import URL, AsyncClient
+from httpx import URL, AsyncClient, InvalidURL
 from nonebot.adapters.onebot.v11 import Bot
 from PicImageSearch.model.ehentai import EHentaiItem, EHentaiResponse
 from pyquery import PyQuery
@@ -75,26 +75,48 @@ def handle_reply_msg(message_id: int) -> str:
     return f"[CQ:reply,id={message_id}]"
 
 
+def handle_source(source: str) -> str:
+    return (
+        source.replace("www.pixiv.net/en/artworks", "www.pixiv.net/artworks")
+        .replace(
+            "www.pixiv.net/member_illust.php?mode=medium&illust_id=",
+            "www.pixiv.net/artworks/",
+        )
+        .replace("http://", "https://")
+    )
+
+
+def parse_source(resp_text: str, host: str) -> Optional[str]:
+    if host in ["danbooru.donmai.us", "gelbooru.com"]:
+        return PyQuery(resp_text)(".image-container").attr("data-normalized-source")
+
+    elif host in ["yande.re", "konachan.com"]:
+        source = PyQuery(resp_text)("#post_source").attr("value")
+        return source or PyQuery(resp_text)('a[href^="/pool/show/"]').text()
+
+    return ""
+
+
 async def get_source(url: str) -> str:
-    source = url
-    if host := URL(source).host:
-        headers = None if host == "danbooru.donmai.us" else DEFAULT_HEADERS
-        async with AsyncClient(
-            headers=headers, proxies=config.proxy, follow_redirects=True
-        ) as session:
-            resp = await session.get(source)
-            if resp.status_code >= 400:
-                return ""
+    if not url:
+        return ""
 
-            if host in ["danbooru.donmai.us", "gelbooru.com"]:
-                source = PyQuery(resp.text)(".image-container").attr(
-                    "data-normalized-source"
-                )
+    _url = get_valid_url(url)
+    if not _url:
+        return ""
 
-            elif host in ["yande.re", "konachan.com"]:
-                source = PyQuery(resp.text)("#post_source").attr("value")
-                if not source:
-                    source = PyQuery(resp.text)('a[href^="/pool/show/"]').text()
+    host = _url.host
+    headers = None if host == "danbooru.donmai.us" else DEFAULT_HEADERS
+    async with AsyncClient(
+        headers=headers, proxies=config.proxy, follow_redirects=True
+    ) as session:
+        resp = await session.get(url)
+        if resp.status_code >= 400:
+            return ""
+
+        source = parse_source(resp.text, host)
+        if source and get_valid_url(source):
+            return handle_source(source)
 
     return source or ""
 
@@ -121,10 +143,11 @@ async def shorten_url(url: str) -> str:
     if uid_match := uid_search.search(url):
         return confuse_url(f"https://pixiv.net/u/{uid_match[1]}")
 
-    if URL(url).host == "danbooru.donmai.us":
+    host = URL(url).host
+    if host == "danbooru.donmai.us":
         return confuse_url(url.replace("/post/show/", "/posts/"))
 
-    if URL(url).host in [
+    elif host in [
         "e-hentai.org",
         "exhentai.org",
         "graph.baidu.com",
@@ -215,3 +238,13 @@ def filter_results_with_ratio(
         return filtered
 
     return [i[0] for i in raw_with_ratio]
+
+
+def get_valid_url(url: str) -> Optional[URL]:
+    try:
+        url = URL(url)
+        if url.host:
+            return url
+    except InvalidURL:
+        return None
+    return None
