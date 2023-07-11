@@ -191,7 +191,7 @@ async def send_result_message(
 ) -> None:
     if not (
         isinstance(event, PrivateMessageEvent)
-        and event.user_id == int(list(config.superusers)[0])
+        and (config.superusers and event.user_id == int(list(config.superusers)[0]))
     ):
         msg_list = [
             msg.replace("❤️ 已收藏\n", "") if "已收藏" in msg else msg for msg in msg_list
