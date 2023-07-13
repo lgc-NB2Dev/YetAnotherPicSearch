@@ -35,10 +35,10 @@ async def get_final_res(res: Ascii2DResponse, bovw: bool = False) -> List[str]:
             continue
 
         title = r.title
-        if r.url_list and title == r.url_list[0][1]:
+        if r.url_list and title == r.url_list[0].text:
             title = ""
 
-        source = r.url or (r.url_list and r.url_list[0][0])
+        source = r.url or (r.url_list and r.url_list[0].href)
         source = await shorten_url(source) if source else ""
 
         author = r.author
