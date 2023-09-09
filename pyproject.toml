@@ -23,7 +23,7 @@ nonebot2 = "^2.0.1"
 PicImageSearch = "^3.9.5"
 pydantic = "^1.10.12"
 pyquery = "^2.0.0"
-python-socks = {extras = ["asyncio"], version = "^2.3.0", optional = true}
+python-socks = {extras = ["asyncio"], version = "^2.4.1", optional = true}
 socksio = { version = "^1.0.0", optional = true }
 shelved-cache = "^0.3.1"
 tenacity = "^8.2.3"
