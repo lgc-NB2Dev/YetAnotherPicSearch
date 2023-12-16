@@ -20,7 +20,7 @@ httpx = "^0.25.2"
 lxml = "^4.9.3"
 nonebot-adapter-onebot = "^2.3.1"
 nonebot2 = "^2.1.2"
-PicImageSearch = "^3.9.6"
+PicImageSearch = "^3.9.7"
 pydantic = "^1.10.13"
 pyquery = "^2.0.0"
 python-socks = {extras = ["asyncio"], version = "^2.4.4", optional = true}
