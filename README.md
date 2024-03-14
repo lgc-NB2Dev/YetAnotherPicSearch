@@ -12,6 +12,12 @@
 
 ## 项目简介
 
+> [!WARNING]  
+> 鉴于我已经停止使用 QQ 机器人，转而采用 [Telegram 机器人](https://github.com/NekoAria/YetAnotherPicSearch4Telegram)，因此无法保证该 NoneBot 插件未来是否能够稳定运行。  
+> 后续我顶多将 Telegram 机器人的更新内容同步到本插件中，不会专门针对 QQ 机器人进行更新。  
+> 遇到使用问题时，只有在与 NoneBot 无关的情况下，我才可能尝试提供帮助。  
+> 其他情况下，可能需要等待其他具备开发能力的用户通过提交 PR 来解决。  
+
 主要受到 [cq-picsearcher-bot](https://github.com/Tsuk1ko/cq-picsearcher-bot) 的启发。我只需要基础的搜图功能，于是忍不住自己也写了一个，用来搜图、搜番、搜本子。
 
 目前支持的搜图服务：
@@ -27,8 +33,6 @@
 - [Yandex](https://yandex.com/images/search)
 
 目前适配的是 `OneBot V11` ，没适配 QQ 频道。
-
-此外，还有使用体验更好的 Telegram 移植版： [YetAnotherPicSearch4Telegram](https://github.com/NekoAria/YetAnotherPicSearch4Telegram)
 
 ## 文档目录
 
