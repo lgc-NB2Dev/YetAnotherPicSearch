@@ -61,6 +61,8 @@ class Config(BaseModel):
         "danbooru.donmai.us",
         "konachan.com",
         "pixiv.net",
+        "saucenao.com",
+        "yandex.com",
     ]
 
     @field_validator("saucenao_api_key", mode="before")
