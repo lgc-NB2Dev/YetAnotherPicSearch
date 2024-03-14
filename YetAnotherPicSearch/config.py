@@ -1,11 +1,27 @@
-from typing import List, Optional
+from typing import List, Literal, Optional, Set
 
-from nonebot import get_driver
-from nonebot.config import BaseConfig
-from pydantic import Extra, validator
+from nonebot import get_plugin_config
+from nonebot.compat import PYDANTIC_V2
+from pydantic import BaseModel
+
+if PYDANTIC_V2:
+    from pydantic import field_validator  # type: ignore
+
+else:
+    from pydantic import validator
+
+    def field_validator(
+        __field: str,
+        *fields: str,
+        mode: Literal["before", "after", "wrap", "plain"] = "after",
+    ):
+        return validator(__field, *fields, pre=(mode == "before"), allow_reuse=True)
 
 
-class Config(BaseConfig):
+class Config(BaseModel):
+    superusers: Set[str]
+    nickname: Set[str]
+
     # 触发搜图的关键词
     search_keyword: str = "搜图"
     # 只响应含有搜图关键词的消息 (优先级高于 search_immediately)
@@ -47,20 +63,17 @@ class Config(BaseConfig):
         "pixiv.net",
     ]
 
-    class Config:
-        extra = Extra.allow
-
-    @validator("saucenao_api_key", pre=True)
+    @field_validator("saucenao_api_key", mode="before")
     def saucenao_api_key_validator(cls, v: str) -> str:
         if not v:
-            raise ValueError("请配置 saucenao_api_key ，否则无法正常使用搜图功能！")
+            raise ValueError("请配置 saucenao_api_key 否则无法正常使用搜图功能！")
         return v
 
-    @validator("proxy", pre=True)
+    @field_validator("proxy", mode="before")
     def proxy_validator(cls, v: Optional[str]) -> Optional[str]:
-        if v and v.startswith("socks://"):
+        if isinstance(v, str) and v.startswith("socks://"):
             raise ValueError('请修改代理地址为 "socks5://" 或 "socks4://" 的格式，具体取决于你的代理协议！')
         return v
 
 
-config = Config(**get_driver().config.dict())
+config = get_plugin_config(Config)
