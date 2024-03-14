@@ -10,6 +10,9 @@
     "poetry",
     "pre-commit"
   ],
+  "pre-commit": {
+    "enabled": true
+  },
   "packageRules": [
     {
       "matchPackagePatterns": [
