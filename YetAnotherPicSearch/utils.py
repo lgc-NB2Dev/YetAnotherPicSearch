@@ -48,7 +48,11 @@ async def get_image_bytes_by_url(
 ) -> Optional[bytes]:
     _url = URL(url)
     referer = f"{_url.scheme}://{_url.host}/"
-    headers = {"Referer": referer, **DEFAULT_HEADERS}
+    headers = (
+        DEFAULT_HEADERS
+        if _url.host.endswith("qpic.cn")
+        else {"Referer": referer, **DEFAULT_HEADERS}
+    )
     async with AsyncClient(
         headers=headers,
         cookies=parse_cookies(cookies),

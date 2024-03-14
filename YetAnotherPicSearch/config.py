@@ -14,7 +14,6 @@ else:
         __field: str,
         *fields: str,
         mode: Literal["before", "after", "wrap", "plain"] = "after",
-        check_fields: Optional[bool] = None,
     ):
         return validator(__field, *fields, pre=(mode == "before"), allow_reuse=True)
 
@@ -63,6 +62,12 @@ class Config(BaseModel):
         "konachan.com",
         "pixiv.net",
     ]
+
+    @field_validator("saucenao_api_key", mode="before")
+    def saucenao_api_key_validator(cls, v: str) -> str:
+        if not v:
+            raise ValueError("请配置 saucenao_api_key 否则无法正常使用搜图功能！")
+        return v
 
     @field_validator("proxy", mode="before")
     def proxy_validator(cls, v: Optional[str]) -> Optional[str]:
