@@ -4,7 +4,7 @@ import asyncio
 from contextlib import asynccontextmanager, suppress
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Annotated, Any, List, NoReturn, Optional, Union
+from typing import Annotated, Any, List, Literal, NoReturn, Optional, Union, overload
 from typing_extensions import TypeAlias
 
 from cachetools import TTLCache
@@ -244,18 +244,62 @@ async def send_msgs(
         ).send(reply_to=True)
 
 
+@overload
+def make_cache_key(mode: str, seg: Image, raw: bytes) -> str: ...
+@overload
+def make_cache_key(
+    mode: str,
+    seg: Image,
+    raw: Literal[None] = None,
+) -> Optional[str]: ...
+def make_cache_key(mode: str, seg: Image, raw: Optional[bytes] = None) -> Optional[str]:
+    if seg.id:
+        adapter_name = current_bot.get().adapter.get_name()
+        base = f"id_{adapter_name}_{seg.id}"
+    elif raw:
+        base = f"hash_{hash(raw):x}"
+    else:
+        return None
+    return f"{base}_{mode}"
+
+
 async def handle_single_image(
     client: AsyncClient,
-    file: bytes,
-    cache_key: str,
+    seg: Image,
     mode: str,
     purge: bool,
     target: Target,
     index: Optional[int] = None,
     display_fav: bool = False,
-) -> List[UniMessage]:
-    if (not purge) and (cache := pic_search_cache.get(cache_key)):
-        return type_validate_python(List[UniMessage], cache)
+):
+    async def fetch_image(seg: Image) -> Optional[bytes]:
+        async with fail_with_msg(
+            f"图片{f' {index} ' if index else ''}下载失败",
+            should_finish=False,
+        ):
+            return await get_image_from_seg(seg)
+        return None
+
+    file = None
+    cache_key = make_cache_key(mode, seg)
+    if not cache_key:
+        file = await fetch_image(seg)
+        if not file:
+            return
+        cache_key = make_cache_key(mode, seg, file)
+
+    if (not purge) and (cache_key in pic_search_cache):
+        msgs = [
+            (UniMessage.text("[缓存] ") + x)
+            for x in type_validate_python(List[UniMessage], pic_search_cache[cache_key])
+        ]
+        await send_msgs(msgs, target, index, display_fav)
+        return
+
+    if not file:
+        file = await fetch_image(seg)
+    if not file:
+        return
 
     messages: List[UniMessage] = []
     func = registered_search_func[mode].func
@@ -267,29 +311,12 @@ async def handle_single_image(
         if not func:
             break
 
-    pic_search_cache[cache_key] = type_dump_python(
-        [(UniMessage.text("[缓存] ") + x) for x in messages],
-    )
-    return messages
-
-
-def make_cache_key(mode: str, seg: Image, raw: bytes) -> str:
-    if seg.id:
-        adapter_name = current_bot.get().adapter.get_name()
-        base = f"id_{adapter_name}_{seg.id}"
-    else:
-        base = f"hash_{hash(raw):x}"
-    return f"{base}_{mode}"
+    pic_search_cache[cache_key] = type_dump_python(messages)
 
 
 async def search_handler(arg: SearchArgsDep, images: ImagesDep, target: MsgTarget):
     async with RecallContext() as recall:
         await recall.send("正在进行搜索，请稍候", reply_to=True)
-
-        async with fail_with_msg(UniMessage.text("图片下载失败")):
-            image_bytes = await asyncio.gather(
-                *(get_image_from_seg(s) for s in images),
-            )
 
         display_fav = await should_display_favorite(target)
         network = (
@@ -299,15 +326,14 @@ async def search_handler(arg: SearchArgsDep, images: ImagesDep, target: MsgTarge
         )
         multiple_images = len(images) > 1
         async with network as client:
-            for index, (file, seg) in enumerate(zip(image_bytes, images), 1):
+            for index, seg in enumerate(images, 1):
                 async with fail_with_msg(
                     f"第 {index} 张图搜索失败",
                     should_finish=False,
                 ):
                     await handle_single_image(
                         client,
-                        file,
-                        make_cache_key(arg.mode, seg, file),
+                        seg,
                         arg.mode,
                         arg.purge,
                         target,
