@@ -1,30 +1,38 @@
-from typing import List, Optional, Tuple
+from typing import List
 
 from httpx import AsyncClient
+from nonebot_plugin_alconna.uniseg import UniMessage
 from PicImageSearch import Iqdb
 
-from .ascii2d import ascii2d_search
-from .config import config
-from .utils import (
-    SEARCH_FUNCTION_TYPE,
+from ..config import config
+from ..registry import SearchFunctionReturnType, search_function
+from ..utils import (
     async_lock,
+    combine_message,
     get_source,
     get_valid_url,
     handle_img,
     shorten_url,
 )
+from .ascii2d import ascii2d_search
 
 
+@search_function("iqdb")
 @async_lock()
 async def iqdb_search(
-    url: str, client: AsyncClient
-) -> Tuple[List[str], Optional[SEARCH_FUNCTION_TYPE]]:
+    file: bytes,
+    client: AsyncClient,
+    _: str,
+) -> SearchFunctionReturnType:
     iqdb = Iqdb(client=client)
-    res = await iqdb.search(url)
+    res = await iqdb.search(file=file)
     if not res.raw:
-        return ["Iqdb 暂时无法使用，自动使用 Ascii2D 进行搜索"], ascii2d_search
+        return (
+            [UniMessage.text("Iqdb 暂时无法使用，自动使用 Ascii2D 进行搜索")],
+            ascii2d_search,
+        )
 
-    final_res: List[str] = []
+    final_res: List[UniMessage] = []
     # 如果遇到搜索结果相似度低的情况，去除第一个只有提示信息的空结果
     low_acc = False
     if res.raw[0].content == "No relevant matches":
@@ -54,10 +62,14 @@ async def iqdb_search(
         source,
         f"搜索页面：{res.url}",
     ]
-    final_res.append("\n".join([i for i in res_list if i]))
+    final_res.append(combine_message(res_list))
 
     if low_acc and config.auto_use_ascii2d:
-        final_res.append(f"相似度 {selected_res.similarity}% 过低，自动使用 Ascii2D 进行搜索")
+        final_res.append(
+            UniMessage.text(
+                f"相似度 {selected_res.similarity}% 过低，自动使用 Ascii2D 进行搜索",
+            ),
+        )
         return final_res, ascii2d_search
 
-    return final_res, None
+    return final_res

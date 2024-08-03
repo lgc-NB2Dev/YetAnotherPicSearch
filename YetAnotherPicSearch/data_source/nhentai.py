@@ -1,13 +1,15 @@
-from typing import List
+from typing import List, cast
 
 import arrow
 from httpx import AsyncClient
 from lxml.html import HTMLParser, fromstring
+from nonebot_plugin_alconna.uniseg import UniMessage
 from pyquery import PyQuery
 
-from .config import config
-from .nhentai_model import NHentaiItem, NHentaiResponse
-from .utils import (
+from ..config import config
+from ..nhentai_model import NHentaiItem, NHentaiResponse
+from ..utils import (
+    combine_message,
     filter_results_with_ratio,
     handle_img,
     parse_cookies,
@@ -16,9 +18,7 @@ from .utils import (
 )
 
 NHENTAI_HEADERS = (
-    {
-        "User-Agent": config.nhentai_useragent,
-    }
+    {"User-Agent": config.nhentai_useragent}
     if config.nhentai_cookies and config.nhentai_useragent
     else None
 )
@@ -27,31 +27,38 @@ NHENTAI_COOKIES = parse_cookies(config.nhentai_cookies)
 
 async def update_nhentai_info(item: NHentaiItem) -> None:
     async with AsyncClient(
-        headers=NHENTAI_HEADERS, cookies=NHENTAI_COOKIES, proxies=config.proxy
+        headers=NHENTAI_HEADERS,
+        cookies=NHENTAI_COOKIES,
+        proxies=config.proxy,
     ) as session:
         resp = await session.get(item.url)
         uft8_parser = HTMLParser(encoding="utf-8")
         data = PyQuery(fromstring(resp.text, parser=uft8_parser))
         item.origin = data
-        item.title = (
-            data.find("h2.title").text()
-            if data.find("h2.title")
-            else data.find("h1.title").text()
+        item.title = cast(
+            str,
+            (
+                data.find("h2.title").text()
+                if data.find("h2.title")
+                else data.find("h1.title").text()
+            ),
         )
-        item.type = data.find('#tags a[href^="/category/"] .name').text()
-        item.date = data.find("#tags time").attr("datetime")
+        item.type = cast(str, data.find('#tags a[href^="/category/"] .name').text())
+        item.date = cast(str, data.find("#tags time").attr("datetime"))
         item.tags = [
-            i.text()
+            cast(str, i.text())
             for i in data.find('#tags a:not([href*="/search/?q=pages"]) .name').items()
         ]
 
 
-async def nhentai_title_search(title: str) -> List[str]:
+async def nhentai_title_search(title: str) -> List[UniMessage]:
     query = preprocess_search_query(title)
     url = "https://nhentai.net/search/"
     params = {"q": query}
     async with AsyncClient(
-        headers=NHENTAI_HEADERS, cookies=NHENTAI_COOKIES, proxies=config.proxy
+        headers=NHENTAI_HEADERS,
+        cookies=NHENTAI_COOKIES,
+        proxies=config.proxy,
     ) as session:
         resp = await session.get(url, params=params)
         if res := NHentaiResponse(resp.text, str(resp.url)):
@@ -60,13 +67,13 @@ async def nhentai_title_search(title: str) -> List[str]:
                 res.raw = filter_results_with_ratio(res, title)
             return await search_result_filter(res)
 
-        return ["NHentai 暂时无法使用"]
+        return [UniMessage.text("NHentai 暂时无法使用")]
 
 
-async def search_result_filter(res: NHentaiResponse) -> List[str]:
+async def search_result_filter(res: NHentaiResponse) -> List[UniMessage]:
     url = await shorten_url(res.url)
     if not res.raw:
-        return [f"NHentai 搜索结果为空\n搜索页面：{url}"]
+        return [UniMessage.text(f"NHentai 搜索结果为空\n搜索页面：{url}")]
 
     for i in res.raw:
         await update_nhentai_info(i)
@@ -92,4 +99,4 @@ async def search_result_filter(res: NHentaiResponse) -> List[str]:
         f"来源：{selected_res.url}",
         f"搜索页面：{url}",
     ]
-    return ["\n".join(res_list)]
+    return [combine_message(res_list)]
