@@ -72,6 +72,8 @@ async def _():
     project_root = Path(__file__).parent.parent.parent
     help_md_path = project_root / "docs" / "usage.md"
     help_img_path = project_root / "YetAnotherPicSearch" / "res" / "usage.jpg"
+    if not (p := help_img_path.parent).exists():
+        p.mkdir(parents=True)
 
     help_md = help_md_path.read_text("u8")
     help_img = await md_to_pic(help_md, type="jpeg")
