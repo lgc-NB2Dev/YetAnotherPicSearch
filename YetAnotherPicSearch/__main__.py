@@ -3,6 +3,7 @@
 import asyncio
 from contextlib import asynccontextmanager, suppress
 from dataclasses import dataclass
+from pathlib import Path
 from typing import List, Literal, NoReturn, Optional, Union, overload
 
 from cookit.loguru import logged_suppress
@@ -65,7 +66,7 @@ async def rule_func_search_msg(
         return bool(images) and config.search_immediately
 
     # 指令检测在下方做了
-    # 考虑在群聊场景中直接发图触发搜索会很烦人，所以这边取消了这个判定
+    # 不太方便做是否回复 Bot 自己消息的判断，阉了吧
     return (not config.search_in_group_only_keyword) and (
         ev.is_tome()
         or any(True for x in msg if isinstance(x, At) and x.target == bot.self_id)
@@ -80,7 +81,9 @@ async def extract_search_args() -> SearchArgs:
     args = SearchArgs()
 
     async def finish_with_unknown(arg: str) -> NoReturn:
-        await m.finish(f"意外参数 {arg}")
+        await m.finish(
+            f"意外参数 {arg}\n使用指令 `{config.search_keyword} -h` 查看帮助",
+        )
 
     async def parse_mode(arg: str):
         if arg.startswith("--") and (mode := arg[2:]) in registered_search_func:
@@ -94,13 +97,20 @@ async def extract_search_args() -> SearchArgs:
             return True
         return False
 
+    async def send_help(arg: str):
+        if arg in ("-h", "--help"):
+            await UniMessage.image(
+                raw=(Path(__file__).parent / "res" / "usage.jpg").read_bytes(),
+            ).finish(reply_to=True)
+        return True
+
     msg = (
         _command_arg(state).extract_plain_text()
         if _command(state)
         else ev.get_plaintext()
     )
     for arg in msg.strip().lower().split():
-        for func in (parse_mode, is_purge):
+        for func in (parse_mode, is_purge, send_help):
             if await func(arg):
                 break
         else:
@@ -174,10 +184,11 @@ async def send_msgs(
         return m
 
     msgs = [pre_process_msg(m) for m in msgs]
+    msg_len = len(msgs)
     reply_to: Optional[str] = UniMessage.get_message_id()
 
     async def try_send():
-        if config.forward_search_result:
+        if config.forward_search_result and msg_len > 1:
             bot = current_bot.get()
             nodes = [
                 CustomNode(

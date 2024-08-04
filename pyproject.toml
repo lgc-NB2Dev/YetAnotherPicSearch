@@ -19,6 +19,7 @@ dependencies = [
     "pyquery>=2.0.0",
     "tenacity>=9.0.0",
     "msgpack>=1.0.8",
+    "Pillow>=9",
 ]
 keywords = [
     "nonebot",

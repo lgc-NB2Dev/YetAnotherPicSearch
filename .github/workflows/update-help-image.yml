@@ -1,0 +1,43 @@
+name: Test
+
+on:
+  push:
+    paths:
+      - 'scripts/update_help_image/**'
+      - 'YetAnotherPicSearch/res/usage.jpg'
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          submodules: true
+
+      - name: Setup PDM
+        uses: pdm-project/setup-pdm@v4
+        with:
+          python-version: '3.12'
+          cache: true
+
+      - name: Install Pre-requisites
+        run: >-
+          sudo apt-get install -y locales locales-all libnss3-dev libxss1 libasound2
+          libxrandr2 libatk1.0-0 libgtk-3-0 libgbm-dev libxshmfence1 fonts-noto
+
+      - name: Run Job
+        run: |-
+          cd scripts
+          pdm install -G:all
+          pdm run update-help-image
+          if [[ -n "$(git status -s)" ]]; then
+            git add .
+            git config user.name github-actions[bot]
+            git config user.email github-actions[bot]@users.noreply.github.com
+            git commit -m "chore: update help image"
+            git push
+          else
+            echo "No changes detected."
+          fi
