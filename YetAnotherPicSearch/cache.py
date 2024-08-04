@@ -8,6 +8,8 @@ from cookit.loguru.common import logged_suppress
 from cookit.pyd import type_dump_python
 from nonebot_plugin_alconna.uniseg import Segment, UniMessage
 
+from .config import config
+
 # dumper and validators just works with simple standard UniMessages
 # but it's enough for this plugin, maybe ¯\_(ツ)_/¯
 
@@ -25,7 +27,7 @@ def find_seg_class(seg_type: str) -> Type[Segment]:
 
 
 def segment_dumper(msg: Segment):
-    data = msg.data
+    data = msg.data.copy()
     del data["origin"]
     return {"type": msg.type, "data": type_dump_python(data)}
 
@@ -34,7 +36,7 @@ def segment_validator(data: Dict[str, Any]):
     seg_type = data["type"]
     kls = find_seg_class(seg_type)
 
-    seg_data = data["data"]
+    seg_data = data["data"].copy()
     # children = [segment_validator(x) for x in seg_data["_children"]]
     del seg_data["_children"]
     return kls(**seg_data)  # (*children)
@@ -96,7 +98,11 @@ class MessageCacheManager(MutableMapping[str, Optional[List[UniMessage]]]):
 
 
 CACHE_DIR = Path.cwd() / "data" / "YetAnotherPicSearch" / "cache"
-msg_cache = MessageCacheManager(CACHE_DIR)
+msg_cache = MessageCacheManager(
+    CACHE_DIR,
+    max_size=config.cache_expire * 100,
+    ttl=config.cache_expire * 24 * 60 * 60,
+)
 
 # delete old cache
 for _it in (x for x in Path.cwd().glob("pic_search_cache*") if x.is_file()):
