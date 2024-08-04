@@ -234,7 +234,7 @@ def make_cache_key(mode: str, seg: Image, raw: Optional[bytes] = None) -> Option
         base = f"hash_{hash(raw):x}"
     else:
         return None
-    return f"{base}_{mode}"
+    return f"{hash(f'{base}_{mode}'):x}"
 
 
 async def handle_single_image(
