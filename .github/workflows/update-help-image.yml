@@ -3,6 +3,7 @@ name: Update Help Image
 on:
   push:
     paths:
+      - '.github/workflows/update-help-image.yml'
       - 'scripts/update_help_image/**'
       - 'YetAnotherPicSearch/res/usage.jpg'
   workflow_dispatch:
