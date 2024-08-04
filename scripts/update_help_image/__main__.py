@@ -32,6 +32,7 @@ async def md_to_pic(
             "pymdownx.tilde",
         ],
         extension_configs={"mdx_math": {"enable_dollar_delimiter": True}},
+        tab_length=2,
     )
 
     extra = ""
