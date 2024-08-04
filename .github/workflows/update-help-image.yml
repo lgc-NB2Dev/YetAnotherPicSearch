@@ -22,11 +22,6 @@ jobs:
           python-version: '3.12'
           cache: true
 
-      - name: Install Pre-requisites
-        run: >-
-          sudo apt-get install -y locales locales-all libnss3-dev libxss1 libasound2
-          libxrandr2 libatk1.0-0 libgtk-3-0 libgbm-dev libxshmfence1 fonts-noto
-
       - name: Run Job
         run: |-
           cd scripts
