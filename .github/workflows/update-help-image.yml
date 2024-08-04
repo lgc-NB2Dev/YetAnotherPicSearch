@@ -22,11 +22,18 @@ jobs:
           python-version: '3.12'
           # cache: true
 
+      - name: Install Pre-requisites
+        run: |-
+          sudo apt-get install -y fonts-noto
+
       - name: Run Job
         run: |-
           cd scripts
           pdm install -G:all
           pdm run update-help-image
+
+      - name: Commit and Push
+        run: |-
           if [[ -n "$(git status -s)" ]]; then
             git add .
             git config user.name github-actions[bot]
