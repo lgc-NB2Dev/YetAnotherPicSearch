@@ -3,21 +3,16 @@
 import asyncio
 from contextlib import asynccontextmanager, suppress
 from dataclasses import dataclass
-from pathlib import Path
-from typing import Annotated, Any, List, Literal, NoReturn, Optional, Union, overload
-from typing_extensions import TypeAlias
+from typing import List, Literal, NoReturn, Optional, Union, overload
 
-from cachetools import TTLCache
 from cookit.loguru import logged_suppress
 from cookit.nonebot.alconna import RecallContext
-from cookit.pyd.compat import type_dump_python
 from httpx import AsyncClient
 from nonebot import logger, on_command, on_message
 from nonebot.adapters import Bot as BaseBot, Event as BaseEvent, Message as BaseMessage
-from nonebot.compat import type_validate_python
 from nonebot.exception import ActionFailed, FinishedException
-from nonebot.matcher import Matcher, current_bot, current_event
-from nonebot.params import Depends, _command_arg
+from nonebot.matcher import current_bot, current_event, current_matcher
+from nonebot.params import _command, _command_arg
 from nonebot.permission import SUPERUSER
 from nonebot.typing import T_State
 from nonebot_plugin_alconna.uniseg import (
@@ -36,23 +31,13 @@ from nonebot_plugin_alconna.uniseg import (
 )
 from nonebot_plugin_waiter import waiter
 from PicImageSearch import Network
-from shelved_cache import PersistentCache
 
+from .cache import msg_cache
 from .config import config
 from .registry import registered_search_func
-from .utils import get_image_from_seg
+from .utils import get_image_from_seg, post_image_process
 
 KEY_IMAGES = "images"
-
-pic_search_cache = PersistentCache(
-    TTLCache,
-    filename=str(Path.cwd() / "data" / "YetAnotherPicSearch" / "pic_search_cache"),
-    maxsize=config.cache_expire * 100,
-    ttl=config.cache_expire * 24 * 60 * 60,
-)
-# clear old cache
-for _it in (x for x in Path.cwd().glob("pic_search_cache*") if x.is_file()):
-    _it.unlink()
 
 
 @dataclass
@@ -65,79 +50,6 @@ async def extract_images(msg: UniMsg) -> List[Image]:
     if Reply in msg and isinstance((raw_reply := msg[Reply, 0].msg), BaseMessage):
         msg = await UniMessage.generate(message=raw_reply)
     return msg[Image]
-
-
-def State(key: str, default: Any = None):  # noqa: N802
-    async def dep(state: T_State):  # noqa: FURB118
-        return state.get(key, default)
-
-    return Depends(dep)
-
-
-async def dependency_func_search_args(
-    m: Matcher,
-    ev: BaseEvent,
-    state: T_State,
-) -> SearchArgs:
-    args = SearchArgs()
-
-    async def finish_with_unknown(arg: str) -> NoReturn:
-        await m.finish(f"意外参数 {arg}")
-
-    async def parse_mode(arg: str):
-        if arg.startswith("--") and (mode := arg[2:]) in registered_search_func:
-            args.mode = mode
-            return True
-        return False
-
-    async def is_purge(arg: str):
-        if arg == "--purge":
-            args.purge = True
-            return True
-        return False
-
-    cmd_arg = _command_arg(state)
-    msg = cmd_arg.extract_plain_text() if cmd_arg else ev.get_plaintext()
-    for arg in msg.strip().lower().split():
-        for func in (parse_mode, is_purge):
-            if await func(arg):
-                break
-        else:
-            await finish_with_unknown(arg)
-
-    return args
-
-
-SearchArgsDep: TypeAlias = Annotated[SearchArgs, Depends(dependency_func_search_args)]
-
-
-async def dependency_func_images(
-    m: Matcher,
-    msg: UniMsg,
-    cached_images: Optional[List[Image]] = State(KEY_IMAGES),
-) -> List[Image]:
-    images = cached_images or await extract_images(msg)
-    if images:
-        return images
-
-    @waiter(waits=["message"], keep_session=True)
-    async def wait_msg(msg: UniMsg):
-        return msg
-
-    waited_msg = await wait_msg.wait(
-        f"请在 {config.wait_for_image_timeout} 秒内发送你要搜索的图片，发送其他内容取消搜索",
-    )
-    if not waited_msg:
-        await m.finish("操作超时，退出搜图")
-
-    images = await extract_images(waited_msg)
-    if not images:
-        await m.finish("无效输入，退出搜图")
-
-    return images
-
-
-ImagesDep: TypeAlias = Annotated[List[Image], Depends(dependency_func_images)]
 
 
 async def rule_func_search_msg(
@@ -158,6 +70,68 @@ async def rule_func_search_msg(
         ev.is_tome()
         or any(True for x in msg if isinstance(x, At) and x.target == bot.self_id)
     )
+
+
+async def extract_search_args() -> SearchArgs:
+    ev = current_event.get()
+    m = current_matcher.get()
+    state = m.state
+
+    args = SearchArgs()
+
+    async def finish_with_unknown(arg: str) -> NoReturn:
+        await m.finish(f"意外参数 {arg}")
+
+    async def parse_mode(arg: str):
+        if arg.startswith("--") and (mode := arg[2:]) in registered_search_func:
+            args.mode = mode
+            return True
+        return False
+
+    async def is_purge(arg: str):
+        if arg == "--purge":
+            args.purge = True
+            return True
+        return False
+
+    msg = (
+        _command_arg(state).extract_plain_text()
+        if _command(state)
+        else ev.get_plaintext()
+    )
+    for arg in msg.strip().lower().split():
+        for func in (parse_mode, is_purge):
+            if await func(arg):
+                break
+        else:
+            await finish_with_unknown(arg)
+
+    return args
+
+
+async def get_images_from_ev(msg: UniMessage) -> List[Image]:
+    m = current_matcher.get()
+    state = m.state
+
+    images = state.get(KEY_IMAGES) or await extract_images(msg)
+    if images:
+        return images
+
+    @waiter(waits=["message"], keep_session=True)
+    async def wait_msg(msg: UniMsg):
+        return msg
+
+    waited_msg = await wait_msg.wait(
+        f"请在 {config.wait_for_image_timeout} 秒内发送你要搜索的图片，发送其他内容取消搜索",
+    )
+    if not waited_msg:
+        await m.finish("操作超时，退出搜图")
+
+    images = await extract_images(waited_msg)
+    if not images:
+        await m.finish("无效输入，退出搜图")
+
+    return images
 
 
 @asynccontextmanager
@@ -280,26 +254,23 @@ async def handle_single_image(
             return await get_image_from_seg(seg)
         return None
 
+    # lazy fetch file if cache does not exist
     file = None
     cache_key = make_cache_key(mode, seg)
     if not cache_key:
-        file = await fetch_image(seg)
-        if not file:
+        if not (file := await fetch_image(seg)):
             return
         cache_key = make_cache_key(mode, seg, file)
 
-    if (not purge) and (cache_key in pic_search_cache):
-        msgs = [
-            (UniMessage.text("[缓存] ") + x)
-            for x in type_validate_python(List[UniMessage], pic_search_cache[cache_key])
-        ]
+    if (not purge) and (cached_msgs := msg_cache.get(cache_key)):
+        msgs = [(UniMessage.text("[缓存] ") + x) for x in cached_msgs]
         await send_msgs(msgs, target, index, display_fav)
         return
 
-    if not file:
-        file = await fetch_image(seg)
-    if not file:
+    # lazy fetch
+    if (not file) and (not (file := await fetch_image(seg))):
         return
+    file = post_image_process(file)
 
     messages: List[UniMessage] = []
     func = registered_search_func[mode].func
@@ -311,10 +282,13 @@ async def handle_single_image(
         if not func:
             break
 
-    pic_search_cache[cache_key] = type_dump_python(messages)
+    msg_cache[cache_key] = messages
 
 
-async def search_handler(arg: SearchArgsDep, images: ImagesDep, target: MsgTarget):
+async def search_handler(msg: UniMsg, target: MsgTarget):
+    arg = await extract_search_args()
+    images = await get_images_from_ev(msg)
+
     async with RecallContext() as recall:
         await recall.send("正在进行搜索，请稍候", reply_to=True)
 

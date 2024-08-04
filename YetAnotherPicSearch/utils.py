@@ -48,6 +48,15 @@ DEFAULT_HEADERS = {
 }
 
 
+def post_image_process(file: bytes) -> bytes:
+    im = Image.open(BytesIO(file))
+    if (im.format == "WEBP") or getattr(im, "is_animated", False):
+        with BytesIO() as output:
+            im.save(output, "PNG")
+            return output.getvalue()
+    return file
+
+
 @retry(stop=(stop_after_attempt(3) | stop_after_delay(30)), reraise=True)
 async def get_image_bytes_by_url(url: str, cookies: Optional[str] = None) -> bytes:
     _url = URL(url)
@@ -65,19 +74,11 @@ async def get_image_bytes_by_url(url: str, cookies: Optional[str] = None) -> byt
     ) as session:
         resp = await session.get(url)
         if resp.status_code == 404:
-            resp.raise_for_status()  # NoReturn for sure
-            raise Exception
-
+            resp.raise_for_status()
+            raise Exception  # NoReturn for sure, just make linter know
         if resp.status_code >= 400 or len(resp.content) == 0:
             raise TryAgain
-
-        im = Image.open(BytesIO(resp.content))
-        if im.format == "WEBP":
-            with BytesIO() as output:
-                im.save(output, "PNG")
-                return output.getvalue()
-
-    return resp.content
+        return post_image_process(resp.content)
 
 
 async def get_image_from_seg(seg: ImageSeg) -> bytes:
@@ -85,12 +86,14 @@ async def get_image_from_seg(seg: ImageSeg) -> bytes:
         return seg.raw_bytes
     if seg.path:
         return Path(seg.path).read_bytes()
-    return await image_fetch(
+    if file := await image_fetch(
         current_event.get(),
         current_bot.get(),
         current_matcher.get().state,
         seg,
-    )
+    ):
+        return file
+    raise ValueError("Cannot get image")
 
 
 async def handle_img(

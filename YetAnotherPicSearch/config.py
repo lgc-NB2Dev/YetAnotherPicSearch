@@ -59,7 +59,7 @@ class ConfigModel(BaseModel):
     @field_validator("saucenao_api_key", mode="before")
     def saucenao_api_key_validator(cls, v: str) -> str:  # noqa: N805
         if not v:
-            raise ValueError("请配置 saucenao_api_key 否则无法正常使用搜图功能！")
+            raise ValueError("请配置 SAUCENAO_API_KEY 否则无法正常使用搜图功能！")
         return v
 
     @field_validator("proxy", mode="before")
