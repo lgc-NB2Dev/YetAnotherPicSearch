@@ -34,8 +34,7 @@ class MessageCacheManager(MutableMapping[str, Optional[List[UniMessage]]]):
     @override
     def __setitem__(self, key: str, value: Optional[List[UniMessage]]) -> None:
         if not value:
-            # del self.cache[key]
-            return
+            raise ValueError("value cannot be empty")
         data = None
         with logged_suppress("Failed to dump message cache"):
             dumped = [x.dump() for x in value]
