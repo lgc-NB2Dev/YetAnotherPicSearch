@@ -37,7 +37,7 @@ class MessageCacheManager(MutableMapping[str, Optional[List[UniMessage]]]):
             raise ValueError("value cannot be empty")
         data = None
         with logged_suppress("Failed to dump message cache"):
-            dumped = [x.dump() for x in value]
+            dumped = [x.dump(media_save_dir=False) for x in value]
             data = cast(bytes, msgpack.packb(dumped))
         if data:
             self.cache[key] = data
