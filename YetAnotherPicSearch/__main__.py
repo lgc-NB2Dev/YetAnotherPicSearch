@@ -209,7 +209,7 @@ async def send_msgs(
         for x in msgs:
             await x.send(
                 target=target,
-                fallback=FallbackStrategy.text,
+                fallback=FallbackStrategy.to_text,
                 reply_to=reply_to,
             )
 
