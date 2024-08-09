@@ -34,6 +34,15 @@ _✨ 基于 [NoneBot2](https://github.com/nonebot/nonebot2) 与 [PicImageSearch]
   <img src="https://img.shields.io/pypi/dm/YetAnotherPicSearch" alt="pypi download">
 </a>
 
+<br />
+
+<a href="https://registry.nonebot.dev/plugin/YetAnotherPicSearch:YetAnotherPicSearch">
+  <img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fnbbdg.lgc2333.top%2Fplugin%2FYetAnotherPicSearch" alt="NoneBot Registry">
+</a>
+<a href="https://registry.nonebot.dev/plugin/YetAnotherPicSearch:YetAnotherPicSearch">
+  <img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fnbbdg.lgc2333.top%2Fplugin-adapters%2FYetAnotherPicSearch" alt="Supported Adapters">
+</a>
+
 </div>
 
 ## 📖 介绍
