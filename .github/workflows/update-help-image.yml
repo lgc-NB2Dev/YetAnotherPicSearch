@@ -1,0 +1,47 @@
+name: Update Help Image
+
+on:
+  push:
+    paths:
+      - '.github/workflows/update-help-image.yml'
+      - 'scripts/update_help_image/**'
+      - 'docs/usage.md'
+      - 'YetAnotherPicSearch/res/usage.jpg'
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          submodules: true
+
+      - name: Setup PDM
+        uses: pdm-project/setup-pdm@v4
+        with:
+          python-version: '3.12'
+          # cache: true
+
+      - name: Install Pre-requisites
+        run: |-
+          sudo apt-get install -y fonts-noto
+
+      - name: Run Job
+        run: |-
+          cd scripts
+          pdm install -G:all
+          pdm run update-help-image
+
+      - name: Commit and Push
+        run: |-
+          if [[ -n "$(git status -s)" ]]; then
+            git add .
+            git config user.name github-actions[bot]
+            git config user.email github-actions[bot]@users.noreply.github.com
+            git commit -m "chore: update help image"
+            git push
+          else
+            echo "No changes detected."
+          fi

@@ -1,50 +1,55 @@
 import itertools
 import re
 from collections import defaultdict
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, cast
 
 import arrow
 from httpx import AsyncClient
+from nonebot_plugin_alconna.uniseg import UniMessage
 from PicImageSearch import EHentai
 from PicImageSearch.model import EHentaiResponse
 from pyquery import PyQuery
 
-from .ascii2d import ascii2d_search
-from .config import config
-from .utils import (
+from ..config import config
+from ..registry import SearchFunctionReturnType, search_function
+from ..utils import (
     DEFAULT_HEADERS,
-    SEARCH_FUNCTION_TYPE,
     async_lock,
+    combine_message,
     filter_results_with_ratio,
     handle_img,
     parse_cookies,
     preprocess_search_query,
     shorten_url,
 )
+from .ascii2d import ascii2d_search
 
 
+@search_function("ex")
 @async_lock(freq=8)
 async def ehentai_search(
-    url: str, client: AsyncClient
-) -> Tuple[List[str], Optional[SEARCH_FUNCTION_TYPE]]:
+    file: bytes,
+    client: AsyncClient,
+    mode: str,
+) -> SearchFunctionReturnType:
     ex = bool(config.exhentai_cookies)
     ehentai = EHentai(client=client)
 
-    if res := await ehentai.search(url, ex=ex):
+    if not (res := await ehentai.search(file=file, ex=ex)):
         if "Please wait a bit longer between each file search" in res.origin:
-            return await ehentai_search(url, client)
+            return await ehentai_search(file, client, mode)
 
-        final_res: List[str] = await search_result_filter(res)
+        final_res = await search_result_filter(res)
         if not res.raw and config.auto_use_ascii2d:
-            final_res.append("自动使用 Ascii2D 进行搜索")
+            final_res.append(UniMessage.text("自动使用 Ascii2D 进行搜索"))
             return final_res, ascii2d_search
 
-        return final_res, None
+        return final_res
 
-    return ["EHentai 暂时无法使用"], None
+    return [UniMessage.text("EHentai 暂时无法使用")]
 
 
-async def ehentai_title_search(title: str) -> List[str]:
+async def ehentai_title_search(title: str) -> List[UniMessage]:
     query = preprocess_search_query(title)
     url = "https://exhentai.org" if config.exhentai_cookies else "https://e-hentai.org"
     params: Dict[str, Any] = {"f_search": query}
@@ -69,15 +74,15 @@ async def ehentai_title_search(title: str) -> List[str]:
                 res.raw = filter_results_with_ratio(res, title)
             return await search_result_filter(res)
 
-        return ["EHentai 暂时无法使用"]
+        return [UniMessage.text("EHentai 暂时无法使用")]
 
 
 async def search_result_filter(
     res: EHentaiResponse,
-) -> List[str]:
+) -> List[UniMessage]:
     url = await shorten_url(res.url)
     if not res.raw:
-        return [f"EHentai 搜索结果为空\n搜索页面：{url}"]
+        return [UniMessage.text(f"EHentai 搜索结果为空\n搜索页面：{url}")]
 
     # 尝试过滤已删除的
     if not_expunged_res := [
@@ -93,7 +98,7 @@ async def search_result_filter(
     if above_3_star_res := [
         i
         for i in res.raw
-        if get_star_rating(PyQuery(i.origin)("div.ir").attr("style")) >= 3
+        if get_star_rating(cast(str, PyQuery(i.origin)("div.ir").attr("style"))) >= 3
     ]:
         res.raw = above_3_star_res
 
@@ -127,7 +132,8 @@ async def search_result_filter(
         selected_res = res.raw[0]
 
     thumbnail = await handle_img(
-        selected_res.thumbnail, cookies=config.exhentai_cookies
+        selected_res.thumbnail,
+        cookies=config.exhentai_cookies,
     )
     date = arrow.get(selected_res.date).to("Asia/Shanghai").format("YYYY-MM-DD HH:mm")
     favorited = bool(selected_res.origin.find("[id^='posted']").eq(0).attr("style"))
@@ -135,13 +141,13 @@ async def search_result_filter(
         "EHentai 搜索结果",
         thumbnail,
         selected_res.title,
-        "❤️ 已收藏" if favorited else "",
+        ("❤️ 已收藏" if favorited else ""),
         f"类型：{selected_res.type}",
         f"日期：{date}",
         f"来源：{selected_res.url}",
         f"搜索页面：{url}",
     ]
-    return ["\n".join([i for i in res_list if i])]
+    return [combine_message(res_list)]
 
 
 def get_star_rating(css_style: str) -> float:

@@ -1,17 +1,23 @@
 import math
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 from httpx import AsyncClient
+from nonebot_plugin_alconna.uniseg import UniMessage
 from PicImageSearch import TraceMoe
 
-from .config import config
-from .utils import async_lock, handle_img
+from ..config import config
+from ..registry import SearchFunctionReturnType
+from ..utils import async_lock, combine_message, handle_img
 
 
 @async_lock()
-async def whatanime_search(url: str, client: AsyncClient) -> List[str]:
+async def whatanime_search(
+    file: bytes,
+    client: AsyncClient,
+    _: str,
+) -> SearchFunctionReturnType:
     whatanime = TraceMoe(client=client)
-    res = await whatanime.search(url)
+    res = await whatanime.search(file=file)
     if res and res.raw:
         time = res.raw[0].From
         minutes = math.floor(time / 60)
@@ -46,9 +52,9 @@ async def whatanime_search(url: str, client: AsyncClient) -> List[str]:
             f"开播：{start_date}",
             f"完结：{end_date}" if end_date else "",
         ]
-        return ["\n".join([i for i in res_list if i])]
+        return [combine_message(res_list)]
 
-    return ["WhatAnime 暂时无法使用"]
+    return [UniMessage.text("WhatAnime 暂时无法使用")]
 
 
 def date_to_str(date: Dict[str, Any]) -> str:

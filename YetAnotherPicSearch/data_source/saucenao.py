@@ -1,22 +1,28 @@
 import re
-from typing import List, Optional, Tuple
+from typing import List
 
 from httpx import AsyncClient
+from nonebot_plugin_alconna.uniseg import UniMessage
 from PicImageSearch import SauceNAO
 from PicImageSearch.model import SauceNAOItem, SauceNAOResponse
 
-from .ascii2d import ascii2d_search
-from .config import config
-from .ehentai import ehentai_title_search
-from .nhentai import nhentai_title_search
-from .utils import (
-    SEARCH_FUNCTION_TYPE,
+from ..config import config
+from ..registry import (
+    SearchFunctionReturnTuple,
+    SearchFunctionReturnType,
+    search_function,
+)
+from ..utils import (
     async_lock,
+    combine_message,
     get_source,
     get_valid_url,
     handle_img,
     shorten_url,
 )
+from .ascii2d import ascii2d_search
+from .ehentai import ehentai_title_search
+from .nhentai import nhentai_title_search
 from .whatanime import whatanime_search
 
 SAUCENAO_DB = {
@@ -29,10 +35,13 @@ SAUCENAO_DB = {
 }
 
 
+@search_function(*SAUCENAO_DB.keys())
 @async_lock(freq=8)
 async def saucenao_search(
-    url: str, client: AsyncClient, mode: str
-) -> Tuple[List[str], Optional[SEARCH_FUNCTION_TYPE]]:
+    file: bytes,
+    client: AsyncClient,
+    mode: str,
+) -> SearchFunctionReturnType:
     db = SAUCENAO_DB[mode]
     if isinstance(db, list):
         saucenao = SauceNAO(
@@ -48,17 +57,19 @@ async def saucenao_search(
             hide=config.saucenao_nsfw_hide_level,
             db=db,
         )
-    res = await saucenao.search(url)
+    res = await saucenao.search(file=file)
 
     if (
         res
         and res.status == 429
         and "4 searches every 30 seconds" in res.origin["header"]["message"]
     ):
-        return await saucenao_search(url, client, mode)
+        return await saucenao_search(file, client, mode)
 
     if not res or not res.raw:
-        final_res = ["SauceNAO 暂时无法使用，自动使用 Ascii2D 进行搜索"]
+        final_res = [
+            UniMessage.text("SauceNAO 暂时无法使用，自动使用 Ascii2D 进行搜索"),
+        ]
         return final_res, ascii2d_search
 
     selected_res = get_best_result(res, res.raw[0])
@@ -66,7 +77,8 @@ async def saucenao_search(
 
 
 def get_best_pixiv_result(
-    res: SauceNAOResponse, selected_res: SauceNAOItem
+    res: SauceNAOResponse,
+    selected_res: SauceNAOItem,
 ) -> SauceNAOItem:
     pixiv_res_list = list(
         filter(
@@ -74,7 +86,7 @@ def get_best_pixiv_result(
             and x.url
             and abs(x.similarity - selected_res.similarity) < 5,
             res.raw,
-        )
+        ),
     )
     if len(pixiv_res_list) > 1:
         selected_res = min(
@@ -97,11 +109,15 @@ def get_best_result(res: SauceNAOResponse, selected_res: SauceNAOItem) -> SauceN
 
 
 async def get_final_res(
-    mode: str, res: SauceNAOResponse, selected_res: SauceNAOItem
-) -> Tuple[List[str], Optional[SEARCH_FUNCTION_TYPE]]:
+    mode: str,
+    res: SauceNAOResponse,
+    selected_res: SauceNAOItem,
+) -> SearchFunctionReturnType:
     low_acc = selected_res.similarity < config.saucenao_low_acc
-    hide_img = config.hide_img or (
-        selected_res.hidden or low_acc and config.hide_img_when_low_acc
+    hide_img = bool(
+        config.hide_img
+        or selected_res.hidden
+        or (low_acc and config.hide_img_when_low_acc),
     )
 
     thumbnail = await handle_img(selected_res.thumbnail, hide_img)
@@ -129,18 +145,20 @@ async def get_final_res(
         f"搜索页面：{res.url}",
     ]
 
-    final_res = []
+    final_res: List[UniMessage] = []
 
-    if res.long_remaining < 10:
-        final_res.append(f"SauceNAO 24h 内仅剩 {res.long_remaining} 次使用次数")
+    if res.long_remaining and res.long_remaining < 10:
+        final_res.append(
+            UniMessage.text(f"SauceNAO 24h 内仅剩 {res.long_remaining} 次使用次数"),
+        )
 
-    final_res.append("\n".join([i for i in res_list if i]))
+    final_res.append(combine_message(res_list))
 
     if low_acc:
         extra_res, extra_handle = await handle_saucenao_low_acc(mode, selected_res)
         final_res.extend(extra_res)
         return final_res, extra_handle
-    elif selected_res.index_id in SAUCENAO_DB["doujin"]:  # type: ignore
+    if selected_res.index_id in SAUCENAO_DB["doujin"]:  # type: ignore
         title = selected_res.title.replace("-", "")
         final_res.extend(await search_on_ehentai_and_nhentai(title))
     # 如果搜索结果为 fakku ，额外返回 ehentai 的搜索结果
@@ -153,7 +171,7 @@ async def get_final_res(
     return final_res, None
 
 
-async def search_on_ehentai_and_nhentai(title: str) -> List[str]:
+async def search_on_ehentai_and_nhentai(title: str) -> List[UniMessage]:
     title_search_result = await ehentai_title_search(title)
 
     if (
@@ -169,14 +187,19 @@ async def search_on_ehentai_and_nhentai(title: str) -> List[str]:
 
 
 async def handle_saucenao_low_acc(
-    mode: str, selected_res: SauceNAOItem
-) -> Tuple[List[str], Optional[SEARCH_FUNCTION_TYPE]]:
-    final_res: List[str] = []
+    mode: str,
+    selected_res: SauceNAOItem,
+) -> SearchFunctionReturnTuple:
+    final_res: List[UniMessage] = []
     # 因为 saucenao 的动画搜索数据库更新不够快，所以当搜索模式为动画时额外增加 whatanime 的搜索结果
     if mode == "anime":
         return final_res, whatanime_search
-    elif config.auto_use_ascii2d:
-        final_res.append(f"相似度 {selected_res.similarity}% 过低，自动使用 Ascii2D 进行搜索")
+    if config.auto_use_ascii2d:
+        final_res.append(
+            UniMessage.text(
+                f"相似度 {selected_res.similarity}% 过低，自动使用 Ascii2D 进行搜索",
+            ),
+        )
         return final_res, ascii2d_search
 
     return final_res, None
