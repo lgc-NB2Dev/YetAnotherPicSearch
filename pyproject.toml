@@ -40,8 +40,8 @@ license = { text = "GPL-3.0-only" }
 readme = "README.md"
 
 [project.urls]
-homepage = "https://github.com/NekoAria/YetAnotherPicSearch"
-repository = "https://github.com/NekoAria/YetAnotherPicSearch"
+homepage = "https://github.com/lgc-NB2Dev/YetAnotherPicSearch"
+repository = "https://github.com/lgc-NB2Dev/YetAnotherPicSearch"
 
 [project.optional-dependencies]
 socks = ["httpx[socks]>=0.27.0"]

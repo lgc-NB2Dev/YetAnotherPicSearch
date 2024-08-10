@@ -25,7 +25,7 @@ _✨ 基于 [NoneBot2](https://github.com/nonebot/nonebot2) 与 [PicImageSearch]
   <img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/lgc-NB2Dev/readme/main/template/pyd-v1-or-v2.json" alt="Pydantic Version 1 Or 2" >
 </a>
 <a href="./LICENSE">
-  <img src="https://img.shields.io/github/license/NekoAria/YetAnotherPicSearch.svg" alt="license">
+  <img src="https://img.shields.io/github/license/lgc-NB2Dev/YetAnotherPicSearch.svg" alt="license">
 </a>
 <a href="https://pypi.python.org/pypi/YetAnotherPicSearch">
   <img src="https://img.shields.io/pypi/v/YetAnotherPicSearch.svg" alt="pypi">
@@ -148,7 +148,7 @@ plugins = [
 ## 🎉 使用
 
 使用你配置的指令（默认为 `搜图`）即可开始使用，附带或回复图片可直接触发搜图，可以一次性带多张图  
-更详细的使用方法请参考 [这里](https://github.com/NekoAria/YetAnotherPicSearch/tree/main/docs/usage.md)
+更详细的使用方法请参考 [这里](https://github.com/lgc-NB2Dev/YetAnotherPicSearch/tree/main/docs/usage.md)
 
 ### 效果图
 
@@ -180,17 +180,15 @@ Telegram：[@lgc2333](https://t.me/lgc2333)
 - [NoneBot2](https://github.com/nonebot/nonebot2)
 - [go-cqhttp](https://github.com/Mrs4s/go-cqhttp)
 
-<!--
 ## 💰 赞助
 
 **[赞助我](https://blog.lgc2333.top/donate)**
 
 感谢大家的赞助！你们的赞助将是我继续创作的动力！
--->
 
 ## ⭐ Star History
 
-[![Star History](https://starchart.cc/NekoAria/YetAnotherPicSearch.svg)](https://starchart.cc/NekoAria/YetAnotherPicSearch)
+[![Star History](https://starchart.cc/lgc-NB2Dev/YetAnotherPicSearch.svg)](https://starchart.cc/lgc-NB2Dev/YetAnotherPicSearch)
 
 ## 📝 更新日志
 
