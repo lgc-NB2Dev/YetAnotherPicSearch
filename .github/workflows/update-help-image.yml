@@ -2,6 +2,8 @@ name: Update Help Image
 
 on:
   push:
+    branches:
+      - main
     paths:
       - '.github/workflows/update-help-image.yml'
       - 'scripts/update_help_image/**'
