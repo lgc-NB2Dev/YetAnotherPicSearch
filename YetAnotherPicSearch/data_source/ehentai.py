@@ -38,12 +38,11 @@ async def ehentai_search(
     if not (res := await ehentai.search(file=file, ex=ex)):
         if "Please wait a bit longer between each file search" in res.origin:
             return await ehentai_search(file, client, mode)
-
+    else:
         final_res = await search_result_filter(res)
         if not res.raw and config.auto_use_ascii2d:
             final_res.append(UniMessage.text("自动使用 Ascii2D 进行搜索"))
             return final_res, ascii2d_search
-
         return final_res
 
     return [UniMessage.text("EHentai 暂时无法使用")]

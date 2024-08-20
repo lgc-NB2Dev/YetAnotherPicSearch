@@ -297,9 +297,10 @@ def combine_message(
     join: Optional[str] = "\n",
 ) -> UniMessage:
     msg = UniMessage()
-    for it in msg_list:
-        if it:
-            msg += it
-        if join:
+    for i, it in enumerate(msg_list):
+        if not it:
+            continue
+        if join and i != 0:
             msg += join
+        msg += it
     return msg

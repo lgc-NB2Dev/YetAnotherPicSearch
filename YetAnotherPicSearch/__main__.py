@@ -178,7 +178,9 @@ async def send_msgs(
         if not display_fav:
             should_remove.append("❤️ 已收藏\n")
         for txt in should_remove:
-            if seg := next((x for x in m[Text] if (txt in x.text)), None):
+            # alconna 的 text auto merge 害人
+            # for seg in (x for x in m[Text] if (txt in x.text)):
+            for seg in (x for x in m if isinstance(x, Text) and (txt in x.text)):
                 seg.text = seg.text.replace(txt, "")
 
         return m
@@ -288,7 +290,7 @@ async def handle_single_image(
     while True:
         res = await func(file, client, mode)
         msgs, func = res if isinstance(res, tuple) else (res, None)
-        messages.extend(msgs)
+        messages.extend([x.copy() for x in msgs])
         await send_msgs(msgs, target, index, display_fav)
         if not func:
             break
