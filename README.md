@@ -109,7 +109,7 @@ conda install YetAnotherPicSearch
 [tool.nonebot]
 plugins = [
     # ...
-    "nonebot_plugin_example"
+    "YetAnotherPicSearch"
 ]
 ```
 
