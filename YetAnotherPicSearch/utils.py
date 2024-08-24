@@ -20,16 +20,13 @@ from typing import (
 from typing_extensions import ParamSpec
 
 import arrow
-from cachetools import TTLCache
 from cookit.loguru import logged_suppress
 from httpx import URL, AsyncClient, HTTPStatusError, InvalidURL
-from nonebot.adapters.onebot.v11 import Bot
 from nonebot.matcher import current_bot, current_event, current_matcher
 from nonebot_plugin_alconna.uniseg import Image as ImageSeg, UniMessage, image_fetch
 from PicImageSearch.model.ehentai import EHentaiItem, EHentaiResponse
 from PIL import Image
 from pyquery import PyQuery
-from shelved_cache import cachedasyncmethod
 from tenacity import TryAgain, retry, stop_after_attempt, stop_after_delay
 
 from .config import config
@@ -105,12 +102,6 @@ async def handle_img(
         with logged_suppress("Failed to get image", HTTPStatusError):
             return UniMessage.image(raw=await get_image_bytes_by_url(url, cookies))
     return UniMessage.text(f"预览图链接：{url}")
-
-
-@cachedasyncmethod(lambda _: TTLCache(1, 300))
-async def get_bot_friend_list(bot: Bot) -> List[int]:
-    friend_list = await bot.get_friend_list()
-    return [i["user_id"] for i in friend_list]
 
 
 def handle_source(source: str) -> str:

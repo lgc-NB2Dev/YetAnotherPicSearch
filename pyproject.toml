@@ -20,7 +20,6 @@ dependencies = [
     "tenacity>=9.0.0",
     "msgpack>=1.0.8",
     "Pillow>=9",
-    "shelved-cache>=0.3.1",
 ]
 keywords = [
     "nonebot",
