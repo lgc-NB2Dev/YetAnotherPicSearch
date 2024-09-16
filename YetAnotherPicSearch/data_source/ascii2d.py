@@ -20,7 +20,7 @@ async def ascii2d_search(
     client: AsyncClient,
     _: str,
 ) -> SearchFunctionReturnType:
-    ascii2d_color = Ascii2D(client=client)
+    ascii2d_color = Ascii2D(base_url=config.ascii2d_base_url, client=client)
     color_res = await ascii2d_color.search(file=file)
     if not color_res.raw:
         return [UniMessage.text("Ascii2D 暂时无法使用")]

@@ -1,8 +1,8 @@
-from typing import List, Optional, Set
+from typing import Annotated, List, Optional, Set
 
 from cookit.pyd import field_validator
 from nonebot import get_plugin_config
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, HttpUrl
 
 
 class ConfigModel(BaseModel):
@@ -11,6 +11,7 @@ class ConfigModel(BaseModel):
     proxy: Optional[str] = None
 
     saucenao_api_key: str
+    ascii2d_base_url: Annotated[str, HttpUrl] = "https://ascii2d.net"
     exhentai_cookies: Optional[str] = None
     nhentai_useragent: Optional[str] = None
     nhentai_cookies: Optional[str] = None
@@ -45,6 +46,10 @@ class ConfigModel(BaseModel):
         if not v:
             raise ValueError("请配置 SAUCENAO_API_KEY 否则无法正常使用搜图功能！")
         return v
+
+    @field_validator("ascii2d_base_url", mode="after")
+    def ascii2d_base_url_validator(cls, v: str) -> str:  # noqa: N805
+        return v.rstrip("/")
 
     @field_validator("proxy", mode="before")
     def proxy_validator(cls, v: Optional[str]) -> Optional[str]:  # noqa: N805
