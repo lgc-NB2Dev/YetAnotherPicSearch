@@ -21,7 +21,7 @@ jobs:
           submodules: true
 
       - name: Setup PDM
-        uses: pdm-project/setup-pdm@v3
+        uses: pdm-project/setup-pdm@v4
 
       - name: Build and Publish distribution 📦 to PyPI
         run: pdm publish
