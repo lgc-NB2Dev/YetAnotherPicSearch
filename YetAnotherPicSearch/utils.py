@@ -12,7 +12,6 @@ from typing import (
     Optional,
     TypeVar,
     Union,
-    overload,
 )
 
 import arrow
@@ -20,7 +19,7 @@ from cookit.loguru import logged_suppress
 from httpx import URL, AsyncClient, HTTPStatusError, InvalidURL
 from nonebot.matcher import current_bot, current_event, current_matcher
 from nonebot_plugin_alconna.uniseg import Image as ImageSeg
-from nonebot_plugin_alconna.uniseg import UniMessage, image_fetch
+from nonebot_plugin_alconna.uniseg import Segment, UniMessage, image_fetch
 from PicImageSearch.model.ehentai import EHentaiItem, EHentaiResponse
 from PIL import Image
 from pyquery import PyQuery
@@ -95,7 +94,7 @@ async def handle_img(
     url: str,
     hide_img: bool = config.hide_img,
     cookies: Optional[str] = None,
-) -> UniMessage:
+) -> UniMessage[Segment]:
     if not hide_img:
         with logged_suppress("Failed to get image", HTTPStatusError):
             return UniMessage.image(raw=await get_image_bytes_by_url(url, cookies))
@@ -212,8 +211,10 @@ def parse_cookies(cookies_str: Optional[str] = None) -> dict[str, str]:
     return cookies_dict
 
 
-def async_lock(freq: float = 1):
-    def decorator(func: Callable[P, Awaitable[T]]):
+def async_lock(
+    freq: float = 1,
+) -> Callable[[Callable[P, Awaitable[T]]], Callable[P, Awaitable[T]]]:
+    def decorator(func: Callable[P, Awaitable[T]]) -> Callable[P, Awaitable[T]]:
         lock = asyncio.Lock()
         last_call_time: Optional[arrow.Arrow] = None
 
@@ -248,16 +249,6 @@ def preprocess_search_query(query: str) -> str:
     return query.strip()
 
 
-@overload
-def filter_results_with_ratio(
-    res: EHentaiResponse,
-    title: str,
-) -> list[EHentaiItem]: ...
-@overload
-def filter_results_with_ratio(
-    res: NHentaiResponse,
-    title: str,
-) -> list[NHentaiItem]: ...
 def filter_results_with_ratio(
     res: Union[EHentaiResponse, NHentaiResponse],
     title: str,
@@ -269,8 +260,8 @@ def filter_results_with_ratio(
     raw_with_ratio.sort(key=operator.itemgetter(1), reverse=True)
 
     if filtered := [i[0] for i in raw_with_ratio if i[1] > 0.65]:
-        return filtered  # type: ignore
-    return [i[0] for i in raw_with_ratio]  # type: ignore
+        return filtered
+    return [i[0] for i in raw_with_ratio]
 
 
 def get_valid_url(url: str) -> Optional[URL]:
@@ -282,10 +273,10 @@ def get_valid_url(url: str) -> Optional[URL]:
 
 
 def combine_message(
-    msg_list: Iterable[Union[UniMessage, str, None]],
+    msg_list: Iterable[Union[UniMessage[Segment], str, None]],
     join: Optional[str] = "\n",
-) -> UniMessage:
-    msg = UniMessage()
+) -> UniMessage[Segment]:
+    msg: UniMessage[Segment] = UniMessage()
     for i, it in enumerate(msg_list):
         if not it:
             continue

@@ -5,7 +5,7 @@ from typing import Any, Optional, cast
 import msgpack
 from cookit import FileCacheManager
 from cookit.loguru.common import logged_suppress
-from nonebot_plugin_alconna.uniseg import UniMessage
+from nonebot_plugin_alconna.uniseg import Segment, UniMessage
 from typing_extensions import override
 
 from .config import config
@@ -14,7 +14,7 @@ from .config import config
 # but it's enough for this plugin, maybe ¯\_(ツ)_/¯
 
 
-class MessageCacheManager(MutableMapping[str, Optional[list[UniMessage]]]):
+class MessageCacheManager(MutableMapping[str, Optional[list[UniMessage[Segment]]]]):
     def __init__(
         self,
         cache_dir: Path,
@@ -25,15 +25,15 @@ class MessageCacheManager(MutableMapping[str, Optional[list[UniMessage]]]):
         self.cache = FileCacheManager(cache_dir, max_size=max_size, ttl=ttl)
 
     @override
-    def __getitem__(self, key: str) -> Optional[list[UniMessage]]:
+    def __getitem__(self, key: str) -> Optional[list[UniMessage[Segment]]]:
         data = self.cache[key]
         with logged_suppress("Failed to read message cache"):
             unpacked: list[list[dict[str, Any]]] = msgpack.unpackb(data)
-            return [UniMessage.load(x) for x in unpacked]
+            return [UniMessage[Segment].load(x) for x in unpacked]
         return None
 
     @override
-    def __setitem__(self, key: str, value: Optional[list[UniMessage]]) -> None:
+    def __setitem__(self, key: str, value: Optional[list[UniMessage[Segment]]]) -> None:
         if not value:
             raise ValueError("value cannot be empty")
         data = None
@@ -49,15 +49,15 @@ class MessageCacheManager(MutableMapping[str, Optional[list[UniMessage]]]):
 
     @override
     def __iter__(self) -> Iterator[str]:
-        return self.cache.__iter__()
+        return cast(Iterator[str], self.cache.__iter__())
 
     @override
     def __len__(self) -> int:
-        return self.cache.__len__()
+        return cast(int, self.cache.__len__())
 
     @override
     def __contains__(self, key: Any) -> bool:
-        return self.cache.__contains__(key)
+        return bool(self.cache.__contains__(key))
 
 
 CACHE_DIR = Path.cwd() / "data" / "YetAnotherPicSearch" / "cache"

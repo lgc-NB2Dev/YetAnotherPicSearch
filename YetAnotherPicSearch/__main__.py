@@ -1,6 +1,7 @@
 # ruff: noqa: N999
 
 import asyncio
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager, suppress
 from dataclasses import dataclass
 from pathlib import Path
@@ -26,6 +27,7 @@ from nonebot_plugin_alconna.uniseg import (
     MsgTarget,
     Reference,
     Reply,
+    Segment,
     SerializeFailed,
     Target,
     Text,
@@ -49,7 +51,7 @@ class SearchArgs:
     purge: bool = False
 
 
-async def extract_images(msg: UniMsg) -> list[Image]:
+async def extract_images(msg: UniMsg[Segment]) -> list[Image]:
     if Reply in msg and isinstance((raw_reply := msg[Reply, 0].msg), BaseMessage):
         msg = await UniMessage.generate(message=raw_reply)
     return msg[Image]
@@ -59,7 +61,7 @@ async def rule_func_search_msg(
     bot: BaseBot,
     ev: BaseEvent,
     state: T_State,
-    msg: UniMsg,
+    msg: UniMsg[Segment],
     target: MsgTarget,
 ) -> bool:
     if target.private:
@@ -87,19 +89,19 @@ async def extract_search_args() -> SearchArgs:
             f"意外参数 {arg}\n使用指令 `{config.search_keyword} -h` 查看帮助",
         )
 
-    async def parse_mode(arg: str):
+    async def parse_mode(arg: str) -> bool:
         if arg.startswith("--") and (mode := arg[2:]) in registered_search_func:
             args.mode = mode
             return True
         return False
 
-    async def is_purge(arg: str):
+    async def is_purge(arg: str) -> bool:
         if arg == "--purge":
             args.purge = True
             return True
         return False
 
-    async def send_help(arg: str):
+    async def send_help(arg: str) -> bool:
         if arg in ("-h", "--help"):
             await UniMessage.image(
                 raw=(Path(__file__).parent / "res" / "usage.jpg").read_bytes(),
@@ -121,7 +123,7 @@ async def extract_search_args() -> SearchArgs:
     return args
 
 
-async def get_images_from_ev(msg: UniMessage) -> list[Image]:
+async def get_images_from_ev(msg: UniMessage[Segment]) -> list[Image]:
     m = current_matcher.get()
     state = m.state
 
@@ -129,8 +131,8 @@ async def get_images_from_ev(msg: UniMessage) -> list[Image]:
     if images:
         return images
 
-    @waiter(waits=["message"], keep_session=True)
-    async def wait_msg(msg: UniMsg):
+    @waiter(waits=["message"], keep_session=True)  # type: ignore
+    async def wait_msg(msg: UniMsg[Segment]) -> UniMsg[Segment]:
         return msg
 
     waited_msg = await wait_msg.wait(
@@ -147,7 +149,9 @@ async def get_images_from_ev(msg: UniMessage) -> list[Image]:
 
 
 @asynccontextmanager
-async def fail_with_msg(msg: Union[UniMessage, str], should_finish: bool = True):
+async def fail_with_msg(
+    msg: Union[UniMessage[Segment], str], should_finish: bool = True
+) -> AsyncIterator[None]:
     try:
         yield
     except Exception as e:
@@ -159,7 +163,6 @@ async def fail_with_msg(msg: Union[UniMessage, str], should_finish: bool = True)
         )
         if should_finish:
             raise FinishedException from e
-    return
 
 
 async def should_display_favorite(target: Target) -> bool:
@@ -167,12 +170,12 @@ async def should_display_favorite(target: Target) -> bool:
 
 
 async def send_msgs(
-    msgs: list[UniMessage],
+    msgs: list[UniMessage[Segment]],
     target: Target,
     index: Optional[int] = None,
     display_fav: bool = False,
-):
-    def pre_process_msg(m: UniMessage):
+) -> None:
+    def pre_process_msg(m: UniMessage[Segment]) -> UniMessage[Segment]:
         if index:
             m = UniMessage.text(f"第 {index} 张图片的搜索结果：\n") + m
 
@@ -191,13 +194,13 @@ async def send_msgs(
     msg_len = len(msgs)
     reply_to: Optional[str] = UniMessage.get_message_id()
 
-    async def try_send():
+    async def try_send() -> None:
         if config.forward_search_result and msg_len > 1:
             bot = current_bot.get()
             nodes = [
                 CustomNode(
                     uid=bot.self_id,
-                    name=(next(iter(config.nickname), None) or "YetAnotherPicSearch"),
+                    name=next(iter(config.nickname), "YetAnotherPicSearch"),
                     content=x,
                 )
                 for x in msgs
@@ -260,14 +263,13 @@ async def handle_single_image(
     target: Target,
     index: Optional[int] = None,
     display_fav: bool = False,
-):
+) -> None:
     async def fetch_image(seg: Image) -> Optional[bytes]:
         async with fail_with_msg(
             f"图片{f' {index} ' if index else ''}下载失败",
             should_finish=False,
         ):
             return await get_image_from_seg(seg)
-        return None
 
     # lazy fetch file if cache does not exist
     file = None
@@ -287,20 +289,21 @@ async def handle_single_image(
         return
     file = post_image_process(file)
 
-    messages: list[UniMessage] = []
-    func = registered_search_func[mode].func
+    messages: list[UniMessage[Segment]] = []
+    search_func = registered_search_func[mode].func
     while True:
-        res = await func(file, client, mode)
-        msgs, func = res if isinstance(res, tuple) else (res, None)
+        res = await search_func(file, client, mode)
+        msgs, next_func = res if isinstance(res, tuple) else (res, None)
         messages.extend([x.copy() for x in msgs])
         await send_msgs(msgs, target, index, display_fav)
-        if not func:
+        if next_func is None:
             break
+        search_func = next_func
 
     msg_cache[cache_key] = messages
 
 
-async def search_handler(msg: UniMsg, target: MsgTarget):
+async def search_handler(msg: UniMsg[Segment], target: MsgTarget) -> None:
     arg = await extract_search_args()
     images = await get_images_from_ev(msg)
 

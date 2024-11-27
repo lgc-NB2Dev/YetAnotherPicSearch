@@ -5,7 +5,7 @@ from typing import cast
 from cookit import flatten
 from cookit.loguru import logged_suppress
 from httpx import AsyncClient, HTTPStatusError
-from nonebot_plugin_alconna.uniseg import UniMessage
+from nonebot_plugin_alconna.uniseg import Segment, UniMessage
 from PicImageSearch import Ascii2D
 from PicImageSearch.model import Ascii2DResponse
 
@@ -44,18 +44,18 @@ async def ascii2d_search(
         get_final_res(color_res),
         get_final_res(bovw_res, bovw=True, duplicated_count=duplicated_count),
     )
-    return flatten(res)
+    return flatten(res)  # type: ignore
 
 
 async def get_final_res(
     res: Ascii2DResponse, bovw: bool = False, duplicated_count: int = 0
-) -> list[UniMessage]:
-    final_res_list: list[UniMessage] = []
+) -> list[UniMessage[Segment]]:
+    final_res_list: list[UniMessage[Segment]] = []
     for r in res.raw:
         if not (r.title or r.url_list):
             continue
 
-        msg = UniMessage()
+        msg: UniMessage[Segment] = UniMessage()
         if config.hide_img:
             msg += f"预览图链接：{r.thumbnail}\n"
         else:

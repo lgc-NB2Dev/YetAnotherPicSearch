@@ -1,7 +1,7 @@
 # ruff: noqa: N999
 
 
-def load_search_func():
+def load_search_func() -> None:
     from pathlib import Path
 
     from cookit import auto_import

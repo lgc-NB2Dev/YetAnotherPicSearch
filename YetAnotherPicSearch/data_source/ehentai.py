@@ -5,7 +5,7 @@ from typing import Any, cast
 
 import arrow
 from httpx import AsyncClient
-from nonebot_plugin_alconna.uniseg import UniMessage
+from nonebot_plugin_alconna.uniseg import Segment, UniMessage
 from PicImageSearch import EHentai
 from PicImageSearch.model import EHentaiResponse
 from pyquery import PyQuery
@@ -48,7 +48,7 @@ async def ehentai_search(
     return [UniMessage.text("EHentai 暂时无法使用")]
 
 
-async def ehentai_title_search(title: str) -> list[UniMessage]:
+async def ehentai_title_search(title: str) -> list[UniMessage[Segment]]:
     query = preprocess_search_query(title)
     url = "https://exhentai.org" if config.exhentai_cookies else "https://e-hentai.org"
     params: dict[str, Any] = {"f_search": query}
@@ -78,7 +78,7 @@ async def ehentai_title_search(title: str) -> list[UniMessage]:
 
 async def search_result_filter(
     res: EHentaiResponse,
-) -> list[UniMessage]:
+) -> list[UniMessage[Segment]]:
     url = await shorten_url(res.url)
     if not res.raw:
         return [UniMessage.text(f"EHentai 搜索结果为空\n搜索页面：{url}")]
@@ -110,7 +110,7 @@ async def search_result_filter(
     priority["Cosplay"] = 5
     priority["Asian Porn"] = 6
     res.raw.sort(key=lambda x: priority[x.type], reverse=True)
-    for key, group in itertools.groupby(res.raw, key=lambda x: x.type):  # type: ignore
+    for key, group in itertools.groupby(res.raw, key=lambda x: x.type):
         if priority[key] > 0:
             group_list = list(group)
             if len(res.raw) != len(group_list):

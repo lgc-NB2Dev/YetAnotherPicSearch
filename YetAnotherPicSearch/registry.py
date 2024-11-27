@@ -3,14 +3,16 @@ from dataclasses import dataclass
 from typing import Callable, Optional, TypeVar, Union
 
 from httpx import AsyncClient
-from nonebot_plugin_alconna.uniseg import UniMessage
+from nonebot_plugin_alconna.uniseg import Segment, UniMessage
 from typing_extensions import TypeAlias
 
 SearchFunctionReturnTuple: TypeAlias = tuple[
-    list[UniMessage],
+    list[UniMessage[Segment]],
     Optional["SearchFunctionType"],
 ]
-SearchFunctionReturnType: TypeAlias = Union[list[UniMessage], SearchFunctionReturnTuple]
+SearchFunctionReturnType: TypeAlias = Union[
+    list[UniMessage[Segment]], SearchFunctionReturnTuple
+]
 SearchFunctionType: TypeAlias = Callable[
     [bytes, AsyncClient, str],
     Awaitable[SearchFunctionReturnType],
@@ -27,7 +29,7 @@ class SearchFunctionInfo:
 registered_search_func: dict[str, SearchFunctionInfo] = {}
 
 
-def search_function(*modes: str):
+def search_function(*modes: str) -> Callable[[TSF], TSF]:
     def deco(func: TSF) -> TSF:
         info = SearchFunctionInfo(func)
         for mode in modes:

@@ -41,18 +41,18 @@ class ConfigModel(BaseModel):
 
     cache_expire: int = 3
 
-    @field_validator("saucenao_api_key", mode="before")
-    def saucenao_api_key_validator(cls, v: str) -> str:  # noqa: N805
+    @field_validator("saucenao_api_key", mode="before")  # type: ignore
+    def saucenao_api_key_validator(cls, v: str) -> str:
         if not v:
             raise ValueError("请配置 SAUCENAO_API_KEY 否则无法正常使用搜图功能！")
         return v
 
-    @field_validator("ascii2d_base_url", mode="after")
-    def ascii2d_base_url_validator(cls, v: str) -> str:  # noqa: N805
+    @field_validator("ascii2d_base_url", mode="after")  # type: ignore
+    def ascii2d_base_url_validator(cls, v: str) -> str:
         return v.rstrip("/")
 
-    @field_validator("proxy", mode="before")
-    def proxy_validator(cls, v: Optional[str]) -> Optional[str]:  # noqa: N805
+    @field_validator("proxy", mode="before")  # type: ignore
+    def proxy_validator(cls, v: Optional[str]) -> Optional[str]:
         if isinstance(v, str) and v.startswith("socks://"):
             raise ValueError(
                 '请修改代理地址为 "socks5://" 或 "socks4://" 的格式，具体取决于你的代理协议！',

@@ -1,7 +1,7 @@
 import re
 
 from httpx import AsyncClient
-from nonebot_plugin_alconna.uniseg import UniMessage
+from nonebot_plugin_alconna.uniseg import Segment, UniMessage
 from PicImageSearch import SauceNAO
 from PicImageSearch.model import SauceNAOItem, SauceNAOResponse
 
@@ -69,7 +69,7 @@ async def saucenao_search(
         final_res = [
             UniMessage.text("SauceNAO 暂时无法使用，自动使用 Ascii2D 进行搜索"),
         ]
-        return final_res, ascii2d_search
+        return final_res, ascii2d_search  # type: ignore
 
     selected_res = get_best_result(res, res.raw[0])
     return await get_final_res(mode, res, selected_res)
@@ -144,7 +144,7 @@ async def get_final_res(
         f"搜索页面：{res.url}",
     ]
 
-    final_res: list[UniMessage] = []
+    final_res: list[UniMessage[Segment]] = []
 
     if res.long_remaining and res.long_remaining < 10:
         final_res.append(
@@ -170,7 +170,7 @@ async def get_final_res(
     return final_res, None
 
 
-async def search_on_ehentai_and_nhentai(title: str) -> list[UniMessage]:
+async def search_on_ehentai_and_nhentai(title: str) -> list[UniMessage[Segment]]:
     title_search_result = await ehentai_title_search(title)
 
     if (
@@ -189,7 +189,7 @@ async def handle_saucenao_low_acc(
     mode: str,
     selected_res: SauceNAOItem,
 ) -> SearchFunctionReturnTuple:
-    final_res: list[UniMessage] = []
+    final_res: list[UniMessage[Segment]] = []
     # 因为 saucenao 的动画搜索数据库更新不够快，所以当搜索模式为动画时额外增加 whatanime 的搜索结果
     if mode == "anime":
         return final_res, whatanime_search
