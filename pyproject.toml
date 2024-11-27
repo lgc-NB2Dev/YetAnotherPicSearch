@@ -19,7 +19,7 @@ dependencies = [
     "pyquery>=2.0.1",
     "tenacity>=9.0.0",
     "msgpack>=1.1.0",
-    "Pillow>=11.0.0",
+    "Pillow>=9.0.0",
 ]
 keywords = [
     "nonebot",
@@ -46,6 +46,9 @@ repository = "https://github.com/lgc-NB2Dev/YetAnotherPicSearch"
 [project.optional-dependencies]
 socks = ["httpx[socks]>=0.27.0"]
 
+[dependency-groups]
+dev = ["black>=24.10.0", "mypy>=1.13.0", "pre-commit>=4.0.1", "ruff>=0.8.0"]
+
 [build-system]
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"
@@ -56,14 +59,6 @@ path = "YetAnotherPicSearch/__init__.py"
 
 [tool.pdm.build]
 includes = ["YetAnotherPicSearch"]
-
-[tool.pdm.dev-dependencies]
-dev = [
-    "black>=24.10.0",
-    "mypy>=1.13.0",
-    "pre-commit>=4.0.1",
-    "ruff>=0.8.0",
-]
 
 [tool.mypy]
 python_version = "3.9"
