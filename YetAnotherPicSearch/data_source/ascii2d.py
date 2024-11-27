@@ -1,4 +1,5 @@
 import asyncio
+import re
 from typing import List, cast
 
 from cookit import flatten
@@ -26,18 +27,28 @@ async def ascii2d_search(
         return [UniMessage.text("Ascii2D 暂时无法使用")]
 
     resp_text, resp_url, _ = await ascii2d_color.get(
-        color_res.url.replace("/color/", "/bovw/"),
+        re.sub(r"(/|%2F)color", r"\1bovw", color_res.url)
     )
     bovw_res = Ascii2DResponse(resp_text, resp_url)
+    # 去除 bovw_res 中已经存在于 color_res 的部分
+    color_res_origin_list = [str(i.origin) for i in color_res.raw]
+    duplicated_raw = [
+        i for i in bovw_res.raw
+        if (str(i.origin) in color_res_origin_list and any(i.title or i.url_list))
+    ]
+    duplicated_count = len(duplicated_raw)
+    bovw_res.raw = [i for i in bovw_res.raw if i not in duplicated_raw]
 
     res = await asyncio.gather(
         get_final_res(color_res),
-        get_final_res(bovw_res, bovw=True),
+        get_final_res(bovw_res, bovw=True, duplicated_count=duplicated_count),
     )
     return flatten(res)
 
 
-async def get_final_res(res: Ascii2DResponse, bovw: bool = False) -> List[UniMessage]:
+async def get_final_res(
+    res: Ascii2DResponse, bovw: bool = False, duplicated_count: int = 0
+) -> List[UniMessage]:
     final_res_list: List[UniMessage] = []
     for r in res.raw:
         if not (r.title or r.url_list):
@@ -81,8 +92,9 @@ async def get_final_res(res: Ascii2DResponse, bovw: bool = False) -> List[UniMes
 
     return [
         UniMessage.text(
-            f"Ascii2D {'特徴' if bovw else '色合'}検索結果\n"
-            f"搜索页面：{await shorten_url(res.url)}",
+            f"Ascii2D {'特徴' if bovw else '色合'}検索結果"
+            + (f" (已去除与特徴検索結果重复的 {duplicated_count} 个结果)" if duplicated_count else "")
+            + f"\n搜索页面：{await shorten_url(res.url)}",
         ),
         *final_res_list,
     ]
