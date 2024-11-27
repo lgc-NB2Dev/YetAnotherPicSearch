@@ -56,3 +56,33 @@ path = "YetAnotherPicSearch/__init__.py"
 
 [tool.pdm.build]
 includes = ["YetAnotherPicSearch"]
+
+[tool.pdm.dev-dependencies]
+dev = [
+    "black>=24.10.0",
+    "mypy>=1.13.0",
+    "pre-commit>=4.0.1",
+    "ruff>=0.8.0",
+]
+
+[tool.mypy]
+python_version = "3.9"
+ignore_missing_imports = true
+implicit_reexport = true
+pretty = true
+show_error_codes = true
+strict = true
+
+[tool.ruff]
+target-version = "py39"
+line-length = 120
+
+[tool.ruff.lint]
+select = ["F", "E", "W", "I", "UP"]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+"*.py" = ["N813"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
