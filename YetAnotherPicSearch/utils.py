@@ -1,33 +1,31 @@
 import asyncio
 import operator
 import re
+from collections.abc import Awaitable, Iterable
 from contextlib import suppress
 from difflib import SequenceMatcher
 from functools import wraps
 from io import BytesIO
 from pathlib import Path
 from typing import (
-    Awaitable,
     Callable,
-    Dict,
-    Iterable,
-    List,
     Optional,
     TypeVar,
     Union,
     overload,
 )
-from typing_extensions import ParamSpec
 
 import arrow
 from cookit.loguru import logged_suppress
 from httpx import URL, AsyncClient, HTTPStatusError, InvalidURL
 from nonebot.matcher import current_bot, current_event, current_matcher
-from nonebot_plugin_alconna.uniseg import Image as ImageSeg, UniMessage, image_fetch
+from nonebot_plugin_alconna.uniseg import Image as ImageSeg
+from nonebot_plugin_alconna.uniseg import UniMessage, image_fetch
 from PicImageSearch.model.ehentai import EHentaiItem, EHentaiResponse
 from PIL import Image
 from pyquery import PyQuery
 from tenacity import TryAgain, retry, stop_after_attempt, stop_after_delay
+from typing_extensions import ParamSpec
 
 from .config import config
 from .nhentai_model import NHentaiItem, NHentaiResponse
@@ -205,8 +203,8 @@ async def shorten_url(url: str) -> str:
     return confuse_url(url)
 
 
-def parse_cookies(cookies_str: Optional[str] = None) -> Dict[str, str]:
-    cookies_dict: Dict[str, str] = {}
+def parse_cookies(cookies_str: Optional[str] = None) -> dict[str, str]:
+    cookies_dict: dict[str, str] = {}
     if cookies_str:
         for line in cookies_str.split(";"):
             key, value = line.strip().split("=", 1)
@@ -254,16 +252,16 @@ def preprocess_search_query(query: str) -> str:
 def filter_results_with_ratio(
     res: EHentaiResponse,
     title: str,
-) -> List[EHentaiItem]: ...
+) -> list[EHentaiItem]: ...
 @overload
 def filter_results_with_ratio(
     res: NHentaiResponse,
     title: str,
-) -> List[NHentaiItem]: ...
+) -> list[NHentaiItem]: ...
 def filter_results_with_ratio(
     res: Union[EHentaiResponse, NHentaiResponse],
     title: str,
-) -> Union[List[EHentaiItem], List[NHentaiItem]]:
+) -> Union[list[EHentaiItem], list[NHentaiItem]]:
     raw_with_ratio = [
         (i, SequenceMatcher(lambda x: x == " ", title, i.title).ratio())
         for i in res.raw

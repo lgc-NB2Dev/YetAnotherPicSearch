@@ -1,4 +1,4 @@
-from typing import Annotated, List, Optional, Set
+from typing import Annotated, Optional
 
 from cookit.pyd import field_validator
 from nonebot import get_plugin_config
@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field, HttpUrl
 
 
 class ConfigModel(BaseModel):
-    nickname: Set[str]
+    nickname: set[str]
 
     proxy: Optional[str] = None
 
@@ -30,7 +30,7 @@ class ConfigModel(BaseModel):
     hide_img_when_whatanime_r18: bool = True
     saucenao_nsfw_hide_level: int = Field(2, ge=0, le=3)
     forward_search_result: bool = True
-    to_confuse_urls: List[str] = [
+    to_confuse_urls: list[str] = [
         "ascii2d.net",
         "danbooru.donmai.us",
         "konachan.com",

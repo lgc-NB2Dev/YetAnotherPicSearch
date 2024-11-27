@@ -1,5 +1,4 @@
 import base64
-from typing import List
 
 from httpx import AsyncClient
 from nonebot_plugin_alconna.uniseg import UniMessage
@@ -23,7 +22,7 @@ async def google_search(
     return [UniMessage.text("Google 暂时无法使用")]
 
 
-async def search_result_filter(res: GoogleResponse) -> List[UniMessage]:
+async def search_result_filter(res: GoogleResponse) -> list[UniMessage]:
     url = await shorten_url(res.url)
     if not res.raw:
         return [UniMessage.text(f"Google 搜索结果为空\n搜索页面：{url}")]

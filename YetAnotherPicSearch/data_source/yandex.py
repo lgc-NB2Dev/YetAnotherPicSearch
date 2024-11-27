@@ -1,5 +1,3 @@
-from typing import List
-
 from httpx import AsyncClient
 from nonebot_plugin_alconna.uniseg import UniMessage
 from PicImageSearch import Yandex
@@ -22,7 +20,7 @@ async def yandex_search(
     return [UniMessage.text("Yandex 暂时无法使用")]
 
 
-async def search_result_filter(res: YandexResponse) -> List[UniMessage]:
+async def search_result_filter(res: YandexResponse) -> list[UniMessage]:
     url = await shorten_url(res.url)
     if not res.raw:
         return [UniMessage.text(f"Yandex 搜索结果为空\n搜索页面：{url}")]

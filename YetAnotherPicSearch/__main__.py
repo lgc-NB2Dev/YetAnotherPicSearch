@@ -4,13 +4,15 @@ import asyncio
 from contextlib import asynccontextmanager, suppress
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Literal, NoReturn, Optional, Union, overload
+from typing import Literal, NoReturn, Optional, Union, overload
 
 from cookit.loguru import logged_suppress
 from cookit.nonebot.alconna import RecallContext
 from httpx import AsyncClient
 from nonebot import logger, on_command, on_message
-from nonebot.adapters import Bot as BaseBot, Event as BaseEvent, Message as BaseMessage
+from nonebot.adapters import Bot as BaseBot
+from nonebot.adapters import Event as BaseEvent
+from nonebot.adapters import Message as BaseMessage
 from nonebot.exception import ActionFailed, FinishedException
 from nonebot.matcher import current_bot, current_event, current_matcher
 from nonebot.params import _command, _command_arg
@@ -47,7 +49,7 @@ class SearchArgs:
     purge: bool = False
 
 
-async def extract_images(msg: UniMsg) -> List[Image]:
+async def extract_images(msg: UniMsg) -> list[Image]:
     if Reply in msg and isinstance((raw_reply := msg[Reply, 0].msg), BaseMessage):
         msg = await UniMessage.generate(message=raw_reply)
     return msg[Image]
@@ -119,7 +121,7 @@ async def extract_search_args() -> SearchArgs:
     return args
 
 
-async def get_images_from_ev(msg: UniMessage) -> List[Image]:
+async def get_images_from_ev(msg: UniMessage) -> list[Image]:
     m = current_matcher.get()
     state = m.state
 
@@ -165,7 +167,7 @@ async def should_display_favorite(target: Target) -> bool:
 
 
 async def send_msgs(
-    msgs: List[UniMessage],
+    msgs: list[UniMessage],
     target: Target,
     index: Optional[int] = None,
     display_fav: bool = False,
@@ -174,7 +176,7 @@ async def send_msgs(
         if index:
             m = UniMessage.text(f"第 {index} 张图片的搜索结果：\n") + m
 
-        should_remove: List[str] = []
+        should_remove: list[str] = []
         if not display_fav:
             should_remove.append("❤️ 已收藏\n")
         for txt in should_remove:
@@ -285,7 +287,7 @@ async def handle_single_image(
         return
     file = post_image_process(file)
 
-    messages: List[UniMessage] = []
+    messages: list[UniMessage] = []
     func = registered_search_func[mode].func
     while True:
         res = await func(file, client, mode)

@@ -1,5 +1,5 @@
 import math
-from typing import Any, Dict
+from typing import Any
 
 from httpx import AsyncClient
 from nonebot_plugin_alconna.uniseg import UniMessage
@@ -57,5 +57,5 @@ async def whatanime_search(
     return [UniMessage.text("WhatAnime 暂时无法使用")]
 
 
-def date_to_str(date: Dict[str, Any]) -> str:
+def date_to_str(date: dict[str, Any]) -> str:
     return f"{date['year']}-{date['month']}-{date['day']}"

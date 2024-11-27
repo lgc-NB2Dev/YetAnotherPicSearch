@@ -1,7 +1,7 @@
 import itertools
 import re
 from collections import defaultdict
-from typing import Any, Dict, List, cast
+from typing import Any, cast
 
 import arrow
 from httpx import AsyncClient
@@ -48,10 +48,10 @@ async def ehentai_search(
     return [UniMessage.text("EHentai 暂时无法使用")]
 
 
-async def ehentai_title_search(title: str) -> List[UniMessage]:
+async def ehentai_title_search(title: str) -> list[UniMessage]:
     query = preprocess_search_query(title)
     url = "https://exhentai.org" if config.exhentai_cookies else "https://e-hentai.org"
-    params: Dict[str, Any] = {"f_search": query}
+    params: dict[str, Any] = {"f_search": query}
 
     async with AsyncClient(
         headers=DEFAULT_HEADERS,
@@ -78,7 +78,7 @@ async def ehentai_title_search(title: str) -> List[UniMessage]:
 
 async def search_result_filter(
     res: EHentaiResponse,
-) -> List[UniMessage]:
+) -> list[UniMessage]:
     url = await shorten_url(res.url)
     if not res.raw:
         return [UniMessage.text(f"EHentai 搜索结果为空\n搜索页面：{url}")]

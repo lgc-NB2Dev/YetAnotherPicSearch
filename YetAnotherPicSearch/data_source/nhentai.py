@@ -1,4 +1,4 @@
-from typing import List, cast
+from typing import cast
 
 import arrow
 from httpx import AsyncClient
@@ -51,7 +51,7 @@ async def update_nhentai_info(item: NHentaiItem) -> None:
         ]
 
 
-async def nhentai_title_search(title: str) -> List[UniMessage]:
+async def nhentai_title_search(title: str) -> list[UniMessage]:
     query = preprocess_search_query(title)
     url = "https://nhentai.net/search/"
     params = {"q": query}
@@ -70,7 +70,7 @@ async def nhentai_title_search(title: str) -> List[UniMessage]:
         return [UniMessage.text("NHentai 暂时无法使用")]
 
 
-async def search_result_filter(res: NHentaiResponse) -> List[UniMessage]:
+async def search_result_filter(res: NHentaiResponse) -> list[UniMessage]:
     url = await shorten_url(res.url)
     if not res.raw:
         return [UniMessage.text(f"NHentai 搜索结果为空\n搜索页面：{url}")]
