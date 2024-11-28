@@ -5,7 +5,7 @@ from typing import cast
 from cookit import flatten
 from cookit.loguru import logged_suppress
 from httpx import AsyncClient, HTTPStatusError
-from nonebot_plugin_alconna.uniseg import Segment, UniMessage
+from nonebot_plugin_alconna.uniseg import UniMessage
 from PicImageSearch import Ascii2D
 from PicImageSearch.model import Ascii2DResponse
 
@@ -27,7 +27,7 @@ async def ascii2d_search(
         return [UniMessage.text("Ascii2D 暂时无法使用")]
 
     resp_text, resp_url, _ = await ascii2d_color.get(
-        re.sub(r"(/|%2F)color", r"\1bovw", color_res.url)
+        re.sub(r"(/|%2F)color", r"\1bovw", color_res.url),
     )
     bovw_res = Ascii2DResponse(resp_text, resp_url)
     # 去除 bovw_res 中已经存在于 color_res 的部分
@@ -44,18 +44,20 @@ async def ascii2d_search(
         get_final_res(color_res),
         get_final_res(bovw_res, bovw=True, duplicated_count=duplicated_count),
     )
-    return flatten(res)  # type: ignore
+    return flatten(res)
 
 
 async def get_final_res(
-    res: Ascii2DResponse, bovw: bool = False, duplicated_count: int = 0
-) -> list[UniMessage[Segment]]:
-    final_res_list: list[UniMessage[Segment]] = []
+    res: Ascii2DResponse,
+    bovw: bool = False,
+    duplicated_count: int = 0,
+) -> list[UniMessage]:
+    final_res_list: list[UniMessage] = []
     for r in res.raw:
         if not (r.title or r.url_list):
             continue
 
-        msg: UniMessage[Segment] = UniMessage()
+        msg = UniMessage()
         if config.hide_img:
             msg += f"预览图链接：{r.thumbnail}\n"
         else:

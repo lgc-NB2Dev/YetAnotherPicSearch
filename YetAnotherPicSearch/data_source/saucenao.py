@@ -1,7 +1,7 @@
 import re
 
 from httpx import AsyncClient
-from nonebot_plugin_alconna.uniseg import Segment, UniMessage
+from nonebot_plugin_alconna.uniseg import UniMessage
 from PicImageSearch import SauceNAO
 from PicImageSearch.model import SauceNAOItem, SauceNAOResponse
 
@@ -69,7 +69,7 @@ async def saucenao_search(
         final_res = [
             UniMessage.text("SauceNAO 暂时无法使用，自动使用 Ascii2D 进行搜索"),
         ]
-        return final_res, ascii2d_search  # type: ignore
+        return final_res, ascii2d_search
 
     selected_res = get_best_result(res, res.raw[0])
     return await get_final_res(mode, res, selected_res)
@@ -87,12 +87,16 @@ def get_best_pixiv_result(
             res.raw,
         ),
     )
-    if len(pixiv_res_list) > 1:
-        selected_res = min(
-            pixiv_res_list,
-            key=lambda x: int(re.search(r"\d+", x.url).group()),  # type: ignore
-        )
-    return selected_res
+
+    if len(pixiv_res_list) <= 1:
+        return selected_res
+
+    pixiv_id_results = [
+        (int(match.group()), result)
+        for result in pixiv_res_list
+        if (match := re.search(r"\d+", result.url))
+    ]
+    return min(pixiv_id_results)[1] if pixiv_id_results else selected_res
 
 
 def get_best_result(res: SauceNAOResponse, selected_res: SauceNAOItem) -> SauceNAOItem:
@@ -144,7 +148,7 @@ async def get_final_res(
         f"搜索页面：{res.url}",
     ]
 
-    final_res: list[UniMessage[Segment]] = []
+    final_res: list[UniMessage] = []
 
     if res.long_remaining and res.long_remaining < 10:
         final_res.append(
@@ -157,20 +161,20 @@ async def get_final_res(
         extra_res, extra_handle = await handle_saucenao_low_acc(mode, selected_res)
         final_res.extend(extra_res)
         return final_res, extra_handle
-    if selected_res.index_id in SAUCENAO_DB["doujin"]:  # type: ignore
+    if selected_res.index_id in SAUCENAO_DB["doujin"]:
         title = selected_res.title.replace("-", "")
         final_res.extend(await search_on_ehentai_and_nhentai(title))
     # 如果搜索结果为 fakku ，额外返回 ehentai 的搜索结果
     elif selected_res.index_id == SAUCENAO_DB["fakku"]:
         title = f"{selected_res.author} {selected_res.title}"
         final_res.extend(await search_on_ehentai_and_nhentai(title))
-    elif selected_res.index_id in SAUCENAO_DB["anime"]:  # type: ignore
+    elif selected_res.index_id in SAUCENAO_DB["anime"]:
         return final_res, whatanime_search
 
     return final_res, None
 
 
-async def search_on_ehentai_and_nhentai(title: str) -> list[UniMessage[Segment]]:
+async def search_on_ehentai_and_nhentai(title: str) -> list[UniMessage]:
     title_search_result = await ehentai_title_search(title)
 
     if (
@@ -189,7 +193,7 @@ async def handle_saucenao_low_acc(
     mode: str,
     selected_res: SauceNAOItem,
 ) -> SearchFunctionReturnTuple:
-    final_res: list[UniMessage[Segment]] = []
+    final_res: list[UniMessage] = []
     # 因为 saucenao 的动画搜索数据库更新不够快，所以当搜索模式为动画时额外增加 whatanime 的搜索结果
     if mode == "anime":
         return final_res, whatanime_search

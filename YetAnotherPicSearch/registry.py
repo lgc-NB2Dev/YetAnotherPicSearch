@@ -1,17 +1,18 @@
 from collections.abc import Awaitable
 from dataclasses import dataclass
 from typing import Callable, Optional, TypeVar, Union
-
-from httpx import AsyncClient
-from nonebot_plugin_alconna.uniseg import Segment, UniMessage
 from typing_extensions import TypeAlias
 
+from httpx import AsyncClient
+from nonebot_plugin_alconna.uniseg import UniMessage
+
 SearchFunctionReturnTuple: TypeAlias = tuple[
-    list[UniMessage[Segment]],
+    list[UniMessage],
     Optional["SearchFunctionType"],
 ]
 SearchFunctionReturnType: TypeAlias = Union[
-    list[UniMessage[Segment]], SearchFunctionReturnTuple
+    list[UniMessage],
+    SearchFunctionReturnTuple,
 ]
 SearchFunctionType: TypeAlias = Callable[
     [bytes, AsyncClient, str],

@@ -3,7 +3,7 @@ from typing import cast
 import arrow
 from httpx import AsyncClient
 from lxml.html import HTMLParser, fromstring
-from nonebot_plugin_alconna.uniseg import Segment, UniMessage
+from nonebot_plugin_alconna.uniseg import UniMessage
 from pyquery import PyQuery
 
 from ..config import config
@@ -51,7 +51,7 @@ async def update_nhentai_info(item: NHentaiItem) -> None:
         ]
 
 
-async def nhentai_title_search(title: str) -> list[UniMessage[Segment]]:
+async def nhentai_title_search(title: str) -> list[UniMessage]:
     query = preprocess_search_query(title)
     url = "https://nhentai.net/search/"
     params = {"q": query}
@@ -70,7 +70,7 @@ async def nhentai_title_search(title: str) -> list[UniMessage[Segment]]:
         return [UniMessage.text("NHentai 暂时无法使用")]
 
 
-async def search_result_filter(res: NHentaiResponse) -> list[UniMessage[Segment]]:
+async def search_result_filter(res: NHentaiResponse) -> list[UniMessage]:
     url = await shorten_url(res.url)
     if not res.raw:
         return [UniMessage.text(f"NHentai 搜索结果为空\n搜索页面：{url}")]
@@ -99,4 +99,4 @@ async def search_result_filter(res: NHentaiResponse) -> list[UniMessage[Segment]
         f"来源：{selected_res.url}",
         f"搜索页面：{url}",
     ]
-    return [combine_message(res_list)]  # type: ignore
+    return [combine_message(res_list)]

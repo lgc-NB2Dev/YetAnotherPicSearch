@@ -13,18 +13,17 @@ from typing import (
     TypeVar,
     Union,
 )
+from typing_extensions import ParamSpec
 
 import arrow
 from cookit.loguru import logged_suppress
 from httpx import URL, AsyncClient, HTTPStatusError, InvalidURL
 from nonebot.matcher import current_bot, current_event, current_matcher
-from nonebot_plugin_alconna.uniseg import Image as ImageSeg
-from nonebot_plugin_alconna.uniseg import Segment, UniMessage, image_fetch
+from nonebot_plugin_alconna.uniseg import Image as ImageSeg, UniMessage, image_fetch
 from PicImageSearch.model.ehentai import EHentaiItem, EHentaiResponse
 from PIL import Image
 from pyquery import PyQuery
 from tenacity import TryAgain, retry, stop_after_attempt, stop_after_delay
-from typing_extensions import ParamSpec
 
 from .config import config
 from .nhentai_model import NHentaiItem, NHentaiResponse
@@ -94,7 +93,7 @@ async def handle_img(
     url: str,
     hide_img: bool = config.hide_img,
     cookies: Optional[str] = None,
-) -> UniMessage[Segment]:
+) -> UniMessage:
     if not hide_img:
         with logged_suppress("Failed to get image", HTTPStatusError):
             return UniMessage.image(raw=await get_image_bytes_by_url(url, cookies))
@@ -113,12 +112,14 @@ def handle_source(source: str) -> str:
 
 
 def parse_source(resp_text: str, host: str) -> Optional[str]:
-    if host in ["danbooru.donmai.us", "gelbooru.com"]:
-        return PyQuery(resp_text)(".image-container").attr("data-normalized-source")  # type: ignore
+    if host in {"danbooru.donmai.us", "gelbooru.com"}:
+        source = PyQuery(resp_text)(".image-container").attr("data-normalized-source")
+        return str(source) if source else None
 
-    if host in ["yande.re", "konachan.com"]:
+    if host in {"yande.re", "konachan.com"}:
         source = PyQuery(resp_text)("#post_source").attr("value")
-        return source or PyQuery(resp_text)('a[href^="/pool/show/"]').text()  # type: ignore
+        pool_text = PyQuery(resp_text)('a[href^="/pool/show/"]').text() or ""
+        return str(source) or str(pool_text)
 
     return ""
 
@@ -175,20 +176,20 @@ async def shorten_url(url: str) -> str:
     if host == "danbooru.donmai.us":
         return confuse_url(url.replace("/post/show/", "/posts/"))
 
-    if host in [
+    if host in {
         "e-hentai.org",
         "exhentai.org",
         "graph.baidu.com",
         "nhentai.net",
         "www.google.com",
         "yandex.com",
-    ]:
+    }:
         flag = len(url) > 1024
         async with AsyncClient(headers=DEFAULT_HEADERS) as session:
             if not flag:
                 resp = await session.post("https://yww.uy/shorten", json={"url": url})
                 if resp.status_code < 400:
-                    return resp.json()["url"]  # type: ignore
+                    return resp.json()["url"]
                 flag = True
             if flag:
                 resp = await session.post(
@@ -249,19 +250,22 @@ def preprocess_search_query(query: str) -> str:
     return query.strip()
 
 
+T_Item = TypeVar("T_Item", EHentaiItem, NHentaiItem)
+T_Response = TypeVar("T_Response", EHentaiResponse, NHentaiResponse)
+
+
 def filter_results_with_ratio(
-    res: Union[EHentaiResponse, NHentaiResponse],
+    res: T_Response,
     title: str,
-) -> Union[list[EHentaiItem], list[NHentaiItem]]:
+) -> list[T_Item]:
     raw_with_ratio = [
         (i, SequenceMatcher(lambda x: x == " ", title, i.title).ratio())
         for i in res.raw
     ]
     raw_with_ratio.sort(key=operator.itemgetter(1), reverse=True)
 
-    if filtered := [i[0] for i in raw_with_ratio if i[1] > 0.65]:
-        return filtered
-    return [i[0] for i in raw_with_ratio]
+    filtered = [i[0] for i in raw_with_ratio if i[1] > 0.65]
+    return filtered or [i[0] for i in raw_with_ratio]  # type: ignore
 
 
 def get_valid_url(url: str) -> Optional[URL]:
@@ -273,10 +277,10 @@ def get_valid_url(url: str) -> Optional[URL]:
 
 
 def combine_message(
-    msg_list: Iterable[Union[UniMessage[Segment], str, None]],
+    msg_list: Iterable[Union[UniMessage, str, None]],
     join: Optional[str] = "\n",
-) -> UniMessage[Segment]:
-    msg: UniMessage[Segment] = UniMessage()
+) -> UniMessage:
+    msg = UniMessage()
     for i, it in enumerate(msg_list):
         if not it:
             continue

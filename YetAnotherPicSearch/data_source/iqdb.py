@@ -1,5 +1,5 @@
 from httpx import AsyncClient
-from nonebot_plugin_alconna.uniseg import Segment, UniMessage
+from nonebot_plugin_alconna.uniseg import UniMessage
 from PicImageSearch import Iqdb
 
 from ..config import config
@@ -30,7 +30,7 @@ async def iqdb_search(
             ascii2d_search,
         )
 
-    final_res: list[UniMessage[Segment]] = []
+    final_res: list[UniMessage] = []
     # 如果遇到搜索结果相似度低的情况，去除第一个只有提示信息的空结果
     low_acc = False
     if res.raw[0].content == "No relevant matches":
@@ -60,7 +60,7 @@ async def iqdb_search(
         source,
         f"搜索页面：{res.url}",
     ]
-    final_res.append(combine_message(res_list))  # type: ignore
+    final_res.append(combine_message(res_list))
 
     if low_acc and config.auto_use_ascii2d:
         final_res.append(

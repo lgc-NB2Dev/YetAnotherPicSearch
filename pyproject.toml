@@ -47,7 +47,7 @@ repository = "https://github.com/lgc-NB2Dev/YetAnotherPicSearch"
 socks = ["httpx[socks]>=0.27.0"]
 
 [dependency-groups]
-dev = ["black>=24.10.0", "mypy>=1.13.0", "pre-commit>=4.0.1", "ruff>=0.8.0"]
+dev = ["basedpyright>=1.22.0", "black>=24.10.0", "pre-commit>=4.0.1", "ruff>=0.8.0"]
 
 [build-system]
 requires = ["pdm-backend"]
@@ -60,24 +60,97 @@ path = "YetAnotherPicSearch/__init__.py"
 [tool.pdm.build]
 includes = ["YetAnotherPicSearch"]
 
-[tool.mypy]
-python_version = "3.9"
-ignore_missing_imports = true
-implicit_reexport = true
-pretty = true
-show_error_codes = true
-strict = true
+[tool.basedpyright]
+pythonVersion = "3.9"
+typeCheckingMode = "standard"
+reportShadowedImports = false
 
 [tool.ruff]
 target-version = "py39"
 line-length = 120
 
-[tool.ruff.lint]
-select = ["F", "E", "W", "I", "UP"]
+[tool.ruff.format]
+docstring-code-format = true
+line-ending = "lf"
 
-[tool.ruff.lint.per-file-ignores]
-"__init__.py" = ["F401"]
-"*.py" = ["N813"]
+[tool.ruff.lint]
+preview = true
+select = [
+    "A",
+    "ANN001",
+    "ARG",
+    "ASYNC",
+    "B",
+    "C4",
+    "COM",
+    "DTZ",
+    "E",
+    "F",
+    "FBT",
+    "FLY",
+    "FURB",
+    "I",
+    "ISC",
+    "N",
+    "NPY",
+    "PERF",
+    "PGH",
+    "PIE",
+    "PL",
+    "PT",
+    "PTH",
+    "PYI",
+    "Q",
+    "RET",
+    "RSE",
+    "RUF",
+    "S",
+    "SIM",
+    "SLF",
+    "SLOT",
+    "TRY",
+    "UP",
+    "W",
+    "YTT",
+]
+ignore = [
+    "B008",
+    "B905",
+    "E501",
+    "F821",
+    "FBT001",
+    "FBT002",
+    "ISC001",
+    "PERF203",
+    "PGH003",
+    "PLC04",
+    "PLC2701",
+    "PLR09",
+    "PLR1702",
+    "PLR2004",
+    "PLR6301",
+    "PLW0603",
+    "PLW1641",
+    "PLW2901",
+    "RUF001",
+    "RUF002",
+    "RUF003",
+    "RUF006",
+    "RUF029",
+    "RUF100",
+    "S101",
+    "S311",
+    "S404",
+    "SIM117",
+    "TRY002",
+    "TRY003",
+]
+
+[tool.ruff.lint.isort]
+combine-as-imports = true
+detect-same-package = true
+extra-standard-library = ["typing_extensions"]
+split-on-trailing-comma = true
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"

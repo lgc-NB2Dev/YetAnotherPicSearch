@@ -5,7 +5,7 @@ from typing import Any, cast
 
 import arrow
 from httpx import AsyncClient
-from nonebot_plugin_alconna.uniseg import Segment, UniMessage
+from nonebot_plugin_alconna.uniseg import UniMessage
 from PicImageSearch import EHentai
 from PicImageSearch.model import EHentaiResponse
 from pyquery import PyQuery
@@ -48,7 +48,7 @@ async def ehentai_search(
     return [UniMessage.text("EHentai 暂时无法使用")]
 
 
-async def ehentai_title_search(title: str) -> list[UniMessage[Segment]]:
+async def ehentai_title_search(title: str) -> list[UniMessage]:
     query = preprocess_search_query(title)
     url = "https://exhentai.org" if config.exhentai_cookies else "https://e-hentai.org"
     params: dict[str, Any] = {"f_search": query}
@@ -78,7 +78,7 @@ async def ehentai_title_search(title: str) -> list[UniMessage[Segment]]:
 
 async def search_result_filter(
     res: EHentaiResponse,
-) -> list[UniMessage[Segment]]:
+) -> list[UniMessage]:
     url = await shorten_url(res.url)
     if not res.raw:
         return [UniMessage.text(f"EHentai 搜索结果为空\n搜索页面：{url}")]
@@ -150,8 +150,10 @@ async def search_result_filter(
 
 
 def get_star_rating(css_style: str) -> float:
-    x, y = re.search(r"(-?\d+)px (-\d+)px", css_style).groups()  # type: ignore
-    star_rating = 5 - int(x.rstrip("px")) / -16
-    if y == "-21px":
-        star_rating -= 0.5
-    return star_rating
+    if match := re.search(r"(-?\d+)px (-\d+)px", css_style):
+        x, y = match.groups()
+        star_rating = 5 - int(x.rstrip("px")) / -16
+        if y == "-21px":
+            star_rating -= 0.5
+        return star_rating
+    return 0

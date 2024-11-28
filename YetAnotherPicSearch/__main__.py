@@ -5,15 +5,13 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager, suppress
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Literal, NoReturn, Optional, Union, overload
+from typing import NoReturn, Optional, Union, overload
 
 from cookit.loguru import logged_suppress
 from cookit.nonebot.alconna import RecallContext
 from httpx import AsyncClient
 from nonebot import logger, on_command, on_message
-from nonebot.adapters import Bot as BaseBot
-from nonebot.adapters import Event as BaseEvent
-from nonebot.adapters import Message as BaseMessage
+from nonebot.adapters import Bot as BaseBot, Event as BaseEvent, Message as BaseMessage
 from nonebot.exception import ActionFailed, FinishedException
 from nonebot.matcher import current_bot, current_event, current_matcher
 from nonebot.params import _command, _command_arg
@@ -27,11 +25,11 @@ from nonebot_plugin_alconna.uniseg import (
     MsgTarget,
     Reference,
     Reply,
-    Segment,
     SerializeFailed,
     Target,
     Text,
     UniMessage,
+    UniMsg,
 )
 from nonebot_plugin_waiter import waiter
 from PicImageSearch import Network
@@ -50,7 +48,7 @@ class SearchArgs:
     purge: bool = False
 
 
-async def extract_images(msg: UniMessage[Segment]) -> list[Image]:
+async def extract_images(msg: UniMsg) -> list[Image]:
     if Reply in msg and isinstance((raw_reply := msg[Reply, 0].msg), BaseMessage):
         msg = await UniMessage.generate(message=raw_reply)
     return msg[Image]
@@ -60,7 +58,7 @@ async def rule_func_search_msg(
     bot: BaseBot,
     ev: BaseEvent,
     state: T_State,
-    msg: UniMessage[Segment],
+    msg: UniMsg,
     target: MsgTarget,
 ) -> bool:
     if target.private:
@@ -101,7 +99,7 @@ async def extract_search_args() -> SearchArgs:
         return False
 
     async def send_help(arg: str) -> bool:
-        if arg in ("-h", "--help"):
+        if arg in {"-h", "--help"}:
             await UniMessage.image(
                 raw=(Path(__file__).parent / "res" / "usage.jpg").read_bytes(),
             ).finish(reply_to=True)
@@ -122,7 +120,7 @@ async def extract_search_args() -> SearchArgs:
     return args
 
 
-async def get_images_from_ev(msg: UniMessage[Segment]) -> list[Image]:
+async def get_images_from_ev(msg: UniMessage) -> list[Image]:
     m = current_matcher.get()
     state = m.state
 
@@ -130,8 +128,8 @@ async def get_images_from_ev(msg: UniMessage[Segment]) -> list[Image]:
     if images:
         return images
 
-    @waiter(waits=["message"], keep_session=True)  # type: ignore
-    async def wait_msg(msg: UniMessage[Segment]) -> UniMessage[Segment]:
+    @waiter(waits=["message"], keep_session=True)
+    async def wait_msg(msg: UniMsg) -> UniMsg:
         return msg
 
     waited_msg = await wait_msg.wait(
@@ -149,7 +147,8 @@ async def get_images_from_ev(msg: UniMessage[Segment]) -> list[Image]:
 
 @asynccontextmanager
 async def fail_with_msg(
-    msg: Union[UniMessage[Segment], str], should_finish: bool = True
+    msg: Union[UniMessage, str],
+    should_finish: bool = True,
 ) -> AsyncIterator[None]:
     try:
         yield
@@ -169,12 +168,12 @@ async def should_display_favorite(target: Target) -> bool:
 
 
 async def send_msgs(
-    msgs: list[UniMessage[Segment]],
+    msgs: list[UniMessage],
     target: Target,
     index: Optional[int] = None,
     display_fav: bool = False,
 ) -> None:
-    def pre_process_msg(m: UniMessage[Segment]) -> UniMessage[Segment]:
+    def pre_process_msg(m: UniMessage) -> UniMessage:
         if index:
             m = UniMessage.text(f"第 {index} 张图片的搜索结果：\n") + m
 
@@ -241,7 +240,7 @@ def make_cache_key(mode: str, seg: Image, raw: bytes) -> str: ...
 def make_cache_key(
     mode: str,
     seg: Image,
-    raw: Literal[None] = None,
+    raw: None = None,
 ) -> Optional[str]: ...
 def make_cache_key(mode: str, seg: Image, raw: Optional[bytes] = None) -> Optional[str]:
     if seg.id:
@@ -288,21 +287,19 @@ async def handle_single_image(
         return
     file = post_image_process(file)
 
-    messages: list[UniMessage[Segment]] = []
+    search_results: list[UniMessage] = []
     search_func = registered_search_func[mode].func
-    while True:
-        res = await search_func(file, client, mode)
-        msgs, next_func = res if isinstance(res, tuple) else (res, None)
-        messages.extend([x.copy() for x in msgs])
-        await send_msgs(msgs, target, index, display_fav)
-        if next_func is None:
-            break
-        search_func = next_func
 
-    msg_cache[cache_key] = messages
+    while search_func is not None:
+        result = await search_func(file, client, mode)
+        messages, search_func = result if isinstance(result, tuple) else (result, None)
+        search_results.extend([msg.copy() for msg in messages])
+        await send_msgs(messages, target, index, display_fav)
+
+    msg_cache[cache_key] = search_results
 
 
-async def search_handler(msg: UniMessage[Segment], target: MsgTarget) -> None:
+async def search_handler(msg: UniMsg, target: MsgTarget) -> None:
     arg = await extract_search_args()
     images = await get_images_from_ev(msg)
 
