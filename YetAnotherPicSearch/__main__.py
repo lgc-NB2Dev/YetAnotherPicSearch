@@ -32,7 +32,6 @@ from nonebot_plugin_alconna.uniseg import (
     Target,
     Text,
     UniMessage,
-    UniMsg,
 )
 from nonebot_plugin_waiter import waiter
 from PicImageSearch import Network
@@ -51,7 +50,7 @@ class SearchArgs:
     purge: bool = False
 
 
-async def extract_images(msg: UniMsg[Segment]) -> list[Image]:
+async def extract_images(msg: UniMessage[Segment]) -> list[Image]:
     if Reply in msg and isinstance((raw_reply := msg[Reply, 0].msg), BaseMessage):
         msg = await UniMessage.generate(message=raw_reply)
     return msg[Image]
@@ -61,7 +60,7 @@ async def rule_func_search_msg(
     bot: BaseBot,
     ev: BaseEvent,
     state: T_State,
-    msg: UniMsg[Segment],
+    msg: UniMessage[Segment],
     target: MsgTarget,
 ) -> bool:
     if target.private:
@@ -132,7 +131,7 @@ async def get_images_from_ev(msg: UniMessage[Segment]) -> list[Image]:
         return images
 
     @waiter(waits=["message"], keep_session=True)  # type: ignore
-    async def wait_msg(msg: UniMsg[Segment]) -> UniMsg[Segment]:
+    async def wait_msg(msg: UniMessage[Segment]) -> UniMessage[Segment]:
         return msg
 
     waited_msg = await wait_msg.wait(
@@ -303,7 +302,7 @@ async def handle_single_image(
     msg_cache[cache_key] = messages
 
 
-async def search_handler(msg: UniMsg[Segment], target: MsgTarget) -> None:
+async def search_handler(msg: UniMessage[Segment], target: MsgTarget) -> None:
     arg = await extract_search_args()
     images = await get_images_from_ev(msg)
 
