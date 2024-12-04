@@ -18,9 +18,7 @@ from ..utils import (
 )
 
 NHENTAI_HEADERS = (
-    {"User-Agent": config.nhentai_useragent}
-    if config.nhentai_cookies and config.nhentai_useragent
-    else None
+    {"User-Agent": config.nhentai_useragent} if config.nhentai_cookies and config.nhentai_useragent else None
 )
 NHENTAI_COOKIES = parse_cookies(config.nhentai_cookies)
 
@@ -37,18 +35,11 @@ async def update_nhentai_info(item: NHentaiItem) -> None:
         item.origin = data
         item.title = cast(
             str,
-            (
-                data.find("h2.title").text()
-                if data.find("h2.title")
-                else data.find("h1.title").text()
-            ),
+            (data.find("h2.title").text() if data.find("h2.title") else data.find("h1.title").text()),
         )
         item.type = cast(str, data.find('#tags a[href^="/category/"] .name').text())
         item.date = cast(str, data.find("#tags time").attr("datetime"))
-        item.tags = [
-            cast(str, i.text())
-            for i in data.find('#tags a:not([href*="/search/?q=pages"]) .name').items()
-        ]
+        item.tags = [cast(str, i.text()) for i in data.find('#tags a:not([href*="/search/?q=pages"]) .name').items()]
 
 
 async def nhentai_title_search(title: str) -> list[UniMessage]:
@@ -79,9 +70,7 @@ async def search_result_filter(res: NHentaiResponse) -> list[UniMessage]:
         await update_nhentai_info(i)
 
     # 优先找汉化版；没找到就优先找原版
-    if chinese_res := [
-        i for i in res.raw if "translated" in i.tags and "chinese" in i.tags
-    ]:
+    if chinese_res := [i for i in res.raw if "translated" in i.tags and "chinese" in i.tags]:
         selected_res = chinese_res[0]
     elif not_translated_res := [i for i in res.raw if "translated" not in i.tags]:
         selected_res = not_translated_res[0]

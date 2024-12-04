@@ -54,11 +54,7 @@ def post_image_process(file: bytes) -> bytes:
 async def get_image_bytes_by_url(url: str, cookies: Optional[str] = None) -> bytes:
     _url = URL(url)
     referer = f"{_url.scheme}://{_url.host}/"
-    headers = (
-        DEFAULT_HEADERS
-        if _url.host.endswith("qpic.cn")
-        else {"Referer": referer, **DEFAULT_HEADERS}
-    )
+    headers = DEFAULT_HEADERS if _url.host.endswith("qpic.cn") else {"Referer": referer, **DEFAULT_HEADERS}
     async with AsyncClient(
         headers=headers,
         cookies=parse_cookies(cookies),
@@ -223,9 +219,7 @@ def async_lock(
         async def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
             nonlocal last_call_time
             async with lock:
-                elapsed_time = arrow.now() - (
-                    last_call_time or arrow.now().shift(seconds=-freq)
-                )
+                elapsed_time = arrow.now() - (last_call_time or arrow.now().shift(seconds=-freq))
                 if elapsed_time.total_seconds() < freq:
                     await asyncio.sleep(freq - elapsed_time.total_seconds())
                 result = await func(*args, **kwargs)
@@ -258,10 +252,7 @@ def filter_results_with_ratio(
     res: T_Response,
     title: str,
 ) -> list[T_Item]:
-    raw_with_ratio = [
-        (i, SequenceMatcher(lambda x: x == " ", title, i.title).ratio())
-        for i in res.raw
-    ]
+    raw_with_ratio = [(i, SequenceMatcher(lambda x: x == " ", title, i.title).ratio()) for i in res.raw]
     raw_with_ratio.sort(key=operator.itemgetter(1), reverse=True)
 
     filtered = [i[0] for i in raw_with_ratio if i[1] > 0.65]

@@ -21,7 +21,5 @@ class NHentaiResponse:
         self.origin: str = resp_text  # 原始数据
         uft8_parser = HTMLParser(encoding="utf-8")
         data = PyQuery(fromstring(self.origin, parser=uft8_parser))
-        self.raw: list[NHentaiItem] = [
-            NHentaiItem(i) for i in data.find(".gallery").items()
-        ]
+        self.raw: list[NHentaiItem] = [NHentaiItem(i) for i in data.find(".gallery").items()]
         self.url: str = resp_url

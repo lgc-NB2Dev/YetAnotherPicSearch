@@ -69,8 +69,7 @@ async def rule_func_search_msg(
     # 指令检测在下方做了
     # 不太方便做是否回复 Bot 自己消息的判断，阉了吧
     return (not config.search_in_group_only_keyword) and (
-        ev.is_tome()
-        or any(True for x in msg if isinstance(x, At) and x.target == bot.self_id)
+        ev.is_tome() or any(True for x in msg if isinstance(x, At) and x.target == bot.self_id)
     )
 
 
@@ -105,11 +104,7 @@ async def extract_search_args() -> SearchArgs:
             ).finish(reply_to=True)
         return True
 
-    msg = (
-        _command_arg(state).extract_plain_text()
-        if _command(state)
-        else ev.get_plaintext()
-    )
+    msg = _command_arg(state).extract_plain_text() if _command(state) else ev.get_plaintext()
     for arg in msg.strip().lower().split():
         for func in (parse_mode, is_purge, send_help):
             if await func(arg):

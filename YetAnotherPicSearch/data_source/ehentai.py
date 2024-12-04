@@ -84,9 +84,7 @@ async def search_result_filter(
         return [UniMessage.text(f"EHentai 搜索结果为空\n搜索页面：{url}")]
 
     # 尝试过滤已删除的
-    if not_expunged_res := [
-        i for i in res.raw if not PyQuery(i.origin)("[id^='posted'] s")
-    ]:
+    if not_expunged_res := [i for i in res.raw if not PyQuery(i.origin)("[id^='posted'] s")]:
         res.raw = not_expunged_res
 
     # 尝试过滤无主题的杂图图集
@@ -95,9 +93,7 @@ async def search_result_filter(
 
     # 尝试过滤评分低于 3 星的
     if above_3_star_res := [
-        i
-        for i in res.raw
-        if get_star_rating(cast(str, PyQuery(i.origin)("div.ir").attr("style"))) >= 3
+        i for i in res.raw if get_star_rating(cast(str, PyQuery(i.origin)("div.ir").attr("style"))) >= 3
     ]:
         res.raw = above_3_star_res
 
@@ -117,15 +113,9 @@ async def search_result_filter(
                 res.raw = [i for i in res.raw if i not in group_list]
 
     # 优先找汉化版；没找到就优先找原版
-    if chinese_res := [
-        i
-        for i in res.raw
-        if "translated" in " ".join(i.tags) and "chinese" in " ".join(i.tags)
-    ]:
+    if chinese_res := [i for i in res.raw if "translated" in " ".join(i.tags) and "chinese" in " ".join(i.tags)]:
         selected_res = chinese_res[0]
-    elif not_translated_res := [
-        i for i in res.raw if "translated" not in " ".join(i.tags)
-    ]:
+    elif not_translated_res := [i for i in res.raw if "translated" not in " ".join(i.tags)]:
         selected_res = not_translated_res[0]
     else:
         selected_res = res.raw[0]

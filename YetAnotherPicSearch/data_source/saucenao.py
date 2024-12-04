@@ -58,11 +58,7 @@ async def saucenao_search(
         )
     res = await saucenao.search(file=file)
 
-    if (
-        res
-        and res.status == 429
-        and "4 searches every 30 seconds" in res.origin["header"]["message"]
-    ):
+    if res and res.status == 429 and "4 searches every 30 seconds" in res.origin["header"]["message"]:
         return await saucenao_search(file, client, mode)
 
     if not res or not res.raw:
@@ -81,9 +77,7 @@ def get_best_pixiv_result(
 ) -> SauceNAOItem:
     pixiv_res_list = list(
         filter(
-            lambda x: x.index_id == SAUCENAO_DB["pixiv"]
-            and x.url
-            and abs(x.similarity - selected_res.similarity) < 5,
+            lambda x: x.index_id == SAUCENAO_DB["pixiv"] and x.url and abs(x.similarity - selected_res.similarity) < 5,
             res.raw,
         ),
     )
@@ -92,9 +86,7 @@ def get_best_pixiv_result(
         return selected_res
 
     pixiv_id_results = [
-        (int(match.group()), result)
-        for result in pixiv_res_list
-        if (match := re.search(r"\d+", result.url))
+        (int(match.group()), result) for result in pixiv_res_list if (match := re.search(r"\d+", result.url))
     ]
     return min(pixiv_id_results)[1] if pixiv_id_results else selected_res
 
@@ -117,11 +109,7 @@ async def get_final_res(
     selected_res: SauceNAOItem,
 ) -> SearchFunctionReturnType:
     low_acc = selected_res.similarity < config.saucenao_low_acc
-    hide_img = bool(
-        config.hide_img
-        or selected_res.hidden
-        or (low_acc and config.hide_img_when_low_acc),
-    )
+    hide_img = bool(config.hide_img or selected_res.hidden or (low_acc and config.hide_img_when_low_acc))
 
     thumbnail = await handle_img(selected_res.thumbnail, hide_img)
 
