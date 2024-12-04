@@ -71,7 +71,7 @@ async def get_final_res(
         if r.url_list and title == r.url_list[0].text:
             title = ""
 
-        source = r.url or (cast(str, r.url_list[0].href) if r.url_list else "")
+        source = r.url or (cast("str", r.url_list[0].href) if r.url_list else "")
         source = await shorten_url(source) if source else ""
 
         author = r.author

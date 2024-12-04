@@ -1,19 +1,22 @@
 import base64
+from typing import TYPE_CHECKING
 
-from httpx import AsyncClient
 from nonebot_plugin_alconna.uniseg import UniMessage
 from PicImageSearch import Google
-from PicImageSearch.model import GoogleResponse
 
 from ..registry import SearchFunctionReturnType, search_function
 from ..utils import async_lock, combine_message, shorten_url
+
+if TYPE_CHECKING:
+    from httpx import AsyncClient
+    from PicImageSearch.model import GoogleResponse
 
 
 @search_function("google")
 @async_lock()
 async def google_search(
     file: bytes,
-    client: AsyncClient,
+    client: "AsyncClient",
     _: str,
 ) -> SearchFunctionReturnType:
     google = Google(client=client)
@@ -22,7 +25,7 @@ async def google_search(
     return [UniMessage.text("Google 暂时无法使用")]
 
 
-async def search_result_filter(res: GoogleResponse) -> list[UniMessage]:
+async def search_result_filter(res: "GoogleResponse") -> list[UniMessage]:
     url = await shorten_url(res.url)
     if not res.raw:
         return [UniMessage.text(f"Google 搜索结果为空\n搜索页面：{url}")]

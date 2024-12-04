@@ -38,7 +38,7 @@ class MessageCacheManager(MutableMapping[str, Optional[list[UniMessage]]]):
         data = None
         with logged_suppress("Failed to dump message cache"):
             dumped = [x.dump(media_save_dir=False) for x in value]
-            data = cast(bytes, msgpack.packb(dumped))
+            data = cast("bytes", msgpack.packb(dumped))
         if data:
             self.cache[key] = data
 

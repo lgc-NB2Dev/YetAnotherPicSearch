@@ -1,9 +1,8 @@
 import re
+from typing import TYPE_CHECKING
 
-from httpx import AsyncClient
 from nonebot_plugin_alconna.uniseg import UniMessage
 from PicImageSearch import SauceNAO
-from PicImageSearch.model import SauceNAOItem, SauceNAOResponse
 
 from ..config import config
 from ..registry import (
@@ -24,6 +23,10 @@ from .ehentai import ehentai_title_search
 from .nhentai import nhentai_title_search
 from .whatanime import whatanime_search
 
+if TYPE_CHECKING:
+    from httpx import AsyncClient
+    from PicImageSearch.model import SauceNAOItem, SauceNAOResponse
+
 SAUCENAO_DB = {
     "all": 999,
     "pixiv": 5,
@@ -38,7 +41,7 @@ SAUCENAO_DB = {
 @async_lock(freq=8)
 async def saucenao_search(
     file: bytes,
-    client: AsyncClient,
+    client: "AsyncClient",
     mode: str,
 ) -> SearchFunctionReturnType:
     db = SAUCENAO_DB[mode]
@@ -72,9 +75,9 @@ async def saucenao_search(
 
 
 def get_best_pixiv_result(
-    res: SauceNAOResponse,
-    selected_res: SauceNAOItem,
-) -> SauceNAOItem:
+    res: "SauceNAOResponse",
+    selected_res: "SauceNAOItem",
+) -> "SauceNAOItem":
     pixiv_res_list = list(
         filter(
             lambda x: x.index_id == SAUCENAO_DB["pixiv"] and x.url and abs(x.similarity - selected_res.similarity) < 5,
@@ -91,7 +94,7 @@ def get_best_pixiv_result(
     return min(pixiv_id_results)[1] if pixiv_id_results else selected_res
 
 
-def get_best_result(res: SauceNAOResponse, selected_res: SauceNAOItem) -> SauceNAOItem:
+def get_best_result(res: "SauceNAOResponse", selected_res: "SauceNAOItem") -> "SauceNAOItem":
     # 如果结果为 pixiv ，尝试找到原始投稿，避免返回盗图者的投稿
     if selected_res.index_id == SAUCENAO_DB["pixiv"]:
         selected_res = get_best_pixiv_result(res, selected_res)
@@ -105,8 +108,8 @@ def get_best_result(res: SauceNAOResponse, selected_res: SauceNAOItem) -> SauceN
 
 async def get_final_res(
     mode: str,
-    res: SauceNAOResponse,
-    selected_res: SauceNAOItem,
+    res: "SauceNAOResponse",
+    selected_res: "SauceNAOItem",
 ) -> SearchFunctionReturnType:
     low_acc = selected_res.similarity < config.saucenao_low_acc
     hide_img = bool(config.hide_img or selected_res.hidden or (low_acc and config.hide_img_when_low_acc))
@@ -179,7 +182,7 @@ async def search_on_ehentai_and_nhentai(title: str) -> list[UniMessage]:
 
 async def handle_saucenao_low_acc(
     mode: str,
-    selected_res: SauceNAOItem,
+    selected_res: "SauceNAOItem",
 ) -> SearchFunctionReturnTuple:
     final_res: list[UniMessage] = []
     # 因为 saucenao 的动画搜索数据库更新不够快，所以当搜索模式为动画时额外增加 whatanime 的搜索结果

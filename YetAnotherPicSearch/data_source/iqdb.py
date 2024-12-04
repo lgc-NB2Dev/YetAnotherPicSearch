@@ -1,4 +1,5 @@
-from httpx import AsyncClient
+from typing import TYPE_CHECKING
+
 from nonebot_plugin_alconna.uniseg import UniMessage
 from PicImageSearch import Iqdb
 
@@ -14,12 +15,15 @@ from ..utils import (
 )
 from .ascii2d import ascii2d_search
 
+if TYPE_CHECKING:
+    from httpx import AsyncClient
+
 
 @search_function("iqdb")
 @async_lock()
 async def iqdb_search(
     file: bytes,
-    client: AsyncClient,
+    client: "AsyncClient",
     _: str,
 ) -> SearchFunctionReturnType:
     iqdb = Iqdb(client=client)

@@ -34,12 +34,12 @@ async def update_nhentai_info(item: NHentaiItem) -> None:
         data = PyQuery(fromstring(resp.text, parser=uft8_parser))
         item.origin = data
         item.title = cast(
-            str,
+            "str",
             (data.find("h2.title").text() if data.find("h2.title") else data.find("h1.title").text()),
         )
-        item.type = cast(str, data.find('#tags a[href^="/category/"] .name').text())
-        item.date = cast(str, data.find("#tags time").attr("datetime"))
-        item.tags = [cast(str, i.text()) for i in data.find('#tags a:not([href*="/search/?q=pages"]) .name').items()]
+        item.type = cast("str", data.find('#tags a[href^="/category/"] .name').text())
+        item.date = cast("str", data.find("#tags time").attr("datetime"))
+        item.tags = [cast("str", i.text()) for i in data.find('#tags a:not([href*="/search/?q=pages"]) .name').items()]
 
 
 async def nhentai_title_search(title: str) -> list[UniMessage]:

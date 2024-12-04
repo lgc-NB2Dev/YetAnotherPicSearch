@@ -93,7 +93,7 @@ async def search_result_filter(
 
     # 尝试过滤评分低于 3 星的
     if above_3_star_res := [
-        i for i in res.raw if get_star_rating(cast(str, PyQuery(i.origin)("div.ir").attr("style"))) >= 3
+        i for i in res.raw if get_star_rating(cast("str", PyQuery(i.origin)("div.ir").attr("style"))) >= 3
     ]:
         res.raw = above_3_star_res
 

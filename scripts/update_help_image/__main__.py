@@ -1,16 +1,12 @@
 import asyncio
 from pathlib import Path
-from typing import Literal, Union, cast
+from typing import TYPE_CHECKING, Literal, Union, cast
 
 import nonebot
-from nonebot.drivers.none import Driver as NoneDriver
-from nonebot_plugin_htmlrender.data_source import (
-    TEMPLATES_PATH,
-    env,
-    get_new_page,
-    markdown,
-    read_tpl,
-)
+from nonebot_plugin_htmlrender.data_source import TEMPLATES_PATH, env, get_new_page, markdown, read_tpl
+
+if TYPE_CHECKING:
+    from nonebot.drivers.none import Driver as NoneDriver
 
 
 async def md_to_pic(
@@ -80,7 +76,7 @@ async def _():
     help_img = await md_to_pic(help_md, type="jpeg")
     help_img_path.write_bytes(help_img)
 
-    cast(NoneDriver, driver).exit()
+    cast("NoneDriver", driver).exit()
 
 
 nonebot.run()

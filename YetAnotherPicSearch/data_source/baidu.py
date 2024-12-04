@@ -1,16 +1,20 @@
-from httpx import AsyncClient
+from typing import TYPE_CHECKING
+
 from nonebot_plugin_alconna.uniseg import UniMessage
 from PicImageSearch import BaiDu
 
 from ..registry import SearchFunctionReturnType, search_function
 from ..utils import async_lock, combine_message, handle_img, shorten_url
 
+if TYPE_CHECKING:
+    from httpx import AsyncClient
+
 
 @search_function("baidu")
 @async_lock()
 async def baidu_search(
     file: bytes,
-    client: AsyncClient,
+    client: "AsyncClient",
     _: str,
 ) -> SearchFunctionReturnType:
     baidu = BaiDu(client=client)

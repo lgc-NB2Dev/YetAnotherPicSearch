@@ -1,17 +1,21 @@
-from httpx import AsyncClient
+from typing import TYPE_CHECKING
+
 from nonebot_plugin_alconna.uniseg import UniMessage
 from PicImageSearch import Yandex
-from PicImageSearch.model import YandexResponse
 
 from ..registry import SearchFunctionReturnType, search_function
 from ..utils import async_lock, combine_message, handle_img, shorten_url
+
+if TYPE_CHECKING:
+    from httpx import AsyncClient
+    from PicImageSearch.model import YandexResponse
 
 
 @search_function("yandex")
 @async_lock()
 async def yandex_search(
     file: bytes,
-    client: AsyncClient,
+    client: "AsyncClient",
     _: str,
 ) -> SearchFunctionReturnType:
     yandex = Yandex(client=client)
@@ -20,7 +24,7 @@ async def yandex_search(
     return [UniMessage.text("Yandex 暂时无法使用")]
 
 
-async def search_result_filter(res: YandexResponse) -> list[UniMessage]:
+async def search_result_filter(res: "YandexResponse") -> list[UniMessage]:
     url = await shorten_url(res.url)
     if not res.raw:
         return [UniMessage.text(f"Yandex 搜索结果为空\n搜索页面：{url}")]

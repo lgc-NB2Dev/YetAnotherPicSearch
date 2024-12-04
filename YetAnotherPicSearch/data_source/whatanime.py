@@ -1,21 +1,24 @@
 import math
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from httpx import AsyncClient
 from nonebot_plugin_alconna.uniseg import UniMessage
 from PicImageSearch import TraceMoe
 
 from ..config import config
-from ..registry import SearchFunctionReturnType
 from ..utils import async_lock, combine_message, handle_img
+
+if TYPE_CHECKING:
+    from httpx import AsyncClient
+
+    from ..registry import SearchFunctionReturnType
 
 
 @async_lock()
 async def whatanime_search(
     file: bytes,
-    client: AsyncClient,
+    client: "AsyncClient",
     _: str,
-) -> SearchFunctionReturnType:
+) -> "SearchFunctionReturnType":
     whatanime = TraceMoe(client=client)
     res = await whatanime.search(file=file)
     if res and res.raw:
