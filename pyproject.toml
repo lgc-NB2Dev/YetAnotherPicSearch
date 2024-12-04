@@ -47,7 +47,7 @@ repository = "https://github.com/lgc-NB2Dev/YetAnotherPicSearch"
 socks = ["httpx[socks]>=0.27.0"]
 
 [dependency-groups]
-dev = ["basedpyright>=1.22.0", "black>=24.10.0", "pre-commit>=4.0.1", "ruff>=0.8.0"]
+dev = ["basedpyright>=1.22.0", "pre-commit>=4.0.1", "ruff>=0.8.0"]
 
 [build-system]
 requires = ["pdm-backend"]
@@ -86,13 +86,16 @@ select = [
     "DTZ",
     "E",
     "F",
+    "FAST",
     "FBT",
     "FLY",
     "FURB",
     "I",
+    "INP",
     "ISC",
     "N",
     "NPY",
+    "PD",
     "PERF",
     "PGH",
     "PIE",
@@ -108,6 +111,7 @@ select = [
     "SIM",
     "SLF",
     "SLOT",
+    "TC",
     "TRY",
     "UP",
     "W",
@@ -144,6 +148,7 @@ ignore = [
     "SIM117",
     "TRY002",
     "TRY003",
+    "W505",
 ]
 
 [tool.ruff.lint.isort]
@@ -151,6 +156,10 @@ combine-as-imports = true
 detect-same-package = true
 extra-standard-library = ["typing_extensions"]
 split-on-trailing-comma = true
+
+[tool.ruff.lint.flake8-type-checking]
+exempt-modules = ["typing", "typing_extensions", "collections"]
+quote-annotations = true
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
