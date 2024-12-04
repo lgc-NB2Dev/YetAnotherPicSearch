@@ -15,6 +15,7 @@ from nonebot.exception import ActionFailed, FinishedException
 from nonebot.matcher import current_bot, current_event, current_matcher
 from nonebot.params import _command, _command_arg
 from nonebot.permission import SUPERUSER
+from nonebot.typing import T_State
 from nonebot_plugin_alconna.uniseg import (
     At,
     CustomNode,
@@ -39,7 +40,6 @@ from .utils import get_image_from_seg, post_image_process
 
 if TYPE_CHECKING:
     from httpx import AsyncClient
-    from nonebot.typing import T_State
 
 KEY_IMAGES = "images"
 
@@ -59,7 +59,7 @@ async def extract_images(msg: UniMsg) -> list[Image]:
 async def rule_func_search_msg(
     bot: BaseBot,
     ev: BaseEvent,
-    state: "T_State",
+    state: T_State,
     msg: UniMsg,
     target: MsgTarget,
 ) -> bool:
