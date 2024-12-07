@@ -56,7 +56,7 @@ async def ehentai_title_search(title: str) -> list[UniMessage]:
     async with AsyncClient(
         headers=DEFAULT_HEADERS,
         cookies=parse_cookies(config.exhentai_cookies),
-        proxies=config.proxy,
+        proxy=config.proxy,
     ) as session:
         resp = await session.get(url, params=params)
         if res := EHentaiResponse(resp.text, str(resp.url)):

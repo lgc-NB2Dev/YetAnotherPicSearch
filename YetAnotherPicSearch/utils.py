@@ -58,7 +58,7 @@ async def get_image_bytes_by_url(url: str, cookies: Optional[str] = None) -> byt
     async with AsyncClient(
         headers=headers,
         cookies=parse_cookies(cookies),
-        proxies=config.proxy,
+        proxy=config.proxy,
         follow_redirects=True,
     ) as session:
         resp = await session.get(url)
@@ -132,7 +132,7 @@ async def get_source(url: str) -> str:
     headers = None if host == "danbooru.donmai.us" else DEFAULT_HEADERS
     async with AsyncClient(
         headers=headers,
-        proxies=config.proxy,
+        proxy=config.proxy,
         follow_redirects=True,
     ) as session:
         resp = await session.get(url)

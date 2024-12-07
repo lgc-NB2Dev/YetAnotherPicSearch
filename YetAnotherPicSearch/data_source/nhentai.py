@@ -27,7 +27,7 @@ async def update_nhentai_info(item: NHentaiItem) -> None:
     async with AsyncClient(
         headers=NHENTAI_HEADERS,
         cookies=NHENTAI_COOKIES,
-        proxies=config.proxy,
+        proxy=config.proxy,
     ) as session:
         resp = await session.get(item.url)
         uft8_parser = HTMLParser(encoding="utf-8")
@@ -49,7 +49,7 @@ async def nhentai_title_search(title: str) -> list[UniMessage]:
     async with AsyncClient(
         headers=NHENTAI_HEADERS,
         cookies=NHENTAI_COOKIES,
-        proxies=config.proxy,
+        proxy=config.proxy,
     ) as session:
         resp = await session.get(url, params=params)
         if res := NHentaiResponse(resp.text, str(resp.url)):
