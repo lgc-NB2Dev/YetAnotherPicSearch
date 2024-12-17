@@ -89,7 +89,7 @@ files = [
 
 [[package]]
 name = "basedpyright"
-version = "1.22.1"
+version = "1.23.0"
 requires_python = ">=3.8"
 summary = "static type checking for Python (but based)"
 groups = ["dev"]
@@ -97,8 +97,8 @@ dependencies = [
     "nodejs-wheel-binaries>=20.13.1",
 ]
 files = [
-    {file = "basedpyright-1.22.1-py3-none-any.whl", hash = "sha256:b25597757400ec082b1099eb99f0fc74857ff4dcd7caa198bf1e236d17214ebf"},
-    {file = "basedpyright-1.22.1.tar.gz", hash = "sha256:f7a2d0e49c7d375ce9e02a7c235536e824833c9df89c2ca7e605ab1a2995808f"},
+    {file = "basedpyright-1.23.0-py3-none-any.whl", hash = "sha256:b5610028c25034e94edc2e0d541860bc8d14f39697f274f2c8b2bbd05aab1f07"},
+    {file = "basedpyright-1.23.0.tar.gz", hash = "sha256:157021460eadb534fd1f32f9d5cfcd728c2e2d71500548f163e22789892567bd"},
 ]
 
 [[package]]
@@ -767,18 +767,18 @@ files = [
 
 [[package]]
 name = "picimagesearch"
-version = "3.11.2"
+version = "3.11.3"
 requires_python = ">=3.9"
 summary = "PicImageSearch APIs for Python 3.x 适用于 Python 3 以图搜源整合API"
 groups = ["default"]
 dependencies = [
-    "httpx[http2]>=0.27.2",
+    "httpx[http2]>=0.28.1",
     "lxml>=5.3.0",
     "pyquery>=2.0.1",
 ]
 files = [
-    {file = "picimagesearch-3.11.2-py3-none-any.whl", hash = "sha256:789dc7885dc5c23089388410d52a13b861abb1140442f36eaa0983c6d3e5b69b"},
-    {file = "picimagesearch-3.11.2.tar.gz", hash = "sha256:1e2e3cd0785a25cb738eb512e25d9bde4ce4bc0e4d69fc9a3768a1a100ffa4e3"},
+    {file = "picimagesearch-3.11.3-py3-none-any.whl", hash = "sha256:622baac45e744159a9ed8ba187b7630ca0598eb2cfc20d024ec39377605537cf"},
+    {file = "picimagesearch-3.11.3.tar.gz", hash = "sha256:fdd5582702d6577fbf9ccbd2baffaf03d7a272bd8002f784a548d760bc4359be"},
 ]
 
 [[package]]
