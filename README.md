@@ -167,7 +167,7 @@ plugins = [
 暂无
 -->
 
-### student_2333
+### LgCookie
 
 QQ：3076823485  
 Telegram：[@lgc2333](https://t.me/lgc2333)  

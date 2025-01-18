@@ -2,7 +2,7 @@
 name = "scripts"
 version = "0.1.0"
 description = ""
-authors = [{ name = "student_2333", email = "lgc2333@126.com" }]
+authors = [{ name = "LgCookie", email = "lgc2333@126.com" }]
 dependencies = ["nonebot2>=2.3.2", "nonebot-plugin-htmlrender>=0.3.3"]
 requires-python = ">=3.9"
 license = { text = "GPL-3.0-only" }

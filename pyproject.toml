@@ -4,7 +4,7 @@ dynamic = ["version"]
 description = "Yet Another Picture Search Nonebot Plugin"
 authors = [
     { name = "NekoAria" },
-    { name = "student_2333", email = "lgc2333@126.com" },
+    { name = "LgCookie", email = "lgc2333@126.com" },
 ]
 requires-python = ">=3.9,<4"
 dependencies = [
