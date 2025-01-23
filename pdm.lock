@@ -731,7 +731,7 @@ files = [
 
 [[package]]
 name = "nonebot-plugin-waiter"
-version = "0.8.0"
+version = "0.8.1"
 requires_python = ">=3.9"
 summary = "An alternative for got-and-reject in Nonebot"
 groups = ["default"]
@@ -739,8 +739,8 @@ dependencies = [
     "nonebot2>=2.3.0",
 ]
 files = [
-    {file = "nonebot_plugin_waiter-0.8.0-py3-none-any.whl", hash = "sha256:eabf284f783a1e534591a552139a747623e621453a790b554854bc8a386f783f"},
-    {file = "nonebot_plugin_waiter-0.8.0.tar.gz", hash = "sha256:b750f2a3b255ebe9ab7ce75056c1e829281d898c6da8d81552147df2b1686270"},
+    {file = "nonebot_plugin_waiter-0.8.1-py3-none-any.whl", hash = "sha256:3e1afc8f134496d3a4ecefd9c3a2a98d6ef28a5318268cb22b99a0ef61a44080"},
+    {file = "nonebot_plugin_waiter-0.8.1.tar.gz", hash = "sha256:5e54213dfea1fd8a1e20dbe6d93b7881f35cbeedf80005148cdc39c1fd2ccc0f"},
 ]
 
 [[package]]
@@ -767,7 +767,7 @@ files = [
 
 [[package]]
 name = "picimagesearch"
-version = "3.11.3"
+version = "3.11.4"
 requires_python = ">=3.9"
 summary = "PicImageSearch APIs for Python 3.x 适用于 Python 3 以图搜源整合API"
 groups = ["default"]
@@ -777,8 +777,8 @@ dependencies = [
     "pyquery>=2.0.1",
 ]
 files = [
-    {file = "picimagesearch-3.11.3-py3-none-any.whl", hash = "sha256:622baac45e744159a9ed8ba187b7630ca0598eb2cfc20d024ec39377605537cf"},
-    {file = "picimagesearch-3.11.3.tar.gz", hash = "sha256:fdd5582702d6577fbf9ccbd2baffaf03d7a272bd8002f784a548d760bc4359be"},
+    {file = "picimagesearch-3.11.4-py3-none-any.whl", hash = "sha256:c61570f170280f236045af547d0f4cdb8f956d598cf8498b8a7a98569641a6ba"},
+    {file = "picimagesearch-3.11.4.tar.gz", hash = "sha256:69a938e5f9b9231ad7db6feaf786694e9796cc65fb6606d91aa180e677f70ab0"},
 ]
 
 [[package]]
