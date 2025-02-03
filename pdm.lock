@@ -137,52 +137,51 @@ files = [
 
 [[package]]
 name = "cookit"
-version = "0.8.5"
+version = "0.9.1"
 requires_python = "<4.0,>=3.9"
 summary = "A toolkit for self use."
 groups = ["default"]
 dependencies = [
-    "fleep>=1.0.1",
     "typing-extensions>=4.12.2",
 ]
 files = [
-    {file = "cookit-0.8.5-py3-none-any.whl", hash = "sha256:0b4ee7cd45e8a098bc356264e92590fa13409dc93de59ade2339639ba2d78141"},
-    {file = "cookit-0.8.5.tar.gz", hash = "sha256:1b8c62eeb28d5502abb2d5594cdf4c3f6cadaa8897c1f0640675badc579581f7"},
+    {file = "cookit-0.9.1-py3-none-any.whl", hash = "sha256:913f2e4f05aec31283e9551d86f5940360c0ef40fe75deb5c819cbd174d52559"},
+    {file = "cookit-0.9.1.tar.gz", hash = "sha256:6a1d3434e1f0765576e1bd7db284673aeed9533914be321f322e94ba6b12add1"},
 ]
 
 [[package]]
 name = "cookit"
-version = "0.8.5"
+version = "0.9.1"
 extras = ["loguru", "nonebot-alconna", "pydantic"]
 requires_python = "<4.0,>=3.9"
 summary = "A toolkit for self use."
 groups = ["default"]
 dependencies = [
-    "cookit==0.8.5",
+    "cookit==0.9.1",
     "cookit[nonebot-base]",
     "loguru>=0.7.2",
     "nonebot-plugin-alconna>=0.54.0",
     "pydantic!=2.5.0,!=2.5.1,<3.0.0,>=1.10.0",
 ]
 files = [
-    {file = "cookit-0.8.5-py3-none-any.whl", hash = "sha256:0b4ee7cd45e8a098bc356264e92590fa13409dc93de59ade2339639ba2d78141"},
-    {file = "cookit-0.8.5.tar.gz", hash = "sha256:1b8c62eeb28d5502abb2d5594cdf4c3f6cadaa8897c1f0640675badc579581f7"},
+    {file = "cookit-0.9.1-py3-none-any.whl", hash = "sha256:913f2e4f05aec31283e9551d86f5940360c0ef40fe75deb5c819cbd174d52559"},
+    {file = "cookit-0.9.1.tar.gz", hash = "sha256:6a1d3434e1f0765576e1bd7db284673aeed9533914be321f322e94ba6b12add1"},
 ]
 
 [[package]]
 name = "cookit"
-version = "0.8.5"
+version = "0.9.1"
 extras = ["nonebot-base"]
 requires_python = "<4.0,>=3.9"
 summary = "A toolkit for self use."
 groups = ["default"]
 dependencies = [
-    "cookit==0.8.5",
+    "cookit==0.9.1",
     "nonebot2>=2.4.0",
 ]
 files = [
-    {file = "cookit-0.8.5-py3-none-any.whl", hash = "sha256:0b4ee7cd45e8a098bc356264e92590fa13409dc93de59ade2339639ba2d78141"},
-    {file = "cookit-0.8.5.tar.gz", hash = "sha256:1b8c62eeb28d5502abb2d5594cdf4c3f6cadaa8897c1f0640675badc579581f7"},
+    {file = "cookit-0.9.1-py3-none-any.whl", hash = "sha256:913f2e4f05aec31283e9551d86f5940360c0ef40fe75deb5c819cbd174d52559"},
+    {file = "cookit-0.9.1.tar.gz", hash = "sha256:6a1d3434e1f0765576e1bd7db284673aeed9533914be321f322e94ba6b12add1"},
 ]
 
 [[package]]
@@ -226,16 +225,6 @@ groups = ["dev"]
 files = [
     {file = "filelock-3.16.1-py3-none-any.whl", hash = "sha256:2082e5703d51fbf98ea75855d9d5527e33d8ff23099bec374a134febee6946b0"},
     {file = "filelock-3.16.1.tar.gz", hash = "sha256:c249fbfcd5db47e5e2d6d62198e565475ee65e4831e2561c8e313fa7eb961435"},
-]
-
-[[package]]
-name = "fleep"
-version = "1.0.1"
-requires_python = ">=3.1"
-summary = "File format determination library"
-groups = ["default"]
-files = [
-    {file = "fleep-1.0.1.tar.gz", hash = "sha256:c8f62b258ee5364d7f6c1ed1f3f278e99020fc3f0a60a24ad1e10846e31d104c"},
 ]
 
 [[package]]
