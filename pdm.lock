@@ -137,7 +137,7 @@ files = [
 
 [[package]]
 name = "cookit"
-version = "0.9.3"
+version = "0.9.4"
 requires_python = "<4.0,>=3.9"
 summary = "A toolkit for self use."
 groups = ["default"]
@@ -145,43 +145,43 @@ dependencies = [
     "typing-extensions>=4.12.2",
 ]
 files = [
-    {file = "cookit-0.9.3-py3-none-any.whl", hash = "sha256:bcda202f9b6bbc7739ee613a5742b2189cb134d73e54dd61178881676b431dbf"},
-    {file = "cookit-0.9.3.tar.gz", hash = "sha256:68e6fce24bc7c0481b0aefb41e517b5c8744e371d87fe2a89c627c006a7b1ea8"},
+    {file = "cookit-0.9.4-py3-none-any.whl", hash = "sha256:4e23162e410d79ff24c5952672bcac803c754a25b43b8d9164b0bd43f0a1878f"},
+    {file = "cookit-0.9.4.tar.gz", hash = "sha256:a3b7ff407164980be8cc9b03b7fd28ae86ae3f6dce1e5426fc0d19f26fdc2764"},
 ]
 
 [[package]]
 name = "cookit"
-version = "0.9.3"
+version = "0.9.4"
 extras = ["loguru", "nonebot-alconna", "pydantic"]
 requires_python = "<4.0,>=3.9"
 summary = "A toolkit for self use."
 groups = ["default"]
 dependencies = [
-    "cookit==0.9.3",
+    "cookit==0.9.4",
     "cookit[nonebot-base]",
-    "loguru>=0.7.2",
-    "nonebot-plugin-alconna>=0.54.0",
+    "loguru>=0.7.3",
+    "nonebot-plugin-alconna>=0.54.2",
     "pydantic!=2.5.0,!=2.5.1,<3.0.0,>=1.10.0",
 ]
 files = [
-    {file = "cookit-0.9.3-py3-none-any.whl", hash = "sha256:bcda202f9b6bbc7739ee613a5742b2189cb134d73e54dd61178881676b431dbf"},
-    {file = "cookit-0.9.3.tar.gz", hash = "sha256:68e6fce24bc7c0481b0aefb41e517b5c8744e371d87fe2a89c627c006a7b1ea8"},
+    {file = "cookit-0.9.4-py3-none-any.whl", hash = "sha256:4e23162e410d79ff24c5952672bcac803c754a25b43b8d9164b0bd43f0a1878f"},
+    {file = "cookit-0.9.4.tar.gz", hash = "sha256:a3b7ff407164980be8cc9b03b7fd28ae86ae3f6dce1e5426fc0d19f26fdc2764"},
 ]
 
 [[package]]
 name = "cookit"
-version = "0.9.3"
+version = "0.9.4"
 extras = ["nonebot-base"]
 requires_python = "<4.0,>=3.9"
 summary = "A toolkit for self use."
 groups = ["default"]
 dependencies = [
-    "cookit==0.9.3",
-    "nonebot2>=2.4.0",
+    "cookit==0.9.4",
+    "nonebot2>=2.4.1",
 ]
 files = [
-    {file = "cookit-0.9.3-py3-none-any.whl", hash = "sha256:bcda202f9b6bbc7739ee613a5742b2189cb134d73e54dd61178881676b431dbf"},
-    {file = "cookit-0.9.3.tar.gz", hash = "sha256:68e6fce24bc7c0481b0aefb41e517b5c8744e371d87fe2a89c627c006a7b1ea8"},
+    {file = "cookit-0.9.4-py3-none-any.whl", hash = "sha256:4e23162e410d79ff24c5952672bcac803c754a25b43b8d9164b0bd43f0a1878f"},
+    {file = "cookit-0.9.4.tar.gz", hash = "sha256:a3b7ff407164980be8cc9b03b7fd28ae86ae3f6dce1e5426fc0d19f26fdc2764"},
 ]
 
 [[package]]
