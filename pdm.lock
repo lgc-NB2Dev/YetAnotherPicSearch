@@ -89,7 +89,7 @@ files = [
 
 [[package]]
 name = "basedpyright"
-version = "1.27.0"
+version = "1.27.1"
 requires_python = ">=3.8"
 summary = "static type checking for Python (but based)"
 groups = ["dev"]
@@ -97,8 +97,8 @@ dependencies = [
     "nodejs-wheel-binaries>=20.13.1",
 ]
 files = [
-    {file = "basedpyright-1.27.0-py3-none-any.whl", hash = "sha256:4c71641ab808ca5a30fa1df26c9842b870b08847696a8a5f9072a6a4e914542d"},
-    {file = "basedpyright-1.27.0.tar.gz", hash = "sha256:7394c6f8eb08bc8c45caeb00f75bc815b518d1345e25436ae3046b93ba1ddbb0"},
+    {file = "basedpyright-1.27.1-py3-none-any.whl", hash = "sha256:9f3647c1c8a0fc3d0a08b2156768ff717322f1e78d1b45686597093824a8f0d3"},
+    {file = "basedpyright-1.27.1.tar.gz", hash = "sha256:ddbe226c154c973a954626ce9ecb3b3a59df9d68bbab0e3f82a6c2c7b29616df"},
 ]
 
 [[package]]
