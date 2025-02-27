@@ -89,7 +89,7 @@ files = [
 
 [[package]]
 name = "basedpyright"
-version = "1.27.1"
+version = "1.28.0"
 requires_python = ">=3.8"
 summary = "static type checking for Python (but based)"
 groups = ["dev"]
@@ -97,8 +97,8 @@ dependencies = [
     "nodejs-wheel-binaries>=20.13.1",
 ]
 files = [
-    {file = "basedpyright-1.27.1-py3-none-any.whl", hash = "sha256:9f3647c1c8a0fc3d0a08b2156768ff717322f1e78d1b45686597093824a8f0d3"},
-    {file = "basedpyright-1.27.1.tar.gz", hash = "sha256:ddbe226c154c973a954626ce9ecb3b3a59df9d68bbab0e3f82a6c2c7b29616df"},
+    {file = "basedpyright-1.28.0-py3-none-any.whl", hash = "sha256:1ccd73a9925b45ff567ce597605e77a01dee7450e0bed4510da3222eb5020329"},
+    {file = "basedpyright-1.28.0.tar.gz", hash = "sha256:d321b4866975c85dd30fb5f976cabde771065cccfc0307bdc95caaeefe2e5b97"},
 ]
 
 [[package]]
@@ -137,7 +137,7 @@ files = [
 
 [[package]]
 name = "cookit"
-version = "0.9.7"
+version = "0.9.8"
 requires_python = "<4.0,>=3.9"
 summary = "A toolkit for self use."
 groups = ["default"]
@@ -145,43 +145,43 @@ dependencies = [
     "typing-extensions>=4.12.2",
 ]
 files = [
-    {file = "cookit-0.9.7-py3-none-any.whl", hash = "sha256:8a62ea3d17261e38fc44456b278e45aa66b5147b81f5dd3dc980283b14baaddd"},
-    {file = "cookit-0.9.7.tar.gz", hash = "sha256:7fd639fcd272489d8791d9b9cf52e94ae3e4aed2316eaa5d0bc89a2d843c64a7"},
+    {file = "cookit-0.9.8-py3-none-any.whl", hash = "sha256:86f0b3846406f1695297510caf5bfdee24e86089219b8ba12febd29570e54b71"},
+    {file = "cookit-0.9.8.tar.gz", hash = "sha256:3a56504c35af2ab19997768d2af57f4809d744df2af349d7bd9a71343a237f87"},
 ]
 
 [[package]]
 name = "cookit"
-version = "0.9.7"
+version = "0.9.8"
 extras = ["loguru", "nonebot-alconna", "pydantic"]
 requires_python = "<4.0,>=3.9"
 summary = "A toolkit for self use."
 groups = ["default"]
 dependencies = [
-    "cookit==0.9.7",
+    "cookit==0.9.8",
     "cookit[nonebot-base]",
     "loguru>=0.7.3",
     "nonebot-plugin-alconna>=0.54.2",
     "pydantic!=2.5.0,!=2.5.1,<3.0.0,>=1.10.0",
 ]
 files = [
-    {file = "cookit-0.9.7-py3-none-any.whl", hash = "sha256:8a62ea3d17261e38fc44456b278e45aa66b5147b81f5dd3dc980283b14baaddd"},
-    {file = "cookit-0.9.7.tar.gz", hash = "sha256:7fd639fcd272489d8791d9b9cf52e94ae3e4aed2316eaa5d0bc89a2d843c64a7"},
+    {file = "cookit-0.9.8-py3-none-any.whl", hash = "sha256:86f0b3846406f1695297510caf5bfdee24e86089219b8ba12febd29570e54b71"},
+    {file = "cookit-0.9.8.tar.gz", hash = "sha256:3a56504c35af2ab19997768d2af57f4809d744df2af349d7bd9a71343a237f87"},
 ]
 
 [[package]]
 name = "cookit"
-version = "0.9.7"
+version = "0.9.8"
 extras = ["nonebot-base"]
 requires_python = "<4.0,>=3.9"
 summary = "A toolkit for self use."
 groups = ["default"]
 dependencies = [
-    "cookit==0.9.7",
+    "cookit==0.9.8",
     "nonebot2>=2.4.1",
 ]
 files = [
-    {file = "cookit-0.9.7-py3-none-any.whl", hash = "sha256:8a62ea3d17261e38fc44456b278e45aa66b5147b81f5dd3dc980283b14baaddd"},
-    {file = "cookit-0.9.7.tar.gz", hash = "sha256:7fd639fcd272489d8791d9b9cf52e94ae3e4aed2316eaa5d0bc89a2d843c64a7"},
+    {file = "cookit-0.9.8-py3-none-any.whl", hash = "sha256:86f0b3846406f1695297510caf5bfdee24e86089219b8ba12febd29570e54b71"},
+    {file = "cookit-0.9.8.tar.gz", hash = "sha256:3a56504c35af2ab19997768d2af57f4809d744df2af349d7bd9a71343a237f87"},
 ]
 
 [[package]]
