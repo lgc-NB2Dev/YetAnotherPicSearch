@@ -12,6 +12,7 @@ class ConfigModel(BaseModel):
 
     saucenao_api_key: str
     ascii2d_base_url: Annotated[str, HttpUrl] = "https://ascii2d.net"
+    hide_ascii2d_base_url: bool = False
     exhentai_cookies: Optional[str] = None
     nhentai_useragent: Optional[str] = None
     nhentai_cookies: Optional[str] = None
