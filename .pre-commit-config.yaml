@@ -2,11 +2,13 @@ minimum_pre_commit_version: "3.5.0"
 files: ^.*\.py$
 repos:
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: 'v0.8.0'
+    rev: 'v0.9.10'
     hooks:
+      # resolve COM812, fotmat -> fix -> format
+      - id: ruff-format
+        types_or: [ python, pyi ]
       - id: ruff
         args: [ --fix ]
-  - repo: https://github.com/psf/black
-    rev: 24.10.0
-    hooks:
-      - id: black
+        types_or: [ python, pyi ]
+      - id: ruff-format
+        types_or: [ python, pyi ]
