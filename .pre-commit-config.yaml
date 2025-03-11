@@ -4,7 +4,7 @@ repos:
   - repo: https://github.com/charliermarsh/ruff-pre-commit
     rev: 'v0.9.10'
     hooks:
-      # resolve COM812, fotmat -> fix -> format
+      # resolve COM812, format -> fix -> format
       - id: ruff-format
         types_or: [ python, pyi ]
       - id: ruff
