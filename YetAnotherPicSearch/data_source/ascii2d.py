@@ -1,6 +1,7 @@
 import asyncio
 import re
 from typing import cast
+from urllib.parse import unquote
 
 from cookit import flatten
 from cookit.loguru import logged_suppress
@@ -33,7 +34,9 @@ async def ascii2d_search(
     # 去除 bovw_res 中已经存在于 color_res 的部分
     color_res_origin_list = [str(i.origin) for i in color_res.raw]
     duplicated_raw = [
-        i for i in bovw_res.raw if (str(i.origin) in color_res_origin_list and any(i.title or i.url_list))
+        i
+        for i in bovw_res.raw
+        if (str(i.origin) in color_res_origin_list and any(i.title or i.url_list))
     ]
     duplicated_count = len(duplicated_raw)
     bovw_res.raw = [i for i in bovw_res.raw if i not in duplicated_raw]
@@ -91,11 +94,21 @@ async def get_final_res(
         if len(final_res_list) == 3:
             break
 
+    res_url = (
+        unquote(res.url).replace(config.ascii2d_base_url, "https://ascii2d.net")
+        if config.hide_ascii2d_base_url
+        else res.url
+    )
+
     return [
         UniMessage.text(
             f"Ascii2D {'特徴' if bovw else '色合'}検索結果"
-            + (f" (已去除与特徴検索結果重复的 {duplicated_count} 个结果)" if duplicated_count else "")
-            + f"\n搜索页面：{await shorten_url(res.url)}",
+            + (
+                f" (已去除与特徴検索結果重复的 {duplicated_count} 个结果)"
+                if duplicated_count
+                else ""
+            )
+            + f"\n搜索页面：{await shorten_url(res_url)}",
         ),
         *final_res_list,
     ]
