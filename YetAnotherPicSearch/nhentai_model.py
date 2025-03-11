@@ -9,7 +9,7 @@ class NHentaiItem:
         self.origin: PyQuery = data  # 原始数据
         self.title: str = cast("str", data.find(".caption").text())
         cover = data.find(".cover")
-        self.url: str = f'https://nhentai.net{cover.attr("href")}'
+        self.url: str = f"https://nhentai.net{cover.attr('href')}"
         self.thumbnail: str = cast("str", cover.find("img").attr("data-src"))
         self.type: str = ""
         self.date: str = ""
