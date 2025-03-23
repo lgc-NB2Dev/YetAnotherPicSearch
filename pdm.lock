@@ -137,7 +137,7 @@ files = [
 
 [[package]]
 name = "cookit"
-version = "0.10.0"
+version = "0.10.1"
 requires_python = "<4.0,>=3.9"
 summary = "A toolkit for self use."
 groups = ["default"]
@@ -145,43 +145,43 @@ dependencies = [
     "typing-extensions>=4.12.2",
 ]
 files = [
-    {file = "cookit-0.10.0-py3-none-any.whl", hash = "sha256:1cbb873236506d5f9451f4e7bb3ca70c4adbcabf874ff5f2e368f59ca5671de5"},
-    {file = "cookit-0.10.0.tar.gz", hash = "sha256:be9a2e59921d53fcaac16d134e1bdaf8f19025d7858951937acfc3f749b13d06"},
+    {file = "cookit-0.10.1-py3-none-any.whl", hash = "sha256:4751d7bc81cbd414be996abea635583d8cfa3b9c8c0e431956705ac63c2f6e98"},
+    {file = "cookit-0.10.1.tar.gz", hash = "sha256:dbac9d0307426451343cb64d73d9fe6666ca007ea3fe829c6e0206a27f5d433c"},
 ]
 
 [[package]]
 name = "cookit"
-version = "0.10.0"
+version = "0.10.1"
 extras = ["loguru", "nonebot-alconna", "pydantic"]
 requires_python = "<4.0,>=3.9"
 summary = "A toolkit for self use."
 groups = ["default"]
 dependencies = [
-    "cookit==0.10.0",
+    "cookit==0.10.1",
     "cookit[nonebot-base]",
     "loguru>=0.7.3",
     "nonebot-plugin-alconna>=0.54.2",
     "pydantic!=2.5.0,!=2.5.1,<3.0.0,>=1.10.0",
 ]
 files = [
-    {file = "cookit-0.10.0-py3-none-any.whl", hash = "sha256:1cbb873236506d5f9451f4e7bb3ca70c4adbcabf874ff5f2e368f59ca5671de5"},
-    {file = "cookit-0.10.0.tar.gz", hash = "sha256:be9a2e59921d53fcaac16d134e1bdaf8f19025d7858951937acfc3f749b13d06"},
+    {file = "cookit-0.10.1-py3-none-any.whl", hash = "sha256:4751d7bc81cbd414be996abea635583d8cfa3b9c8c0e431956705ac63c2f6e98"},
+    {file = "cookit-0.10.1.tar.gz", hash = "sha256:dbac9d0307426451343cb64d73d9fe6666ca007ea3fe829c6e0206a27f5d433c"},
 ]
 
 [[package]]
 name = "cookit"
-version = "0.10.0"
+version = "0.10.1"
 extras = ["nonebot-base"]
 requires_python = "<4.0,>=3.9"
 summary = "A toolkit for self use."
 groups = ["default"]
 dependencies = [
-    "cookit==0.10.0",
+    "cookit==0.10.1",
     "nonebot2>=2.4.1",
 ]
 files = [
-    {file = "cookit-0.10.0-py3-none-any.whl", hash = "sha256:1cbb873236506d5f9451f4e7bb3ca70c4adbcabf874ff5f2e368f59ca5671de5"},
-    {file = "cookit-0.10.0.tar.gz", hash = "sha256:be9a2e59921d53fcaac16d134e1bdaf8f19025d7858951937acfc3f749b13d06"},
+    {file = "cookit-0.10.1-py3-none-any.whl", hash = "sha256:4751d7bc81cbd414be996abea635583d8cfa3b9c8c0e431956705ac63c2f6e98"},
+    {file = "cookit-0.10.1.tar.gz", hash = "sha256:dbac9d0307426451343cb64d73d9fe6666ca007ea3fe829c6e0206a27f5d433c"},
 ]
 
 [[package]]
@@ -761,7 +761,7 @@ files = [
 
 [[package]]
 name = "picimagesearch"
-version = "3.12.1"
+version = "3.12.2"
 requires_python = ">=3.9"
 summary = "PicImageSearch APIs for Python 3.x 适用于 Python 3 以图搜源整合API"
 groups = ["default"]
@@ -771,8 +771,8 @@ dependencies = [
     "pyquery>=2.0.1",
 ]
 files = [
-    {file = "picimagesearch-3.12.1-py3-none-any.whl", hash = "sha256:85332530f37eb99c5c7732951aca072f79d4f1a829068b7262b33d63bcacfb56"},
-    {file = "picimagesearch-3.12.1.tar.gz", hash = "sha256:241ada3c3eacb9476c80096280e039b4996a78def0c1ad8ac54f142383bf4018"},
+    {file = "picimagesearch-3.12.2-py3-none-any.whl", hash = "sha256:166055900a83067f541dd85c6bb4780907df2fb87903610a90484a0197b7109c"},
+    {file = "picimagesearch-3.12.2.tar.gz", hash = "sha256:329832c264ffafed74491eed704bccd316d4d751633bf96cc8160008d89c5b9a"},
 ]
 
 [[package]]
