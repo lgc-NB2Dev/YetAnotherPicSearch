@@ -57,7 +57,10 @@ async def nhentai_title_search(title: str) -> list[UniMessage]:
             f"{config.nhentai_base_url}/search/",
             params={"q": query},
         )
-        if res := NHentaiResponse(resp.text, str(resp.url).replace(config.nhentai_base_url, "", 1)):
+        if res := NHentaiResponse(
+            resp.text,
+            str(resp.url).replace(f"{config.nhentai_base_url}/", "", 1),
+        ):
             # 只保留标题和搜索关键词相关度较高的结果，并排序，以此来提高准确度
             if res.raw:
                 res.raw = filter_results_with_ratio(res, title)
