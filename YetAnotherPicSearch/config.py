@@ -16,6 +16,8 @@ class ConfigModel(BaseModel):
     exhentai_cookies: Optional[str] = None
     nhentai_useragent: Optional[str] = None
     nhentai_cookies: Optional[str] = None
+    nhentai_base_url: Annotated[str, HttpUrl] = "https://nhentai.net"
+    hide_nhentai_base_url: bool = True
 
     saucenao_low_acc: int = 60
     auto_use_ascii2d: bool = True

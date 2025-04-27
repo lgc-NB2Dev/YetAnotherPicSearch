@@ -126,6 +126,8 @@ plugins = [
 |       `ASCII2D_BASE_URL`       |              否              | `https://ascii2d.net` |                                                                       Ascii2D Base URL \([#139](https://github.com/lgc-NB2Dev/YetAnotherPicSearch/issues/139)\)                                                                       |
 |    `HIDE_ASCII2D_BASE_URL`     |              否              |        `True`         |                                                                                    当自定义 Ascii2D Base URL 后，是否将自定义的 URL 替换回官方 URL                                                                                    |
 |       `EXHENTAI_COOKIES`       |              否              |        `None`         |             ExHentai 的 Cookies，没有的情况下自动改用 E-Hentai 搜图，获取方式参考 请参考 [PicImageSearch 文档](https://pic-image-search.kituin.fun/wiki/picimagesearch/E-hentai/DataStructure/#cookies%E8%8E%B7%E5%8F%96)             |
+|       `NHENTAI_BASE_URL`       |              否              | `https://ascii2d.net` |                                                                       NHentai Base URL \([#139](https://github.com/lgc-NB2Dev/YetAnotherPicSearch/issues/139)\)                                                                       |
+|    `HIDE_NHENTAI_BASE_URL`     |              否              |        `True`         |                                                                                    当自定义 NHentai Base URL 后，是否将自定义的 URL 替换回官方 URL                                                                                    |
 |      `NHENTAI_USERAGENT`       |              否              |        `None`         |     用来绕过 NHentai Cloudflare 拦截的 User Agent，配置后在 E-Hentai 标题搜索无结果时会自动调用 NHentai 标题搜索<br />先用配置的 `PROXY` 做代理，使用浏览器访问 NHentai 通过 CloudFlare 检测后，获取 UA 和 Cookies 填到对应配置项     |
 |       `NHENTAI_COOKIES`        |              否              |        `None`         |                                                                                           用来绕过 NHentai Cloudflare 拦截的 Cookies，同上                                                                                            |
 |          **行为配置**          |                              |                       |                                                                                                                                                                                                                                       |
@@ -193,6 +195,14 @@ Telegram：[@lgc2333](https://t.me/lgc2333)
 [![Star History](https://starchart.cc/lgc-NB2Dev/YetAnotherPicSearch.svg)](https://starchart.cc/lgc-NB2Dev/YetAnotherPicSearch)
 
 ## 📝 更新日志
+
+### 2.0.6
+
+- 添加配置 `NHENTAI_BASE_URL`、`HIDE_NHENTAI_BASE_URL`
+
+### 2.0.5
+
+- feat: 添加隐藏 ascii2d 网页反向代理地址的配置及功能 by [@iona-s](https://github.com/iona-s) in [#186](https://github.com/lgc-NB2Dev/YetAnotherPicSearch/pull/186)
 
 ### 2.0.4
 

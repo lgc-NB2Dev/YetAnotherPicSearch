@@ -157,7 +157,7 @@ def confuse_url(url: str) -> str:
     )
 
 
-async def shorten_url(url: str) -> str:
+async def shorten_url(url: str, force_shorten: bool = False) -> str:
     pid_search = re.compile(
         r"(?:pixiv.+(?:illust_id=|artworks/)|/img-original/img/(?:\d+/){6})(\d+)",
     )
@@ -172,7 +172,7 @@ async def shorten_url(url: str) -> str:
     if host == "danbooru.donmai.us":
         return confuse_url(url.replace("/post/show/", "/posts/"))
 
-    if host in {
+    if force_shorten or host in {
         "e-hentai.org",
         "exhentai.org",
         "graph.baidu.com",

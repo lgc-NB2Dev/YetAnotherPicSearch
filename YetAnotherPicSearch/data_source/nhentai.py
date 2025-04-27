@@ -23,13 +23,17 @@ NHENTAI_HEADERS = (
 NHENTAI_COOKIES = parse_cookies(config.nhentai_cookies)
 
 
+def get_nh_display_base():
+    return config.nhentai_base_url if config.hide_nhentai_base_url else "https://nhentai.net"
+
+
 async def update_nhentai_info(item: NHentaiItem) -> None:
     async with AsyncClient(
         headers=NHENTAI_HEADERS,
         cookies=NHENTAI_COOKIES,
         proxy=config.proxy,
     ) as session:
-        resp = await session.get(item.url)
+        resp = await session.get(item.with_base_url(config.nhentai_base_url))
         uft8_parser = HTMLParser(encoding="utf-8")
         data = PyQuery(fromstring(resp.text, parser=uft8_parser))
         item.origin = data
@@ -44,15 +48,16 @@ async def update_nhentai_info(item: NHentaiItem) -> None:
 
 async def nhentai_title_search(title: str) -> list[UniMessage]:
     query = preprocess_search_query(title)
-    url = "https://nhentai.net/search/"
-    params = {"q": query}
     async with AsyncClient(
         headers=NHENTAI_HEADERS,
         cookies=NHENTAI_COOKIES,
         proxy=config.proxy,
     ) as session:
-        resp = await session.get(url, params=params)
-        if res := NHentaiResponse(resp.text, str(resp.url)):
+        resp = await session.get(
+            f"{config.nhentai_base_url}/search/",
+            params={"q": query},
+        )
+        if res := NHentaiResponse(resp.text, str(resp.url).replace(config.nhentai_base_url, "", 1)):
             # 只保留标题和搜索关键词相关度较高的结果，并排序，以此来提高准确度
             if res.raw:
                 res.raw = filter_results_with_ratio(res, title)
@@ -62,7 +67,11 @@ async def nhentai_title_search(title: str) -> list[UniMessage]:
 
 
 async def search_result_filter(res: NHentaiResponse) -> list[UniMessage]:
-    url = await shorten_url(res.url)
+    display_base = get_nh_display_base()
+    url = await shorten_url(
+        res.with_base_url(display_base),
+        force_shorten=True,
+    )
     if not res.raw:
         return [UniMessage.text(f"NHentai 搜索结果为空\n搜索页面：{url}")]
 
@@ -85,7 +94,7 @@ async def search_result_filter(res: NHentaiResponse) -> list[UniMessage]:
         selected_res.title,
         f"类型：{selected_res.type}",
         f"日期：{date}",
-        f"来源：{selected_res.url}",
+        f"来源：{selected_res.with_base_url(display_base)}",
         f"搜索页面：{url}",
     ]
     return [combine_message(res_list)]
