@@ -88,10 +88,19 @@ def get_best_pixiv_result(
     if len(pixiv_res_list) <= 1:
         return selected_res
 
-    pixiv_id_results = [
-        (int(match.group()), result) for result in pixiv_res_list if (match := re.search(r"\d+", result.url))
-    ]
-    return min(pixiv_id_results)[1] if pixiv_id_results else selected_res
+    # 修复：仅比较 Pixiv ID，避免直接比较 SauceNAOItem 对象
+    pixiv_id_results = []
+    for result in pixiv_res_list:
+        if match := re.search(r"\d+", result.url):
+            pixiv_id = int(match.group())
+            pixiv_id_results.append((pixiv_id, result))
+    
+    if not pixiv_id_results:
+        return selected_res
+        
+    # 按 Pixiv ID 升序排序（最小的 ID 通常是原始作品）
+    pixiv_id_results.sort(key=lambda x: x[0])
+    return pixiv_id_results[0][1]  # 返回 ID 最小的结果
 
 
 def get_best_result(res: "SauceNAOResponse", selected_res: "SauceNAOItem") -> "SauceNAOItem":
