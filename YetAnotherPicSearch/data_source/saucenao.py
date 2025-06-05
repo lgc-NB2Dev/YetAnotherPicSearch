@@ -94,10 +94,10 @@ def get_best_pixiv_result(
         if match := re.search(r"\d+", result.url):
             pixiv_id = int(match.group())
             pixiv_id_results.append((pixiv_id, result))
-    
+
     if not pixiv_id_results:
         return selected_res
-        
+
     # 按 Pixiv ID 升序排序（最小的 ID 通常是原始作品）
     pixiv_id_results.sort(key=lambda x: x[0])
     return pixiv_id_results[0][1]  # 返回 ID 最小的结果
