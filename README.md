@@ -196,6 +196,10 @@ Telegram：[@lgc2333](https://t.me/lgc2333)
 
 ## 📝 更新日志
 
+### 2.0.7
+
+- 修复 SauceNAO 搜索时出现的一个 Bug
+
 ### 2.0.6
 
 - 添加配置 `NHENTAI_BASE_URL`、`HIDE_NHENTAI_BASE_URL`
