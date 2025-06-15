@@ -754,7 +754,7 @@ files = [
 
 [[package]]
 name = "picimagesearch"
-version = "3.12.8"
+version = "3.12.9"
 requires_python = ">=3.9"
 summary = "PicImageSearch - Aggregator for Reverse Image Search APIs"
 groups = ["default"]
@@ -764,8 +764,8 @@ dependencies = [
     "pyquery>=2.0.1",
 ]
 files = [
-    {file = "picimagesearch-3.12.8-py3-none-any.whl", hash = "sha256:a37d962a1305ed827a4210872de07897737d9113da7efd80878948e9b55d61b8"},
-    {file = "picimagesearch-3.12.8.tar.gz", hash = "sha256:e2a62c0d914895cf8887824642efb3ecc6757a521f750b9563c5ec602843f003"},
+    {file = "picimagesearch-3.12.9-py3-none-any.whl", hash = "sha256:a9e77d22166301c183eff844e907572e8a2ce409111473d5e5897f3ab20cce80"},
+    {file = "picimagesearch-3.12.9.tar.gz", hash = "sha256:22fd40e807a1ed9f653de1a56b19047c196870d6a81730f895ecc4509e5ccfb5"},
 ]
 
 [[package]]
