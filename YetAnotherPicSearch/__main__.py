@@ -29,6 +29,7 @@ from nonebot_plugin_alconna.uniseg import (
     Text,
     UniMessage,
     UniMsg,
+    get_message_id,
 )
 from nonebot_plugin_waiter import waiter
 from PicImageSearch import Network
@@ -187,7 +188,7 @@ async def send_msgs(
 
     msgs = [pre_process_msg(m) for m in msgs]
     msg_len = len(msgs)
-    reply_to: Optional[str] = UniMessage.get_message_id()
+    reply_to: Optional[str] = get_message_id()
 
     async def try_send() -> None:
         if config.forward_search_result and msg_len > 1:
