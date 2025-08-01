@@ -43,7 +43,7 @@ files = [
 
 [[package]]
 name = "arclet-alconna"
-version = "1.8.35"
+version = "1.8.40"
 requires_python = ">=3.9"
 summary = "A High-performance, Generality, Humane Command Line Arguments Parser Library."
 groups = ["default"]
@@ -53,8 +53,8 @@ dependencies = [
     "typing-extensions>=4.5.0",
 ]
 files = [
-    {file = "arclet_alconna-1.8.35-py3-none-any.whl", hash = "sha256:95d8aaf079167b24e158a0c5125dc17c671da129969dcc5f8b79a9cc72b6389c"},
-    {file = "arclet_alconna-1.8.35.tar.gz", hash = "sha256:0cdb7fbdd154110ed7fb79e2b281df6c5fc87861770301f1c0cf8af594ee95f3"},
+    {file = "arclet_alconna-1.8.40-py3-none-any.whl", hash = "sha256:ad41b9576be4f4fa0330c413c3bc662b8a41ab193e6c5d29386ed6bcff7bf91b"},
+    {file = "arclet_alconna-1.8.40.tar.gz", hash = "sha256:073155c8b098530590bd0d07164f92bc3d5e1d8da6dfb4bcc0539abbe293e2ca"},
 ]
 
 [[package]]
@@ -698,13 +698,13 @@ files = [
 
 [[package]]
 name = "nonebot-plugin-alconna"
-version = "0.59.1"
+version = "0.59.2"
 requires_python = ">=3.9"
 summary = "Alconna Adapter for Nonebot"
 groups = ["default"]
 dependencies = [
     "arclet-alconna-tools>=0.7.10",
-    "arclet-alconna<2.0,>=1.8.35",
+    "arclet-alconna<2.0,>=1.8.40",
     "importlib-metadata>=4.13.0",
     "nepattern<1.0,>=0.7.7",
     "nonebot-plugin-waiter>=0.6.0",
@@ -712,8 +712,8 @@ dependencies = [
     "tarina<0.7,>=0.6.8",
 ]
 files = [
-    {file = "nonebot_plugin_alconna-0.59.1-py3-none-any.whl", hash = "sha256:08648607fc70b49fd4279fe006736f3de0a32f71ef21a166332c70c6a1080beb"},
-    {file = "nonebot_plugin_alconna-0.59.1.tar.gz", hash = "sha256:2f45d0fe5133d5484e6d575ae80d39d5e646d5b01c21b9a2e07093ad4c337e4a"},
+    {file = "nonebot_plugin_alconna-0.59.2-py3-none-any.whl", hash = "sha256:7a8cedcf73cb9c21c88b489ca41607feec3fa477d045db7761d5c36e0d28e1c9"},
+    {file = "nonebot_plugin_alconna-0.59.2.tar.gz", hash = "sha256:b2262641319eb88299cf9c123d530cbd3358d09524a6b2447586030413d34aa4"},
 ]
 
 [[package]]
