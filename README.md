@@ -14,7 +14,7 @@
 
 _✨ 基于 [NoneBot2](https://github.com/nonebot/nonebot2) 与 [PicImageSearch](https://github.com/kitUIN/PicImageSearch) 的另一个 NoneBot 搜图插件 ✨_
 
-<img src="https://img.shields.io/badge/python-3.9+-blue.svg" alt="python">
+<img src="https://img.shields.io/badge/python-3.10+-blue.svg" alt="python">
 <a href="https://pdm.fming.dev">
   <img src="https://img.shields.io/badge/pdm-managed-blueviolet" alt="pdm-managed">
 </a>
