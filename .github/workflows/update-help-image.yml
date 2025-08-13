@@ -11,6 +11,9 @@ on:
       - 'YetAnotherPicSearch/res/usage.jpg'
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   test:
     runs-on: ubuntu-latest
