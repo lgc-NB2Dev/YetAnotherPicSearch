@@ -6,7 +6,7 @@ authors = [
     { name = "NekoAria" },
     { name = "LgCookie", email = "lgc2333@126.com" },
 ]
-requires-python = ">=3.10,<4"
+requires-python = ">=3.10"
 dependencies = [
     "nonebot2>=2.4.3",
     "nonebot-plugin-alconna>=0.59.4",
@@ -45,28 +45,25 @@ repository = "https://github.com/lgc-NB2Dev/YetAnotherPicSearch"
 
 [project.optional-dependencies]
 socks = ["httpx[socks]>=0.27.2"]
+all = ["YetAnotherPicSearch[socks]"]
 
 [dependency-groups]
 dev = ["basedpyright>=1.26.0", "pre-commit>=4.1.0", "ruff>=0.9.4"]
 
 [build-system]
-requires = ["pdm-backend"]
-build-backend = "pdm.backend"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
-[tool.pdm.version]
-source = "file"
+[tool.hatch.version]
 path = "YetAnotherPicSearch/__init__.py"
 
-[tool.pdm.build]
-includes = ["YetAnotherPicSearch"]
-
 [tool.basedpyright]
-pythonVersion = "3.9"
+pythonVersion = "3.10"
 typeCheckingMode = "standard"
 reportShadowedImports = false
 
 [tool.ruff]
-target-version = "py39"
+target-version = "py310"
 line-length = 120
 
 [tool.ruff.format]
