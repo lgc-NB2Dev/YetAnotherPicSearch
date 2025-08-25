@@ -11,4 +11,4 @@ license = { text = "GPL-3.0-only" }
 dev = ["poethepoet>=0.37.0"]
 
 [tool.poe.tasks]
-pull.script = "update_help_image"
+update-help-image.script = "update_help_image"
