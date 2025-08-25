@@ -1,6 +1,6 @@
 import asyncio
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal, Union, cast
+from typing import TYPE_CHECKING, Literal, cast
 
 import nonebot
 from nonebot_plugin_htmlrender.data_source import TEMPLATES_PATH, env, get_new_page, markdown, read_tpl
@@ -13,7 +13,7 @@ async def md_to_pic(
     md: str = "",
     extra_css: str = "",
     type: Literal["jpeg", "png"] = "png",  # noqa: A002
-    quality: Union[int, None] = None,
+    quality: int | None = None,
     device_scale_factor: float = 2,
 ) -> bytes:
     template = env.get_template("markdown.html")

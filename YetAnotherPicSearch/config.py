@@ -1,4 +1,4 @@
-from typing import Annotated, Optional
+from typing import Annotated
 
 from cookit.pyd import field_validator
 from nonebot import get_plugin_config
@@ -8,14 +8,14 @@ from pydantic import BaseModel, Field, HttpUrl
 class ConfigModel(BaseModel):
     nickname: set[str]
 
-    proxy: Optional[str] = None
+    proxy: str | None = None
 
     saucenao_api_key: str
     ascii2d_base_url: Annotated[str, HttpUrl] = "https://ascii2d.net"
     hide_ascii2d_base_url: bool = True
-    exhentai_cookies: Optional[str] = None
-    nhentai_useragent: Optional[str] = None
-    nhentai_cookies: Optional[str] = None
+    exhentai_cookies: str | None = None
+    nhentai_useragent: str | None = None
+    nhentai_cookies: str | None = None
     nhentai_base_url: Annotated[str, HttpUrl] = "https://nhentai.net"
     hide_nhentai_base_url: bool = True
 
@@ -55,7 +55,7 @@ class ConfigModel(BaseModel):
         return v.rstrip("/")
 
     @field_validator("proxy", mode="before")
-    def proxy_validator(cls, v: Optional[str]) -> Optional[str]:  # noqa: N805
+    def proxy_validator(cls, v: str | None) -> str | None:  # noqa: N805
         if isinstance(v, str) and v.startswith("socks://"):
             raise ValueError(
                 '请修改代理地址为 "socks5://" 或 "socks4://" 的格式，具体取决于你的代理协议！',

@@ -5,7 +5,7 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager, suppress
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING, NoReturn, Optional, Union, overload
+from typing import TYPE_CHECKING, NoReturn, overload
 
 from cookit.loguru import logged_suppress
 from cookit.nonebot.alconna import RecallContext
@@ -145,7 +145,7 @@ async def get_images_from_ev(msg: UniMessage) -> list[Image]:
 
 @asynccontextmanager
 async def fail_with_msg(
-    msg: Union[UniMessage, str],
+    msg: UniMessage | str,
     should_finish: bool = True,
 ) -> AsyncIterator[None]:
     try:
@@ -168,7 +168,7 @@ async def should_display_favorite(target: Target) -> bool:
 async def send_msgs(
     msgs: list[UniMessage],
     target: Target,
-    index: Optional[int] = None,
+    index: int | None = None,
     display_fav: bool = False,
 ) -> None:
     def pre_process_msg(m: UniMessage) -> UniMessage:
@@ -188,7 +188,7 @@ async def send_msgs(
 
     msgs = [pre_process_msg(m) for m in msgs]
     msg_len = len(msgs)
-    reply_to: Optional[str] = get_message_id()
+    reply_to: str | None = get_message_id()
 
     async def try_send() -> None:
         if config.forward_search_result and msg_len > 1:
@@ -239,8 +239,8 @@ def make_cache_key(
     mode: str,
     seg: Image,
     raw: None = None,
-) -> Optional[str]: ...
-def make_cache_key(mode: str, seg: Image, raw: Optional[bytes] = None) -> Optional[str]:
+) -> str | None: ...
+def make_cache_key(mode: str, seg: Image, raw: bytes | None = None) -> str | None:
     if seg.id:
         adapter_name = current_bot.get().adapter.get_name()
         base = f"id_{adapter_name}_{seg.id}"
@@ -257,10 +257,10 @@ async def handle_single_image(
     mode: str,
     purge: bool,
     target: Target,
-    index: Optional[int] = None,
+    index: int | None = None,
     display_fav: bool = False,
 ) -> None:
-    async def fetch_image(seg: Image) -> Optional[bytes]:
+    async def fetch_image(seg: Image) -> bytes | None:
         async with fail_with_msg(
             f"图片{f' {index} ' if index else ''}下载失败",
             should_finish=False,

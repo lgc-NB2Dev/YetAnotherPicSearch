@@ -1,17 +1,14 @@
 import asyncio
 import operator
 import re
-from collections.abc import Awaitable, Iterable
+from collections.abc import Awaitable, Callable, Iterable
 from contextlib import suppress
 from difflib import SequenceMatcher
 from functools import wraps
 from io import BytesIO
 from pathlib import Path
 from typing import (
-    Callable,
-    Optional,
     TypeVar,
-    Union,
 )
 from typing_extensions import ParamSpec
 
@@ -51,7 +48,7 @@ def post_image_process(file: bytes) -> bytes:
 
 
 @retry(stop=(stop_after_attempt(3) | stop_after_delay(30)), reraise=True)
-async def get_image_bytes_by_url(url: str, cookies: Optional[str] = None) -> bytes:
+async def get_image_bytes_by_url(url: str, cookies: str | None = None) -> bytes:
     _url = URL(url)
     referer = f"{_url.scheme}://{_url.host}/"
     headers = DEFAULT_HEADERS if _url.host.endswith("qpic.cn") else {"Referer": referer, **DEFAULT_HEADERS}
@@ -88,7 +85,7 @@ async def get_image_from_seg(seg: ImageSeg) -> bytes:
 async def handle_img(
     url: str,
     hide_img: bool = config.hide_img,
-    cookies: Optional[str] = None,
+    cookies: str | None = None,
 ) -> UniMessage:
     if not hide_img:
         with logged_suppress("Failed to get image", HTTPStatusError):
@@ -107,7 +104,7 @@ def handle_source(source: str) -> str:
     )
 
 
-def parse_source(resp_text: str, host: str) -> Optional[str]:
+def parse_source(resp_text: str, host: str) -> str | None:
     if host in {"danbooru.donmai.us", "gelbooru.com"}:
         source = PyQuery(resp_text)(".image-container").attr("data-normalized-source")
         return str(source) if source else None
@@ -199,7 +196,7 @@ async def shorten_url(url: str, force_shorten: bool = False) -> str:
     return confuse_url(url)
 
 
-def parse_cookies(cookies_str: Optional[str] = None) -> dict[str, str]:
+def parse_cookies(cookies_str: str | None = None) -> dict[str, str]:
     cookies_dict: dict[str, str] = {}
     if cookies_str:
         for line in cookies_str.split(";"):
@@ -213,7 +210,7 @@ def async_lock(
 ) -> Callable[[Callable[P, Awaitable[T]]], Callable[P, Awaitable[T]]]:
     def decorator(func: Callable[P, Awaitable[T]]) -> Callable[P, Awaitable[T]]:
         lock = asyncio.Lock()
-        last_call_time: Optional[arrow.Arrow] = None
+        last_call_time: arrow.Arrow | None = None
 
         @wraps(func)
         async def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
@@ -259,7 +256,7 @@ def filter_results_with_ratio(
     return filtered or [i[0] for i in raw_with_ratio]  # type: ignore
 
 
-def get_valid_url(url: str) -> Optional[URL]:
+def get_valid_url(url: str) -> URL | None:
     with suppress(InvalidURL):
         url_obj = URL(url)
         if url_obj.host:
@@ -268,8 +265,8 @@ def get_valid_url(url: str) -> Optional[URL]:
 
 
 def combine_message(
-    msg_list: Iterable[Union[UniMessage, str, None]],
-    join: Optional[str] = "\n",
+    msg_list: Iterable[UniMessage | str | None],
+    join: str | None = "\n",
 ) -> UniMessage:
     msg = UniMessage()
     for i, it in enumerate(msg_list):

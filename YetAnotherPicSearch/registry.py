@@ -1,7 +1,6 @@
-from collections.abc import Awaitable
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
-from typing import Callable, Optional, TypeVar, Union
-from typing_extensions import TypeAlias
+from typing import Optional, TypeAlias, TypeVar
 
 from httpx import AsyncClient
 from nonebot_plugin_alconna.uniseg import UniMessage
@@ -10,10 +9,7 @@ SearchFunctionReturnTuple: TypeAlias = tuple[
     list[UniMessage],
     Optional["SearchFunctionType"],
 ]
-SearchFunctionReturnType: TypeAlias = Union[
-    list[UniMessage],
-    SearchFunctionReturnTuple,
-]
+SearchFunctionReturnType: TypeAlias = list[UniMessage] | SearchFunctionReturnTuple
 SearchFunctionType: TypeAlias = Callable[
     [bytes, AsyncClient, str],
     Awaitable[SearchFunctionReturnType],

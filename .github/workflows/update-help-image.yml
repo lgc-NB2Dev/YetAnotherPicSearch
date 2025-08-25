@@ -39,7 +39,7 @@ jobs:
         run: |-
           cd scripts
           uv sync
-          poe update-help-image
+          uv poe update-help-image
 
       - name: Commit and Push
         run: |-

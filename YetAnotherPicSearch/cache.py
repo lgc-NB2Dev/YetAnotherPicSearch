@@ -1,6 +1,6 @@
 from collections.abc import Iterator, MutableMapping
 from pathlib import Path
-from typing import Any, Optional, cast
+from typing import Any, cast
 from typing_extensions import override
 
 import msgpack
@@ -14,25 +14,25 @@ from .config import config
 # but it's enough for this plugin, maybe ¯\_(ツ)_/¯
 
 
-class MessageCacheManager(MutableMapping[str, Optional[list[UniMessage]]]):
+class MessageCacheManager(MutableMapping[str, list[UniMessage] | None]):
     def __init__(
         self,
         cache_dir: Path,
-        max_size: Optional[int] = None,
-        ttl: Optional[int] = None,
+        max_size: int | None = None,
+        ttl: int | None = None,
     ) -> None:
         super().__init__()
         self.cache = FileCacheManager(cache_dir, max_size=max_size, ttl=ttl)
 
     @override
-    def __getitem__(self, key: str) -> Optional[list[UniMessage]]:
+    def __getitem__(self, key: str) -> list[UniMessage] | None:
         data = self.cache[key]
         with logged_suppress("Failed to read message cache"):
             unpacked: list[list[dict[str, Any]]] = msgpack.unpackb(data)
             return [UniMessage.load(x) for x in unpacked]
 
     @override
-    def __setitem__(self, key: str, value: Optional[list[UniMessage]]) -> None:
+    def __setitem__(self, key: str, value: list[UniMessage] | None) -> None:
         if not value:
             raise ValueError("value cannot be empty")
         data = None
