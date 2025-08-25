@@ -7,8 +7,8 @@ dependencies = ["nonebot2>=2.4.3", "nonebot-plugin-htmlrender>=0.6.6"]
 requires-python = ">=3.10"
 license = { text = "GPL-3.0-only" }
 
-[tool.pdm]
-distribution = false
+[dependency-groups]
+dev = ["poethepoet>=0.37.0"]
 
-[tool.pdm.scripts]
-update-help-image = "python -m update_help_image"
+[tool.poe.tasks]
+pull.script = "update_help_image"
