@@ -8,9 +8,9 @@ from pathlib import Path
 from typing import TYPE_CHECKING, NoReturn, overload
 
 from cookit.loguru import logged_suppress
-from cookit.nonebot.alconna import RecallContext
+from cookit.nonebot.alconna import RecallContext, extract_reply_msg
 from nonebot import logger, on_command, on_message
-from nonebot.adapters import Bot as BaseBot, Event as BaseEvent, Message as BaseMessage
+from nonebot.adapters import Bot as BaseBot, Event as BaseEvent
 from nonebot.exception import ActionFailed, FinishedException
 from nonebot.matcher import current_bot, current_event, current_matcher
 from nonebot.params import _command, _command_arg
@@ -23,7 +23,6 @@ from nonebot_plugin_alconna.uniseg import (
     Image,
     MsgTarget,
     Reference,
-    Reply,
     SerializeFailed,
     Target,
     Text,
@@ -52,8 +51,8 @@ class SearchArgs:
 
 
 async def extract_images(msg: UniMsg) -> list[Image]:
-    if Reply in msg and isinstance((raw_reply := msg[Reply, 0].msg), BaseMessage):
-        msg = await UniMessage.generate(message=raw_reply)
+    if r := extract_reply_msg(msg):
+        msg = r
     return msg[Image]
 
 
