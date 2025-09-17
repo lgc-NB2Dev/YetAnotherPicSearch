@@ -20,7 +20,7 @@ from ..utils import async_lock, combine_message, get_image_bytes_by_url, shorten
 async def ascii2d_search(
     file: bytes,
     client: AsyncClient,
-    _: str,
+    _mode: str,
 ) -> SearchFunctionReturnType:
     ascii2d_color = Ascii2D(base_url=config.ascii2d_base_url, client=client)
     color_res = await ascii2d_color.search(file=file)

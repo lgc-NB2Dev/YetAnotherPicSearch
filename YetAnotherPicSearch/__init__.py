@@ -11,7 +11,7 @@ from .data_source import load_search_func
 
 load_search_func()
 
-__version__ = "2.0.9"
+__version__ = "2.0.10"
 __plugin_meta__ = PluginMetadata(
     name="YetAnotherPicSearch",
     description="基于 NoneBot2 及 PicImageSearch 的另一个 NoneBot 搜图插件",

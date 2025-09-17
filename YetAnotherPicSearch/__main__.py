@@ -16,18 +16,19 @@ from nonebot.matcher import current_bot, current_event, current_matcher
 from nonebot.params import _command, _command_arg
 from nonebot.permission import SUPERUSER
 from nonebot.typing import T_State
+from nonebot_plugin_alconna import UniMsg
 from nonebot_plugin_alconna.uniseg import (
     At,
     CustomNode,
     FallbackStrategy,
     Image,
     MsgTarget,
+    OriginalUniMsg,
     Reference,
     SerializeFailed,
     Target,
     Text,
     UniMessage,
-    UniMsg,
     get_message_id,
 )
 from nonebot_plugin_waiter import waiter
@@ -50,7 +51,7 @@ class SearchArgs:
     purge: bool = False
 
 
-async def extract_images(msg: UniMsg) -> list[Image]:
+async def extract_images(msg: UniMessage) -> list[Image]:
     if r := extract_reply_msg(msg):
         msg = r
     return msg[Image]
@@ -64,9 +65,11 @@ async def rule_func_search_msg(
     target: MsgTarget,
 ) -> bool:
     if target.private:
-        images = await extract_images(msg)
+        if not config.search_immediately:
+            return False
+        images = await extract_images(await msg.attach_reply())
         state[KEY_IMAGES] = images
-        return bool(images) and config.search_immediately
+        return bool(images)
 
     # 指令检测在下方做了
     # 不太方便做是否回复 Bot 自己消息的判断，阉了吧
@@ -296,7 +299,7 @@ async def handle_single_image(
     msg_cache[cache_key] = search_results
 
 
-async def search_handler(msg: UniMsg, target: MsgTarget) -> None:
+async def search_handler(msg: OriginalUniMsg, target: MsgTarget) -> None:
     arg = await extract_search_args()
     images = await get_images_from_ev(msg)
 
